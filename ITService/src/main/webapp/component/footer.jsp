@@ -7,11 +7,27 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    </head>
-    <body>
-        <h1>Hello World!</h1>
-    </body>
+<style>
+        /* FOOTER */
+        .footer {
+            background-color: #222;
+            color: #bbb;
+            margin-top: 50px;
+        }
+
+        .footer-container {
+            width: 85%;
+            margin: auto;
+            padding: 20px 0;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+
+    <footer class="footer">
+        <div class="footer-container">
+            © 2026 MyWebsite | JSP Demo Layout
+        </div>
+    </footer>
+    
 </html>
