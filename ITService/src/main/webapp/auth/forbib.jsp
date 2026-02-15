@@ -1,18 +1,17 @@
 <%-- 
-    Document   : index
-    Created on : Feb 5, 2026, 11:23:39 PM
+    Document   : forbib
+    Created on : Feb 15, 2026, 2:20:52 PM
     Author     : Lo Pc
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<%@include file="../component/header.jsp" %>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>JSP Page</title>
     </head>
     <body>
-        <h1>Hello World!</h1>
+        <h1>Error!</h1>
     </body>
 </html>

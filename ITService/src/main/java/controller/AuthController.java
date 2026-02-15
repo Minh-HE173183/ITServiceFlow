@@ -4,6 +4,7 @@
  */
 package controller;
 
+import dao.UserDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -11,6 +12,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.util.List;
+import model.User;
 
 /**
  *
@@ -57,7 +61,47 @@ public class AuthController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        String action = request.getParameter("action");
+        action = action == null ? "login" : action;
+        switch (action) {
+            case "login":
+                this.loginView(request, response);
+                break;
+            case "logout":
+                this.logout(request, response);
+                break;
+            case "forbib":
+                this.forbib(request, response);
+                break;
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    private void forbib(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            request.getRequestDispatcher("./auth/forbib.jsp").forward(request, response);
+        } catch (Exception e) {
+            System.out.println("Error:" + e);
+        }
+    }
+
+    private void loginView(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            request.getRequestDispatcher("./auth/login.jsp").forward(request, response);
+        } catch (Exception e) {
+            System.out.println("Error:" + e);
+        }
+    }
+
+    private void logout(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            HttpSession session = request.getSession();
+            session.setAttribute("dalogin", null);
+            response.sendRedirect("auth?action=login");
+        } catch (Exception e) {
+            System.out.println("Error:" + e);
+        }
     }
 
     /**
@@ -71,7 +115,34 @@ public class AuthController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        String action = request.getParameter("action");
+        action = action == null ? "login" : action;
+        switch (action) {
+            case "login":
+                this.login(request, response);
+                break;
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    private void login(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            String username = request.getParameter("username");
+            String password = request.getParameter("password_hash");
+            UserDAO userdao = new UserDAO();
+            User userLogin = userdao.login(username, password);
+            if (userLogin != null) {
+                HttpSession session = request.getSession();
+                session.setAttribute("dalogin", userLogin);
+                response.sendRedirect("index");
+            } else {
+                request.setAttribute("message", "login that bai");
+                request.getRequestDispatcher("./auth/login.jsp").forward(request, response);
+            }
+        } catch (Exception e) {
+            System.out.println("login:" + e);
+        }
     }
 
     /**
