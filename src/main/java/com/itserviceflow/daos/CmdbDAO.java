@@ -4,10 +4,159 @@
  */
 package com.itserviceflow.daos;
 
+import com.itserviceflow.models.ConfigurationItem;
+import com.itserviceflow.models.CiRelationship;
+import com.itserviceflow.utils.DBConnection;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author Admin
  */
 public class CmdbDAO {
-    
+    public List<ConfigurationItem> getAllConfigurationItems() {
+        List<ConfigurationItem> items = new ArrayList<>();
+        String sql = "SELECT * FROM configuration_item";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                items.add(mapRowToCI(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return items;
+    }
+
+    public ConfigurationItem getConfigurationItemById(int ciId) {
+        String sql = "SELECT * FROM configuration_item WHERE ci_id = ?";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, ciId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapRowToCI(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean createConfigurationItem(ConfigurationItem ci) {
+        String sql = "INSERT INTO configuration_item (ci_name, ci_type_id, ci_code, status, location, owner_id, "
+                + "manufacturer, model, serial_number, ip_address, description) "
+                + "VALUES (?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, ci.getCiName());
+            stmt.setInt(2, ci.getCiTypeId());
+            stmt.setString(3, "CI-" + System.currentTimeMillis());
+            stmt.setString(4, ci.getLocation());
+            if (ci.getOwnerId() != null) {
+                stmt.setInt(5, ci.getOwnerId());
+            } else {
+                stmt.setNull(5, Types.INTEGER);
+            }
+            stmt.setString(6, ci.getManufacturer());
+            stmt.setString(7, ci.getModel());
+            stmt.setString(8, ci.getSerialNumber());
+            stmt.setString(9, ci.getIpAddress());
+            stmt.setString(10, ci.getDescription());
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean updateConfigurationItem(ConfigurationItem ci) {
+        String sql = "UPDATE configuration_item SET ci_name = ?, location = ?, owner_id = ?, "
+                + "manufacturer = ?, model = ?, serial_number = ?, ip_address = ?, description = ?, status = ? "
+                + "WHERE ci_id = ?";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, ci.getCiName());
+            stmt.setString(2, ci.getLocation());
+            if (ci.getOwnerId() != null) {
+                stmt.setInt(3, ci.getOwnerId());
+            } else {
+                stmt.setNull(3, Types.INTEGER);
+            }
+            stmt.setString(4, ci.getManufacturer());
+            stmt.setString(5, ci.getModel());
+            stmt.setString(6, ci.getSerialNumber());
+            stmt.setString(7, ci.getIpAddress());
+            stmt.setString(8, ci.getDescription());
+            stmt.setString(9, ci.getStatus());
+            stmt.setInt(10, ci.getCiId());
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteConfigurationItem(int ciId) {
+        String checkSql = "SELECT status, "
+                + "(SELECT COUNT(*) FROM ticket WHERE ci_id = ?) as ticket_count, "
+                + "(SELECT COUNT(*) FROM change_ci WHERE ci_id = ?) as change_count, "
+                + "(SELECT COUNT(*) FROM ci_relationship WHERE parent_ci_id = ? OR child_ci_id = ?) as rel_count "
+                + "FROM configuration_item WHERE ci_id = ?";
+
+        String deleteSql = "DELETE FROM configuration_item WHERE ci_id = ?";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            checkStmt.setInt(1, ciId);
+            checkStmt.setInt(2, ciId);
+            checkStmt.setInt(3, ciId);
+            checkStmt.setInt(4, ciId);
+            checkStmt.setInt(5, ciId);
+
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next()) {
+                    String status = rs.getString("status");
+                    int ticketCount = rs.getInt("ticket_count");
+                    int changeCount = rs.getInt("change_count");
+                    int relCount = rs.getInt("rel_count");
+
+                    if ("INACTIVE".equals(status) && ticketCount == 0 && changeCount == 0 && relCount == 0) {
+                        try (PreparedStatement delStmt = conn.prepareStatement(deleteSql)) {
+                            delStmt.setInt(1, ciId);
+                            return delStmt.executeUpdate() > 0;
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private ConfigurationItem mapRowToCI(ResultSet rs) throws SQLException {
+        ConfigurationItem ci = new ConfigurationItem();
+        ci.setCiId(rs.getInt("ci_id"));
+        ci.setCiName(rs.getString("ci_name"));
+        ci.setCiTypeId(rs.getInt("ci_type_id"));
+        ci.setCiCode(rs.getString("ci_code"));
+        ci.setStatus(rs.getString("status"));
+        ci.setLocation(rs.getString("location"));
+        Object ownerObj = rs.getObject("owner_id");
+        if (ownerObj != null) {
+            ci.setOwnerId((Integer) ownerObj);
+        }
+        ci.setManufacturer(rs.getString("manufacturer"));
+        ci.setModel(rs.getString("model"));
+        ci.setSerialNumber(rs.getString("serial_number"));
+        ci.setIpAddress(rs.getString("ip_address"));
+        ci.setDescription(rs.getString("description"));
+        ci.setUpdatedAt(rs.getTimestamp("updated_at"));
+        return ci;
+    }
 }
