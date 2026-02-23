@@ -17,6 +17,7 @@ import java.util.List;
  * @author Admin
  */
 public class CmdbDAO {
+
     public List<ConfigurationItem> getAllConfigurationItems() {
         List<ConfigurationItem> items = new ArrayList<>();
         String sql = "SELECT * FROM configuration_item";
@@ -137,6 +138,61 @@ public class CmdbDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public boolean toggleConfigurationItemStatus(int ciId, String currentStatus) {
+        String newStatus = "ACTIVE".equals(currentStatus) ? "INACTIVE" : "ACTIVE";
+        String sql = "UPDATE configuration_item SET status = ? WHERE ci_id = ?";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, newStatus);
+            stmt.setInt(2, ciId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public List<CiRelationship> getCiRelationships(int ciId) {
+        List<CiRelationship> relationships = new ArrayList<>();
+        String sql = "SELECT * FROM ci_relationship WHERE parent_ci_id = ? OR child_ci_id = ?";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, ciId);
+            stmt.setInt(2, ciId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    CiRelationship rel = new CiRelationship();
+                    rel.setRelationshipId(rs.getInt("relationship_id"));
+                    rel.setParentCiId(rs.getInt("parent_ci_id"));
+                    rel.setChildCiId(rs.getInt("child_ci_id"));
+                    rel.setRelationshipType(rs.getString("relationship_type"));
+                    rel.setDescription(rs.getString("description"));
+                    relationships.add(rel);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return relationships;
+    }
+
+    public List<ConfigurationItem> getImpactedCis(int problemCiId) {
+        List<ConfigurationItem> impactedCis = new ArrayList<>();
+        String sql = "SELECT c.* FROM configuration_item c "
+                + "JOIN ci_relationship r ON c.ci_id = r.child_ci_id "
+                + "WHERE r.parent_ci_id = ? AND r.relationship_type IN ('DEPENDS_ON', 'HOSTED_BY')";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, problemCiId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    impactedCis.add(mapRowToCI(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return impactedCis;
     }
 
     private ConfigurationItem mapRowToCI(ResultSet rs) throws SQLException {
