@@ -324,6 +324,35 @@
                                 </div>
                             </div>
 
+                            <!-- ── Conditions ─────────────────────────────────── -->
+                            <div class="workflow-card mb-4" id="conditionsCard" style="display:none;">
+                                <div
+                                    class="card-header-bar d-flex align-items-center justify-content-between px-4 py-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fa fa-filter text-info"></i>
+                                        <span class="fw-bold">Trigger Conditions</span>
+                                        <span class="badge bg-info ms-1" id="conditionCountBadge"
+                                            style="font-size:10px;">All tickets</span>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-info"
+                                            onclick="addCondition()">
+                                            <i class="bi bi-plus-circle me-1"></i>Add Condition
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="p-4">
+                                    <div id="conditionsContainer">
+                                        <!-- Conditions will be rendered here -->
+                                        <div class="text-center py-2 text-muted" id="noConditionsMsg">
+                                            <small><i class="fa fa-info-circle me-1"></i> No conditions set. This
+                                                workflow will apply to <strong>ALL</strong> tickets of this trigger
+                                                type.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- ── Steps Builder ────────────────────────────── -->
                             <div class="workflow-card mb-4">
                                 <div
@@ -523,321 +552,518 @@
             <script type="application/json"
                 id="existingConfig"><c:out value="${workflow.workflowConfig}" escapeXml="false"/></script>
 
-            <script>
-                // ════════════════════════════════════════
-                // STATE
-                // ════════════════════════════════════════
-                let selectedTrigger = 'TICKET_CREATED';
-                let steps = [];
-                let stepIdCounter = 0;
-
-                const ROLES = ['Manager', 'Finance', 'IT Support', 'HR', 'Director', 'Security Team', 'Legal'];
-                const ACTIONS = [
-                    { value: 'APPROVE_REJECT', label: 'Approve / Reject', badgeClass: 'badge-approve' },
-                    { value: 'REVIEW', label: 'Review Only', badgeClass: 'badge-review' },
-                    { value: 'EXECUTE', label: 'Execute Task', badgeClass: 'badge-execute' },
-                    { value: 'NOTIFY', label: 'Notify Only', badgeClass: 'badge-notify' },
-                ];
-
-                // Cache DOM refs that renderSteps() uses — must be BEFORE init() runs
-                var _placeholder = document.getElementById('emptyStepsPlaceholder');
-                var _addStepBtn = document.getElementById('addStepBtn');
-
-                // ════════════════════════════════════════
-                // INIT
-                // ════════════════════════════════════════
-                (function init() {
-                    const dataEl = document.getElementById('existingConfig');
-                    const raw = dataEl ? dataEl.textContent.trim() : '';
-                    if (raw && raw !== 'null') {
-                        try {
-                            const cfg = JSON.parse(raw);
-                            if (cfg.trigger) selectedTrigger = cfg.trigger;
-                            if (Array.isArray(cfg.steps)) {
-                                cfg.steps.forEach(function (s) {
-                                    steps.push({
-                                        id: ++stepIdCounter,
-                                        name: s.name || '',
-                                        role: s.role || ROLES[0],
-                                        action: s.action || 'APPROVE_REJECT',
-                                        sla_hours: s.sla_hours || 24
-                                    });
-                                });
-                            }
-                            if (cfg.notifications) {
-                                ['on_create', 'on_approve', 'on_reject'].forEach(function (evt) {
-                                    var arr = cfg.notifications[evt];
-                                    if (Array.isArray(arr)) {
-                                        arr.forEach(function (recipient) {
-                                            var cb = document.querySelector('.notif-cb[data-event="' + evt + '"][data-recipient="' + recipient + '"]');
-                                            if (cb) { cb.checked = true; toggleNotif(cb.closest('label'), cb); }
-                                        });
-                                    }
-                                });
-                            }
-                        } catch (e) { }
-                    }
-                    renderTriggerSelection();
-                    renderSteps();
-                    updateJsonPreview();
-                })();
-
-                // ════════════════════════════════════════
-                // TRIGGER
-                // ════════════════════════════════════════
-                function selectTrigger(el) {
-                    document.querySelectorAll('.trigger-option').forEach(function (o) { o.classList.remove('selected'); });
-                    el.classList.add('selected');
-                    selectedTrigger = el.dataset.trigger;
-                    updateJsonPreview();
-                }
-                function renderTriggerSelection() {
-                    document.querySelectorAll('.trigger-option').forEach(function (o) {
-                        if (o.dataset.trigger === selectedTrigger) o.classList.add('selected');
-                    });
-                }
-
-                // ════════════════════════════════════════
-                // STEPS
-                // ════════════════════════════════════════
-                function addStep() {
-                    stepIdCounter++;
-                    steps.push({ id: stepIdCounter, name: '', role: ROLES[0], action: 'APPROVE_REJECT', sla_hours: 24 });
-                    renderSteps();
-                    updateJsonPreview();
-                }
-                function removeStep(id) {
-                    steps = steps.filter(function (s) { return s.id !== id; });
-                    renderSteps();
-                    updateJsonPreview();
-                }
-                function moveStep(id, dir) {
-                    var idx = steps.findIndex(function (s) { return s.id === id; });
-                    if (idx < 0) return;
-                    var newIdx = idx + dir;
-                    if (newIdx < 0 || newIdx >= steps.length) return;
-                    var tmp = steps[idx]; steps[idx] = steps[newIdx]; steps[newIdx] = tmp;
-                    renderSteps();
-                    updateJsonPreview();
-                }
-                function updateStepField(id, field, value) {
-                    var s = steps.find(function (s) { return s.id === id; });
-                    if (s) {
-                        s[field] = (field === 'sla_hours') ? (parseInt(value, 10) || 0) : value;
-                    }
-                    updateJsonPreview();
-                }
-
-
-                function renderSteps() {
-                    var container = document.getElementById('stepsContainer');
-                    var badge = document.getElementById('stepCountBadge');
-
-                    badge.textContent = steps.length + ' step' + (steps.length !== 1 ? 's' : '');
-
-                    if (steps.length === 0) {
-                        // Re-attach placeholder in case innerHTML wiped it before
-                        if (!_placeholder.parentNode || _placeholder.parentNode !== container) {
-                            container.innerHTML = '';
-                            container.appendChild(_placeholder);
-                        }
-                        _placeholder.style.display = '';
-                        _addStepBtn.classList.add('d-none');
-                        return;
-                    }
-
-                    // Has steps — hide placeholder, build step cards
-                    _placeholder.style.display = 'none';
-                    _addStepBtn.classList.remove('d-none');
-
-                    var html = '';
-                    steps.forEach(function (s, i) {
-                        var actionInfo = ACTIONS.find(function (a) { return a.value === s.action; }) || ACTIONS[0];
-                        var roleOptions = ROLES.map(function (r) {
-                            return '<option value="' + r + '" ' + (s.role === r ? 'selected' : '') + '>' + r + '</option>';
-                        }).join('');
-                        var actionOptions = ACTIONS.map(function (a) {
-                            return '<option value="' + a.value + '" ' + (s.action === a.value ? 'selected' : '') + '>' + a.label + '</option>';
-                        }).join('');
-
-                        var upBtn = i > 0
-                            ? '<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Up" onclick="moveStep(' + s.id + ', -1)"><i class="fa fa-chevron-up"></i></button>'
-                            : '<span style="display:inline-block;width:22px;"></span>';
-                        var downBtn = i < steps.length - 1
-                            ? '<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Down" onclick="moveStep(' + s.id + ', 1)"><i class="fa fa-chevron-down"></i></button>'
-                            : '<span style="display:inline-block;width:22px;"></span>';
-                        var connector = i < steps.length - 1
-                            ? '<div class="step-connector my-1"></div>'
-                            : '';
-
-                        html +=
-                            '<div class="step-card p-3 mb-2 d-flex align-items-start gap-3" data-step-id="' + s.id + '">' +
-                            '<div class="d-flex flex-column align-items-center gap-1 pt-1">' +
-                            '<div class="step-number">' + (i + 1) + '</div>' +
-                            upBtn + downBtn +
-                            '</div>' +
-                            '<div class="flex-grow-1 row g-3">' +
-                            '<div class="col-md-4">' +
-                            '<label class="form-label text-secondary" style="font-size:11px;margin-bottom:4px;">STEP NAME</label>' +
-                            '<input type="text" class="form-control form-control-sm" placeholder="e.g. Manager Approval"' +
-                            ' value="' + escHtml(s.name) + '"' +
-                            ' oninput="updateStepField(' + s.id + ', \'name\', this.value)" />' +
-                            '</div>' +
-                            '<div class="col-md-3">' +
-                            '<label class="form-label text-secondary" style="font-size:11px;margin-bottom:4px;">ASSIGNED ROLE</label>' +
-                            '<select class="form-select form-select-sm" onchange="updateStepField(' + s.id + ', \'role\', this.value)">' +
-                            roleOptions +
-                            '</select>' +
-                            '</div>' +
-                            '<div class="col-md-3">' +
-                            '<label class="form-label text-secondary" style="font-size:11px;margin-bottom:4px;">ACTION TYPE</label>' +
-                            '<select class="form-select form-select-sm" onchange="updateStepField(' + s.id + ', \'action\', this.value)">' +
-                            actionOptions +
-                            '</select>' +
-                            '</div>' +
-                            '<div class="col-md-2">' +
-                            '<label class="form-label text-secondary" style="font-size:11px;margin-bottom:4px;">SLA (hours)</label>' +
-                            '<input type="number" class="form-control form-control-sm" min="1" max="8760"' +
-                            ' value="' + s.sla_hours + '"' +
-                            ' oninput="updateStepField(' + s.id + ', \'sla_hours\', this.value)" />' +
-                            '</div>' +
-                            '<div class="col-12">' +
-                            '<span class="action-badge ' + actionInfo.badgeClass + '">' + actionInfo.label + '</span>' +
-                            '</div>' +
-                            '</div>' +
-                            '<button type="button" class="btn btn-sm btn-link text-danger p-0 mt-1 flex-shrink-0" title="Remove Step" onclick="removeStep(' + s.id + ')">' +
-                            '<i class="fa fa-trash"></i>' +
-                            '</button>' +
-                            '</div>' + connector;
-                    });
-
-                    // Detach placeholder before wiping innerHTML, then re-insert hidden
-                    if (_placeholder.parentNode === container) {
-                        container.removeChild(_placeholder);
-                    }
-                    container.innerHTML = html;
-                }
-
-                // ════════════════════════════════════════
-                // NOTIFICATIONS
-                // ════════════════════════════════════════
-                document.querySelectorAll('.notif-toggle').forEach(function (label) {
-                    label.addEventListener('click', function () {
-                        var cb = this.querySelector('.notif-cb');
-                        cb.checked = !cb.checked;
-                        toggleNotif(this, cb);
-                    });
-                });
-                function toggleNotif(label, cb) {
-                    if (cb.checked) label.classList.add('active');
-                    else label.classList.remove('active');
-                    updateJsonPreview();
-                }
-                function getNotifications() {
-                    var notifs = { on_create: [], on_approve: [], on_reject: [] };
-                    document.querySelectorAll('.notif-cb:checked').forEach(function (cb) {
-                        if (notifs[cb.dataset.event]) notifs[cb.dataset.event].push(cb.dataset.recipient);
-                    });
-                    return notifs;
-                }
-
-                // ════════════════════════════════════════
-                // JSON BUILD
-                // ════════════════════════════════════════
-                function buildConfig() {
-                    return {
-                        trigger: selectedTrigger,
-                        steps: steps.map(function (s, i) {
-                            return { order: i + 1, name: s.name || ('Step ' + (i + 1)), role: s.role, action: s.action, sla_hours: s.sla_hours };
-                        }),
-                        notifications: getNotifications()
-                    };
-                }
-                function updateJsonPreview() {
-                    var json = JSON.stringify(buildConfig(), null, 2);
-                    document.getElementById('jsonPreview').textContent = json;
-                    document.getElementById('workflowConfigHidden').value = json;
-                }
-
-                // ════════════════════════════════════════
-                // STATUS HINT
-                // ════════════════════════════════════════
-                var statusSelect = document.getElementById('status');
-                var statusHint = document.getElementById('statusHint');
-                var hints = {
-                    DRAFT: { cls: 'alert-secondary', icon: 'fa-pencil', text: '<strong>Draft:</strong> Not yet active. The workflow won\'t run until set to Active.' },
-                    ACTIVE: { cls: 'alert-success', icon: 'fa-circle-play', text: '<strong>Active:</strong> Live — will be applied to new tickets automatically.' },
-                    INACTIVE: { cls: 'alert-warning', icon: 'fa-circle-pause', text: '<strong>Inactive:</strong> Paused — will not trigger for new tickets.' }
-                };
-                function updateStatusHint() {
-                    var h = hints[statusSelect.value];
-                    if (h) {
-                        statusHint.innerHTML =
-                            '<div class="alert ' + h.cls + ' d-flex align-items-center gap-2 p-2 mb-0" role="alert">' +
-                            '<i class="fa ' + h.icon + ' flex-shrink-0"></i>' +
-                            '<small>' + h.text + '</small></div>';
-                    } else { statusHint.innerHTML = ''; }
-                }
-                statusSelect.addEventListener('change', updateStatusHint);
-                updateStatusHint();
-
-                // ════════════════════════════════════════
-                // CHAR COUNTER
-                // ════════════════════════════════════════
-                var descArea = document.getElementById('description');
-                var charCount = document.getElementById('descCharCount');
-                function updateCharCount() {
-                    var len = descArea.value.length;
-                    charCount.textContent = len;
-                    charCount.style.color = len > 480 ? '#ef4444' : '';
-                }
-                descArea.addEventListener('input', updateCharCount);
-                updateCharCount();
-
-                // ════════════════════════════════════════
-                // SAVE AS DRAFT
-                // ════════════════════════════════════════
-                function saveDraft() {
-                    document.getElementById('status').value = 'DRAFT';
-                    document.getElementById('workflowForm').requestSubmit();
-                }
-
-                // ════════════════════════════════════════
-                // FORM SUBMIT
-                // ════════════════════════════════════════
-                var submitBtn = document.getElementById('submitBtn');
-                var submitBtnOrigHTML = submitBtn.innerHTML;
-
-                document.getElementById('workflowForm').addEventListener('submit', function (e) {
-                    updateJsonPreview();
-                    if (!this.checkValidity()) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        this.classList.add('was-validated');
-                        return;
-                    }
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving…';
-                    setTimeout(function () {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = submitBtnOrigHTML;
-                    }, 15000);
-                });
-
-                window.addEventListener('pageshow', function (e) {
-                    if (e.persisted) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = submitBtnOrigHTML;
-                    }
-                });
-
-                // ════════════════════════════════════════
-                // UTILS
-                // ════════════════════════════════════════
-                function escHtml(str) {
-                    if (!str) return '';
-                    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-                }
+            <%-- Metadata for conditions --%>
+                <script type="application/json" id="metaTicketTypes">
+                [<c:forEach items="${ticketTypes}" var="t" varStatus="loop">"${t}"${!loop.last ? ',' : ''}</c:forEach>]
+            </script>
+                <script type="application/json" id="metaPriorities">
+                [<c:forEach items="${priorities}" var="p" varStatus="loop">"${p}"${!loop.last ? ',' : ''}</c:forEach>]
+            </script>
+                <script type="application/json" id="metaCategories">
+                [
+                    <c:forEach items="${categories}" var="c" varStatus="loop">
+                        {"id": ${c.categoryId}, "name": "${c.categoryName}"}${!loop.last ? ',' : ''}
+                    </c:forEach>
+                ]
             </script>
 
-            <jsp:include page="/WEB-INF/views/layout/footer.jsp" />
+                <script>
+                    // ════════════════════════════════════════
+                    // STATE
+                    // ════════════════════════════════════════
+                    let selectedTrigger = 'TICKET_CREATED';
+                    let steps = [];
+                    let conditions = [];
+                    let conditionLogic = 'AND';
+                    let stepIdCounter = 0;
+                    let conditionIdCounter = 0;
+
+                    const TICKET_TYPES = JSON.parse(document.getElementById('metaTicketTypes').textContent || '[]');
+                    const PRIORITIES = JSON.parse(document.getElementById('metaPriorities').textContent || '[]');
+                    const CATEGORIES = JSON.parse(document.getElementById('metaCategories').textContent || '[]');
+
+                    const ROLES = ['Manager', 'Finance', 'IT Support', 'HR', 'Director', 'Security Team', 'Legal'];
+                    const ACTIONS = [
+                        { value: 'APPROVE_REJECT', label: 'Approve / Reject', badgeClass: 'badge-approve' },
+                        { value: 'REVIEW', label: 'Review Only', badgeClass: 'badge-review' },
+                        { value: 'EXECUTE', label: 'Execute Task', badgeClass: 'badge-execute' },
+                        { value: 'NOTIFY', label: 'Notify Only', badgeClass: 'badge-notify' },
+                    ];
+
+                    // Cache DOM refs that renderSteps() uses — must be BEFORE init() runs
+                    var _placeholder = document.getElementById('emptyStepsPlaceholder');
+                    var _addStepBtn = document.getElementById('addStepBtn');
+
+                    // ════════════════════════════════════════
+                    // INIT
+                    // ════════════════════════════════════════
+                    (function init() {
+                        const dataEl = document.getElementById('existingConfig');
+                        const raw = dataEl ? dataEl.textContent.trim() : '';
+                        if (raw && raw !== 'null') {
+                            try {
+                                const cfg = JSON.parse(raw);
+                                if (cfg.trigger) selectedTrigger = cfg.trigger;
+                                if (cfg.conditions) {
+                                    if (Array.isArray(cfg.conditions)) {
+                                        cfg.conditions.forEach(function (c) {
+                                            conditions.push({
+                                                id: ++conditionIdCounter,
+                                                field: c.field,
+                                                operator: c.operator || 'EQUALS',
+                                                value: c.value
+                                            });
+                                        });
+                                    } else if (cfg.conditions.type === 'group') {
+                                        conditionLogic = cfg.conditions.logic || 'AND';
+                                        (cfg.conditions.criteria || []).forEach(function (c) {
+                                            if (c.type === 'condition') {
+                                                conditions.push({
+                                                    id: ++conditionIdCounter,
+                                                    field: c.field,
+                                                    operator: c.operator || 'EQUALS',
+                                                    value: c.value
+                                                });
+                                            }
+                                        });
+                                    }
+                                }
+                                if (Array.isArray(cfg.steps)) {
+                                    cfg.steps.forEach(function (s) {
+                                        steps.push({
+                                            id: ++stepIdCounter,
+                                            name: s.name || '',
+                                            role: s.role || ROLES[0],
+                                            action: s.action || 'APPROVE_REJECT',
+                                            sla_hours: s.sla_hours || 24
+                                        });
+                                    });
+                                }
+                                if (cfg.notifications) {
+                                    ['on_create', 'on_approve', 'on_reject'].forEach(function (evt) {
+                                        var arr = cfg.notifications[evt];
+                                        if (Array.isArray(arr)) {
+                                            arr.forEach(function (recipient) {
+                                                var cb = document.querySelector('.notif-cb[data-event="' + evt + '"][data-recipient="' + recipient + '"]');
+                                                if (cb) { cb.checked = true; toggleNotif(cb.closest('label'), cb); }
+                                            });
+                                        }
+                                    });
+                                }
+                            } catch (e) { }
+                        }
+                        renderTriggerSelection();
+                        renderConditions();
+                        renderSteps();
+                        updateJsonPreview();
+                        updateTriggerUI();
+                    })();
+
+                    // ════════════════════════════════════════
+                    // TRIGGER
+                    // ════════════════════════════════════════
+                    function selectTrigger(el) {
+                        document.querySelectorAll('.trigger-option').forEach(function (o) { o.classList.remove('selected'); });
+                        el.classList.add('selected');
+                        selectedTrigger = el.dataset.trigger;
+                        updateTriggerUI();
+                        updateJsonPreview();
+                    }
+                    function updateTriggerUI() {
+                        const card = document.getElementById('conditionsCard');
+                        if (['TICKET_CREATED', 'TICKET_UPDATED', 'SLA_BREACH'].includes(selectedTrigger)) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    }
+                    function renderTriggerSelection() {
+                        document.querySelectorAll('.trigger-option').forEach(function (o) {
+                            if (o.dataset.trigger === selectedTrigger) o.classList.add('selected');
+                        });
+                        updateTriggerUI();
+                    }
+
+                    // ════════════════════════════════════════
+                    // CONDITIONS (FLAT LIST)
+                    // ════════════════════════════════════════
+                    function addCondition() {
+                        conditionIdCounter++;
+                        const nextField = conditions.length === 0 ? 'ticket_type' : (conditions.length === 1 ? 'priority' : 'category_id');
+                        conditions.push({
+                            id: conditionIdCounter,
+                            field: nextField,
+                            operator: 'EQUALS',
+                            value: ''
+                        });
+                        renderConditions();
+                        updateJsonPreview();
+                    }
+
+                    function removeCondition(id) {
+                        conditions = conditions.filter(c => c.id !== id);
+                        renderConditions();
+                        updateJsonPreview();
+                    }
+
+                    function updateCondition(id, field, value) {
+                        const c = conditions.find(c => c.id === id);
+                        if (c) {
+                            c[field] = value;
+                            if (field === 'field') c.value = '';
+                        }
+                        if (field === 'field') renderConditions();
+                        updateJsonPreview();
+                    }
+
+                    function renderConditions() {
+                        const container = document.getElementById('conditionsContainer');
+                        const badge = document.getElementById('conditionCountBadge');
+
+                        if (conditions.length === 0) {
+                            container.innerHTML = `<div class="text-center py-4 text-secondary opacity-50">
+                                <i class="bi bi-filter-circle fs-2 d-block mb-2"></i>
+                                <small>No conditions set. This workflow applies to all matching tickets.</small>
+                            </div>`;
+                            badge.textContent = 'All tickets';
+                            return;
+                        }
+
+                        badge.textContent = conditions.length + (conditions.length === 1 ? ' condition' : ' conditions');
+
+                        let html = '';
+                        if (conditions.length > 1) {
+                            html += `
+                                <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom border-secondary-subtle">
+                                    <span class="text-secondary small">Match</span>
+                                    <select class="form-select form-select-sm fw-bold border-secondary-subtle" style="width: auto;" 
+                                            onchange="conditionLogic = this.value; updateJsonPreview();">
+                                        <option value="AND" \${conditionLogic === 'AND' ? 'selected' : ''}>ALL (AND)</option>
+                                        <option value="OR" \${conditionLogic === 'OR' ? 'selected' : ''}>ANY (OR)</option>
+                                    </select>
+                                    <span class="text-secondary small">of the following conditions:</span>
+                                </div>`;
+                        }
+
+                        html += `<div class="conditions-list">`;
+                        conditions.forEach(c => {
+                            html += renderConditionRow(c);
+                        });
+                        html += `</div>`;
+
+                        container.innerHTML = html;
+                    }
+
+                    function renderConditionRow(c) {
+                        const fieldOptions = [
+                            { value: 'ticket_type', label: 'Ticket Type' },
+                            { value: 'priority', label: 'Priority' },
+                            { value: 'category_id', label: 'Category' }
+                        ].map(f => `<option value="\${f.value}" \${c.field === f.value ? 'selected' : ''}>\${f.label}</option>`).join('');
+
+                        const operatorOptions = [
+                            { value: 'EQUALS', label: 'is' },
+                            { value: 'NOT_EQUALS', label: 'is not' }
+                        ].map(o => `<option value="\${o.value}" \${c.operator === o.value ? 'selected' : ''}>\${o.label}</option>`).join('');
+
+                        let valueInput = '';
+                        if (c.field === 'ticket_type') {
+                            valueInput = `<select class="form-select form-select-sm" onchange="updateCondition(\${c.id}, 'value', this.value)">
+                                <option value="">-- Type --</option>
+                                \${TICKET_TYPES.map(t => `< option value = "\${t}" \${ c.value === t ? 'selected' : '' }>\${ t }</option > `).join('')}
+                            </select>`;
+                        } else if (c.field === 'priority') {
+                            valueInput = `<select class="form-select form-select-sm" onchange="updateCondition(\${c.id}, 'value', this.value)">
+                                <option value="">-- Priority --</option>
+                                \${PRIORITIES.map(p => `< option value = "\${p}" \${ c.value === p ? 'selected' : '' }>\${ p }</option > `).join('')}
+                            </select>`;
+                        } else if (c.field === 'category_id') {
+                            valueInput = `<select class="form-select form-select-sm" onchange="updateCondition(\${c.id}, 'value', this.value)">
+                                <option value="">-- Category --</option>
+                                \${CATEGORIES.map(cat => `< option value = "\${cat.id}" \${ c.value == cat.id ? 'selected' : '' }>\${ cat.name }</option > `).join('')}
+                            </select>`;
+                        }
+
+                        const fieldIcons = { 'ticket_type': 'bi-tag', 'priority': 'bi-exclamation-triangle', 'category_id': 'bi-folder' };
+                        const icon = fieldIcons[c.field] || 'bi-filter';
+
+                        return `
+                            <div class="row g-2 mb-2 align-items-center condition-row p-2 border border-secondary-subtle rounded bg-light bg-opacity-10">
+                                <div class="col-md-3">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text border-secondary-subtle"><i class="bi \${icon}"></i></span>
+                                        <select class="form-select form-select-sm" onchange="updateCondition(\${c.id}, 'field', this.value)">\${fieldOptions}</select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-select form-select-sm" onchange="updateCondition(\${c.id}, 'operator', this.value)">\${operatorOptions}</select>
+                                </div>
+                                <div class="col-md-6">\${valueInput}</div>
+                                <div class="col-md-1 text-end">
+                                    <button type="button" class="btn btn-sm text-danger" onclick="removeCondition(\${c.id})"><i class="bi bi-trash"></i></button>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    // ════════════════════════════════════════
+                    // STEPS
+                    // ════════════════════════════════════════
+                    function addStep() {
+                        stepIdCounter++;
+                        steps.push({ id: stepIdCounter, name: '', role: ROLES[0], action: 'APPROVE_REJECT', sla_hours: 24 });
+                        renderSteps();
+                        updateJsonPreview();
+                    }
+                    function removeStep(id) {
+                        steps = steps.filter(function (s) { return s.id !== id; });
+                        renderSteps();
+                        updateJsonPreview();
+                    }
+                    function moveStep(id, dir) {
+                        var idx = steps.findIndex(function (s) { return s.id === id; });
+                        if (idx < 0) return;
+                        var newIdx = idx + dir;
+                        if (newIdx < 0 || newIdx >= steps.length) return;
+                        var tmp = steps[idx]; steps[idx] = steps[newIdx]; steps[newIdx] = tmp;
+                        renderSteps();
+                        updateJsonPreview();
+                    }
+                    function updateStepField(id, field, value) {
+                        var s = steps.find(function (s) { return s.id === id; });
+                        if (s) {
+                            s[field] = (field === 'sla_hours') ? (parseInt(value, 10) || 0) : value;
+                        }
+                        updateJsonPreview();
+                    }
+
+
+                    function renderSteps() {
+                        var container = document.getElementById('stepsContainer');
+                        var badge = document.getElementById('stepCountBadge');
+
+                        badge.textContent = steps.length + ' step' + (steps.length !== 1 ? 's' : '');
+
+                        if (steps.length === 0) {
+                            // Re-attach placeholder in case innerHTML wiped it before
+                            if (!_placeholder.parentNode || _placeholder.parentNode !== container) {
+                                container.innerHTML = '';
+                                container.appendChild(_placeholder);
+                            }
+                            _placeholder.style.display = '';
+                            _addStepBtn.classList.add('d-none');
+                            return;
+                        }
+
+                        // Has steps — hide placeholder, build step cards
+                        _placeholder.style.display = 'none';
+                        _addStepBtn.classList.remove('d-none');
+
+                        var html = '';
+                        steps.forEach(function (s, i) {
+                            var actionInfo = ACTIONS.find(function (a) { return a.value === s.action; }) || ACTIONS[0];
+                            var roleOptions = ROLES.map(function (r) {
+                                return '<option value="' + r + '" ' + (s.role === r ? 'selected' : '') + '>' + r + '</option>';
+                            }).join('');
+                            var actionOptions = ACTIONS.map(function (a) {
+                                return '<option value="' + a.value + '" ' + (a.value === s.action ? 'selected' : '') + '>' + a.label + '</option>';
+                            }).join('');
+
+                            var upBtn = i > 0
+                                ? '<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Up" onclick="moveStep(' + s.id + ', -1)"><i class="fa fa-chevron-up"></i></button>'
+                                : '<span style="display:inline-block;width:22px;"></span>';
+                            var downBtn = i < steps.length - 1
+                                ? '<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Down" onclick="moveStep(' + s.id + ', 1)"><i class="fa fa-chevron-down"></i></button>'
+                                : '<span style="display:inline-block;width:22px;"></span>';
+                            var connector = i < steps.length - 1
+                                ? '<div class="step-connector my-1"></div>'
+                                : '';
+
+                            html +=
+                                '<div class="step-card p-3 mb-2 d-flex align-items-start gap-3" data-step-id="' + s.id + '">' +
+                                '<div class="d-flex flex-column align-items-center gap-1 pt-1">' +
+                                '<div class="step-number">' + (i + 1) + '</div>' +
+                                upBtn + downBtn +
+                                '</div>' +
+                                '<div class="flex-grow-1 row g-3">' +
+                                '<div class="col-md-4">' +
+                                '<label class="form-label text-secondary" style="font-size:11px;margin-bottom:4px;">STEP NAME</label>' +
+                                '<input type="text" class="form-control form-control-sm" placeholder="e.g. Manager Approval"' +
+                                ' value="' + escHtml(s.name) + '"' +
+                                ' oninput="updateStepField(' + s.id + ', \'name\', this.value)" />' +
+                                '</div>' +
+                                '<div class="col-md-3">' +
+                                '<label class="form-label text-secondary" style="font-size:11px;margin-bottom:4px;">ASSIGNED ROLE</label>' +
+                                '<select class="form-select form-select-sm" onchange="updateStepField(' + s.id + ', \'role\', this.value)">' +
+                                roleOptions +
+                                '</select>' +
+                                '</div>' +
+                                '<div class="col-md-3">' +
+                                '<label class="form-label text-secondary" style="font-size:11px;margin-bottom:4px;">ACTION TYPE</label>' +
+                                '<select class="form-select form-select-sm" onchange="updateStepField(' + s.id + ', \'action\', this.value)">' +
+                                actionOptions +
+                                '</select>' +
+                                '</div>' +
+                                '<div class="col-md-2">' +
+                                '<label class="form-label text-secondary" style="font-size:11px;margin-bottom:4px;">SLA (hours)</label>' +
+                                '<input type="number" class="form-control form-control-sm" min="1" max="8760"' +
+                                ' value="' + s.sla_hours + '"' +
+                                ' oninput="updateStepField(' + s.id + ', \'sla_hours\', this.value)" />' +
+                                '</div>' +
+                                '<div class="col-12">' +
+                                '<span class="action-badge ' + actionInfo.badgeClass + '">' + actionInfo.label + '</span>' +
+                                '</div>' +
+                                '</div>' +
+                                '<button type="button" class="btn btn-sm btn-link text-danger p-0 mt-1 flex-shrink-0" title="Remove Step" onclick="removeStep(' + s.id + ')">' +
+                                '<i class="fa fa-trash"></i>' +
+                                '</button>' +
+                                '</div>' + connector;
+                        });
+
+                        // Detach placeholder before wiping innerHTML, then re-insert hidden
+                        if (_placeholder.parentNode === container) {
+                            container.removeChild(_placeholder);
+                        }
+                        container.innerHTML = html;
+                    }
+
+                    // ════════════════════════════════════════
+                    // NOTIFICATIONS
+                    // ════════════════════════════════════════
+                    document.querySelectorAll('.notif-toggle').forEach(function (label) {
+                        label.addEventListener('click', function () {
+                            var cb = this.querySelector('.notif-cb');
+                            cb.checked = !cb.checked;
+                            toggleNotif(this, cb);
+                        });
+                    });
+                    function toggleNotif(label, cb) {
+                        if (cb.checked) label.classList.add('active');
+                        else label.classList.remove('active');
+                        updateJsonPreview();
+                    }
+                    function getNotifications() {
+                        var notifs = { on_create: [], on_approve: [], on_reject: [] };
+                        document.querySelectorAll('.notif-cb:checked').forEach(function (cb) {
+                            if (notifs[cb.dataset.event]) notifs[cb.dataset.event].push(cb.dataset.recipient);
+                        });
+                        return notifs;
+                    }
+
+                    // ════════════════════════════════════════
+                    // JSON BUILD
+                    // ════════════════════════════════════════
+                    function buildConfig() {
+                        return {
+                            trigger: selectedTrigger,
+                            conditions: {
+                                type: 'group',
+                                logic: conditionLogic,
+                                criteria: conditions.map(c => {
+                                    return {
+                                        type: 'condition',
+                                        field: c.field,
+                                        operator: c.operator,
+                                        value: c.value
+                                    };
+                                })
+                            },
+                            steps: steps.map(function (s, i) {
+                                return {
+                                    name: s.name,
+                                    role: s.role,
+                                    action: s.action,
+                                    sla_hours: s.sla_hours
+                                };
+                            }),
+                            notifications: getNotifications()
+                        };
+                    }
+                    function updateJsonPreview() {
+                        var json = JSON.stringify(buildConfig(), null, 2);
+                        document.getElementById('jsonPreview').textContent = json;
+                        document.getElementById('workflowConfigHidden').value = json;
+                    }
+
+                    // ════════════════════════════════════════
+                    // STATUS HINT
+                    // ════════════════════════════════════════
+                    var statusSelect = document.getElementById('status');
+                    var statusHint = document.getElementById('statusHint');
+                    var hints = {
+                        DRAFT: { cls: 'alert-secondary', icon: 'fa-pencil', text: '<strong>Draft:</strong> Not yet active. The workflow won\'t run until set to Active.' },
+                        ACTIVE: { cls: 'alert-success', icon: 'fa-circle-play', text: '<strong>Active:</strong> Live — will be applied to new tickets automatically.' },
+                        INACTIVE: { cls: 'alert-warning', icon: 'fa-circle-pause', text: '<strong>Inactive:</strong> Paused — will not trigger for new tickets.' }
+                    };
+                    function updateStatusHint() {
+                        var h = hints[statusSelect.value];
+                        if (h) {
+                            statusHint.innerHTML =
+                                '<div class="alert ' + h.cls + ' d-flex align-items-center gap-2 p-2 mb-0" role="alert">' +
+                                '<i class="fa ' + h.icon + ' flex-shrink-0"></i>' +
+                                '<small>' + h.text + '</small></div>';
+                        } else { statusHint.innerHTML = ''; }
+                    }
+                    statusSelect.addEventListener('change', updateStatusHint);
+                    updateStatusHint();
+
+                    // ════════════════════════════════════════
+                    // CHAR COUNTER
+                    // ════════════════════════════════════════
+                    var descArea = document.getElementById('description');
+                    var charCount = document.getElementById('descCharCount');
+                    function updateCharCount() {
+                        var len = descArea.value.length;
+                        charCount.textContent = len;
+                        charCount.style.color = len > 480 ? '#ef4444' : '';
+                    }
+                    descArea.addEventListener('input', updateCharCount);
+                    updateCharCount();
+
+                    // ════════════════════════════════════════
+                    // SAVE AS DRAFT
+                    // ════════════════════════════════════════
+                    function saveDraft() {
+                        document.getElementById('status').value = 'DRAFT';
+                        document.getElementById('workflowForm').requestSubmit();
+                    }
+
+                    // ════════════════════════════════════════
+                    // FORM SUBMIT
+                    // ════════════════════════════════════════
+                    var submitBtn = document.getElementById('submitBtn');
+                    var submitBtnOrigHTML = submitBtn.innerHTML;
+
+                    document.getElementById('workflowForm').addEventListener('submit', function (e) {
+                        updateJsonPreview();
+                        if (!this.checkValidity()) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            this.classList.add('was-validated');
+                            return;
+                        }
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving…';
+                        setTimeout(function () {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = submitBtnOrigHTML;
+                        }, 15000);
+                    });
+
+                    window.addEventListener('pageshow', function (e) {
+                        if (e.persisted) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = submitBtnOrigHTML;
+                        }
+                    });
+
+                    // ════════════════════════════════════════
+                    // UTILS
+                    // ════════════════════════════════════════
+                    function escHtml(str) {
+                        if (!str) return '';
+                        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    }
+                </script>
+
+                <jsp:include page="/WEB-INF/views/layout/footer.jsp" />

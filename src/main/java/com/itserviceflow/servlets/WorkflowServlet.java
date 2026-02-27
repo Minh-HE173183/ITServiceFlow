@@ -30,6 +30,7 @@ import java.util.List;
 public class WorkflowServlet extends HttpServlet {
 
     private final WorkflowDAO dao = new WorkflowDAO();
+    private final com.itserviceflow.daos.TicketCategoryDAO categoryDAO = new com.itserviceflow.daos.TicketCategoryDAO();
     private final Gson gson = new Gson();
 
     // ==================================================================
@@ -124,6 +125,7 @@ public class WorkflowServlet extends HttpServlet {
         }
 
         req.setAttribute("workflow", workflow);
+        addReferenceData(req);
         req.getRequestDispatcher("/WEB-INF/views/workflow/workflow-detail.jsp")
            .forward(req, resp);
     }
@@ -133,6 +135,7 @@ public class WorkflowServlet extends HttpServlet {
 
         req.setAttribute("workflow", new Workflow()); // empty object
         req.setAttribute("formAction", "create");
+        addReferenceData(req);
         req.getRequestDispatcher("/WEB-INF/views/workflow/workflow-form.jsp")
            .forward(req, resp);
     }
@@ -150,8 +153,15 @@ public class WorkflowServlet extends HttpServlet {
 
         req.setAttribute("workflow", workflow);
         req.setAttribute("formAction", "update");
+        addReferenceData(req);
         req.getRequestDispatcher("/WEB-INF/views/workflow/workflow-form.jsp")
            .forward(req, resp);
+    }
+
+    private void addReferenceData(HttpServletRequest req) {
+        req.setAttribute("categories", categoryDAO.getActiveCategories());
+        req.setAttribute("ticketTypes", List.of("INCIDENT", "SERVICE_REQUEST", "PROBLEM", "CHANGE"));
+        req.setAttribute("priorities", List.of("LOW", "MEDIUM", "HIGH", "CRITICAL"));
     }
 
     // ==================================================================

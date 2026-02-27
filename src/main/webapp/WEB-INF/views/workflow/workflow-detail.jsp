@@ -155,28 +155,47 @@
                                     </div>
                                 </div>
 
-                                <%-- Workflow Config JSON --%>
-                                    <div class="workflow-card">
+                                <%-- Workflow Summary --%>
+                                    <div class="workflow-card mb-4">
                                         <div
                                             class="d-flex align-items-center gap-2 px-4 py-3 border-bottom border-secondary-subtle">
-                                            <i class="bi bi-code-square text-info"></i>
-                                            <span class="fw-bold">Workflow Configuration (JSON)</span>
+                                            <i class="bi bi-eye text-success"></i>
+                                            <span class="fw-bold">Workflow Summary</span>
                                         </div>
-                                        <div class="p-4">
-                                            <c:choose>
-                                                <c:when test="${not empty workflow.workflowConfig}">
-                                                    <pre
-                                                        class="config-preview"><c:out value="${workflow.workflowConfig}"/></pre>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <div class="text-center py-4 text-secondary">
-                                                        <i class="bi bi-braces fs-3 opacity-50"></i>
-                                                        <p class="mt-2 mb-0">No configuration defined yet.</p>
-                                                    </div>
-                                                </c:otherwise>
-                                            </c:choose>
+                                        <div class="p-4" id="workflowSummary">
+                                            <div class="text-center py-4 text-secondary" id="summaryLoading">
+                                                <div class="spinner-border spinner-border-sm mb-2"></div>
+                                                <p class="mb-0">Loading workflow summary...</p>
+                                            </div>
                                         </div>
                                     </div>
+
+                                    <%-- Workflow Config JSON --%>
+                                        <div class="workflow-card">
+                                            <div class="d-flex align-items-center gap-2 px-4 py-3 border-bottom border-secondary-subtle"
+                                                style="cursor:pointer;" data-bs-toggle="collapse"
+                                                data-bs-target="#jsonCollapse">
+                                                <i class="bi bi-code-square text-info"></i>
+                                                <span class="fw-bold">Raw Configuration (JSON)</span>
+                                                <i class="bi bi-chevron-down ms-auto text-secondary"></i>
+                                            </div>
+                                            <div class="collapse" id="jsonCollapse">
+                                                <div class="p-4">
+                                                    <c:choose>
+                                                        <c:when test="${not empty workflow.workflowConfig}">
+                                                            <pre class="config-preview"
+                                                                id="rawConfigJson"><c:out value="${workflow.workflowConfig}"/></pre>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <div class="text-center py-4 text-secondary">
+                                                                <i class="bi bi-braces fs-3 opacity-50"></i>
+                                                                <p class="mt-2 mb-0">No configuration defined yet.</p>
+                                                            </div>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </div>
+                                            </div>
+                                        </div>
 
                         </div><%-- /.col-lg-8 --%>
 
@@ -292,61 +311,162 @@
                         </div>
                     </div>
 
-                    <script>
-                        const CTX = '${pageContext.request.contextPath}';
-
-                        /* ---- DELETE ---- */
-                        let delId = null;
-                        let delModal = null;
-
-                        function doDelete(id, name) {
-                            delId = id;
-                            document.getElementById('delName').textContent = name;
-                            // Lazy-init: safe even if bootstrap loads asynchronously (defer in header.jsp)
-                            if (!delModal) {
-                                delModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-                            }
-                            delModal.show();
-                        }
-
-                        document.getElementById('doDelBtn').addEventListener('click', async () => {
-                            const btn = document.getElementById('doDelBtn');
-                            btn.disabled = true;
-                            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Deleting…';
-
-                            const form = new FormData();
-                            form.append('action', 'delete');
-                            form.append('workflowId', delId);
-
-                            const res = await fetch(CTX + '/workflows', { method: 'POST', body: form });
-                            const data = await res.json();
-
-                            if (data.success) {
-                                window.location.href = CTX + '/workflows';
-                            } else {
-                                delModal.hide();
-                                alert('Delete failed. Please try again.');
-                                btn.disabled = false;
-                                btn.innerHTML = '<i class="bi bi-trash3 me-1"></i> Delete';
-                            }
-                        });
-
-                        /* ---- TOGGLE ---- */
-                        async function doToggle(id, newStatus) {
-                            const form = new FormData();
-                            form.append('action', 'toggle');
-                            form.append('workflowId', id);
-                            form.append('newStatus', newStatus);
-
-                            const res = await fetch(CTX + '/workflows', { method: 'POST', body: form });
-                            const data = await res.json();
-
-                            if (data.success) {
-                                location.reload();
-                            } else {
-                                alert('Status update failed. Please try again.');
-                            }
-                        }
+                    <%-- Categories metadata for summary --%>
+                        <script type="application/json" id="metaCategories">
+                        [
+                            <c:forEach items="${categories}" var="c" varStatus="loop">
+                                {"id": ${c.categoryId}, "name": "${c.categoryName}"}${!loop.last ? ',' : ''}
+                            </c:forEach>
+                        ]
                     </script>
 
-                    <jsp:include page="/WEB-INF/views/layout/footer.jsp" />
+                        <script>
+                            const CTX = '${pageContext.request.contextPath}';
+                            const CATEGORIES = JSON.parse(document.getElementById('metaCategories').textContent || '[]');
+
+                            /* ---- DELETE ---- */
+                            let delId = null;
+                            let delModal = null;
+
+                            function doDelete(id, name) {
+                                delId = id;
+                                document.getElementById('delName').textContent = name;
+                                // Lazy-init: safe even if bootstrap loads asynchronously (defer in header.jsp)
+                                if (!delModal) {
+                                    delModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+                                }
+                                delModal.show();
+                            }
+
+                            document.getElementById('doDelBtn').addEventListener('click', async () => {
+                                const btn = document.getElementById('doDelBtn');
+                                btn.disabled = true;
+                                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Deleting…';
+
+                                const form = new FormData();
+                                form.append('action', 'delete');
+                                form.append('workflowId', delId);
+
+                                const res = await fetch(CTX + '/workflows', { method: 'POST', body: form });
+                                const data = await res.json();
+
+                                if (data.success) {
+                                    window.location.href = CTX + '/workflows';
+                                } else {
+                                    delModal.hide();
+                                    alert('Delete failed. Please try again.');
+                                    btn.disabled = false;
+                                    btn.innerHTML = '<i class="bi bi-trash3 me-1"></i> Delete';
+                                }
+                            });
+
+                            /* ---- TOGGLE ---- */
+                            async function doToggle(id, newStatus) {
+                                const form = new FormData();
+                                form.append('action', 'toggle');
+                                form.append('workflowId', id);
+                                form.append('newStatus', newStatus);
+
+                                const res = await fetch(CTX + '/workflows', { method: 'POST', body: form });
+                                const data = await res.json();
+
+                                if (data.success) {
+                                    location.reload();
+                                } else {
+                                    alert('Status update failed. Please try again.');
+                                }
+                            }
+                            /* ---- SUMMARY RENDERING ---- */
+                            (function initSummary() {
+                                const configEl = document.getElementById('rawConfigJson');
+                                const raw = configEl ? configEl.textContent.trim() : '';
+                                const summaryDiv = document.getElementById('workflowSummary');
+                                if (!raw || raw === 'null' || raw === '') {
+                                    summaryDiv.innerHTML = '<div class="alert alert-info">No configuration defined.</div>';
+                                    return;
+                                }
+
+                                try {
+                                    const cfg = JSON.parse(raw);
+                                    let html = '';
+
+                                    // Trigger
+                                    html += `<div class="mb-4">
+                                    <div class="detail-label mb-2"><i class="bi bi-lightning-fill text-warning me-1"></i> Trigger</div>
+                                    <div class="badge bg-primary fs-6">\${cfg.trigger || 'Unknown'}</div>
+                                </div>`;
+
+                                    // Conditions
+                                    if (cfg.conditions) {
+                                        html += `<div class="mb-4">
+                                            <div class="detail-label mb-2"><i class="bi bi-filter-circle text-info me-1"></i> Trigger Conditions</div>`;
+
+                                        function renderSummaryNode(node) {
+                                            if (!node) return '';
+                                            if (node.type === 'condition' || node.field) {
+                                                let fieldLabel = (node.field || '').replace('_', ' ').toUpperCase();
+                                                let val = node.value;
+                                                if (node.field === 'category_id') {
+                                                    const cat = CATEGORIES.find(c => c.id == val);
+                                                    val = cat ? cat.name : ('Category #' + val);
+                                                }
+                                                let badgeClass = 'border-info text-info';
+                                                if (node.field === 'priority') badgeClass = 'border-warning text-warning';
+                                                if (node.field === 'ticket_type') badgeClass = 'border-primary text-primary';
+
+                                                return `<span class="badge border \${badgeClass} p-2 px-3 rounded-pill bg-dark bg-opacity-25 my-1">
+                                                    <span class="opacity-75">\${fieldLabel}</span> 
+                                                    <span class="mx-1">\${node.operator === 'NOT_EQUALS' ? 'is not' : 'is'}</span> 
+                                                    <strong class="text-white">\${val}</strong>
+                                                </span>`;
+                                            } else if (node.type === 'group' || node.logic) {
+                                                const logic = node.logic || 'AND';
+                                                const criteria = node.criteria || [];
+                                                if (criteria.length === 0) return '';
+
+                                                const childrenHtml = criteria.map(c => renderSummaryNode(c)).join('');
+                                                return `<div class="border border-secondary-subtle border-opacity-25 rounded p-2 px-3 bg-dark bg-opacity-10 my-2">
+                                                    <div class="small text-secondary mb-1" style="font-size:10px;">MATCH \${logic}</div>
+                                                    <div class="d-flex flex-wrap gap-2">\${childrenHtml}</div>
+                                                </div>`;
+                                            }
+                                            return '';
+                                        }
+
+                                        if (Array.isArray(cfg.conditions)) {
+                                            html += `<div class="d-flex flex-wrap gap-2">` + cfg.conditions.map(c => renderSummaryNode(c)).join('') + `</div>`;
+                                        } else {
+                                            html += renderSummaryNode(cfg.conditions);
+                                        }
+                                        html += `</div>`;
+                                    }
+
+                                    // Steps
+                                    if (cfg.steps && cfg.steps.length > 0) {
+                                        html += `<div class="mb-0">
+                                        <div class="detail-label mb-2"><i class="bi bi-list-ol text-success me-1"></i> Approval Steps</div>
+                                        <div class="list-group">`;
+                                        cfg.steps.forEach((s, idx) => {
+                                            html += `<div class="list-group-item bg-dark border-secondary-subtle d-flex align-items-center gap-3 py-3">
+                                            <div class="avatar-sm rounded-circle bg-success bg-opacity-25 text-success d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;">\${idx + 1}</div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-semibold text-white">\${s.name || 'Step ' + (idx + 1)}</div>
+                                                <div class="small text-secondary">Assigned to: <span class="text-info">\${s.role}</span> &bull; Action: <span class="text-info">\${s.action}</span></div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="small text-secondary">SLA</div>
+                                                <div class="fw-bold text-warning">\${s.sla_hours}h</div>
+                                            </div>
+                                        </div>`;
+                                        });
+                                        html += `</div></div>`;
+                                    }
+
+                                    summaryDiv.innerHTML = html;
+                                } catch (e) {
+                                    summaryDiv.innerHTML = '<div class="alert alert-danger">Error parsing configuration JSON.</div>';
+                                }
+                            })();
+                        </script>
+
+                        <jsp:include page="/WEB-INF/views/layout/footer.jsp" />
