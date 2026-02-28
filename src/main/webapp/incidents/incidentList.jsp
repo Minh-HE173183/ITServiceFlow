@@ -1,5 +1,12 @@
-<%@page import="java.util.List"%>
-<%@page import="com.itserviceflow.models.Ticket"%>
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="java.util.List" %>
+<%@ page import="com.itserviceflow.models.Ticket" %>
+<%@ page import="com.itserviceflow.models.User" %>
+
+<%
+    User user = (User) session.getAttribute("user");
+    List<Ticket> list = (List<Ticket>) request.getAttribute("incidentList");
+%>
 
 <!DOCTYPE html>
 <html>
@@ -8,162 +15,184 @@
 
         <style>
             body {
-                margin: 0;
-                font-family: "Segoe UI", Arial, sans-serif;
+                font-family: "Segoe UI", Arial;
                 background-color: #f5f7fa;
+                margin: 0;
             }
 
-            /* HEADER */
             .header {
                 background-color: #1f2937;
                 color: white;
                 padding: 15px 30px;
-                font-size: 20px;
-                font-weight: bold;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
             }
 
-            /* CONTAINER */
             .container {
                 padding: 30px;
             }
 
-            /* CARD */
             .card {
                 background: white;
-                padding: 20px;
                 border-radius: 8px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                box-shadow: 0px 2px 8px rgba(0,0,0,0.08);
+                padding: 20px;
             }
 
-            /* TABLE */
             table {
                 width: 100%;
                 border-collapse: collapse;
-                margin-top: 20px;
-            }
-
-            thead {
-                background-color: #f3f4f6;
             }
 
             th {
                 text-align: left;
                 padding: 12px;
-                font-size: 14px;
-                color: #374151;
+                background-color: #f3f4f6;
+                font-weight: 600;
             }
 
             td {
                 padding: 12px;
-                border-top: 1px solid #e5e7eb;
-                font-size: 14px;
+                border-top: 1px solid #eee;
             }
 
             tr:hover {
                 background-color: #f9fafb;
             }
 
-            /* BADGE */
             .badge {
-                padding: 5px 10px;
+                padding: 4px 10px;
                 border-radius: 20px;
                 font-size: 12px;
                 font-weight: bold;
+            }
+
+            .status-open {
+                background-color: #e0f2fe;
+                color: #0369a1;
+            }
+
+            .status-resolved {
+                background-color: #dcfce7;
+                color: #166534;
+            }
+
+            .priority-low {
+                background-color: #e5e7eb;
+                color: #374151;
+            }
+
+            .priority-medium {
+                background-color: #fef3c7;
+                color: #92400e;
+            }
+
+            .priority-high {
+                background-color: #fee2e2;
+                color: #991b1b;
+            }
+
+            .view-btn {
+                text-decoration: none;
                 color: white;
+                background-color: #2563eb;
+                padding: 6px 12px;
+                border-radius: 4px;
+                font-size: 13px;
             }
 
-            .NEW {
-                background-color: #3b82f6;
+            .view-btn:hover {
+                background-color: #1d4ed8;
             }
 
-            .IN_PROGRESS {
-                background-color: #f59e0b;
+            .role-label {
+                font-size: 14px;
+                opacity: 0.8;
             }
-
-            .RESOLVED {
-                background-color: #10b981;
-            }
-
-            .CLOSED {
-                background-color: #6b7280;
-            }
-
-            .HIGH {
-                color: #dc2626;
-                font-weight: bold;
-            }
-
-            .CRITICAL {
-                color: red;
-                font-weight: bold;
-            }
-
         </style>
     </head>
 
     <body>
 
         <div class="header">
-            ITServiceFlow - Incident Management
+            <div>
+                <h2>ITServiceFlow - Incident Management</h2>
+            </div>
+            <div>
+                <strong><%= user.getFullName() %></strong>
+                <div class="role-label">Role: <%= user.getRoleName() %></div>
+            </div>
         </div>
 
         <div class="container">
-
             <div class="card">
-
-                <h2>Incident List</h2>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>Incident List</h3>
+                    <a class="view-btn" href="${pageContext.request.contextPath}/incident?action=add">New Incident</a>
+                </div>
+                <br>
 
                 <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ticket Number</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Action</th>
+                    </tr>
 
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Ticket Number</th>
-                            <th>Title</th>
-                            <th>Status</th>
-                            <th>Priority</th>
-                        </tr>
-                    </thead>
+                    <%
+                        if (list != null) {
+                            for (Ticket t : list) {
 
-                    <tbody>
+                                String statusClass = t.getStatus().equalsIgnoreCase("RESOLVED")
+                                        ? "status-resolved"
+                                        : "status-open";
 
-                        <%
-                            List<Ticket> list = (List<Ticket>) request.getAttribute("incidentList");
-                            if(list != null){
-                                for(Ticket t : list){
-                        %>
-
-                        <tr>
-                            <td><%=t.getTicketId()%></td>
-                            <td>
-                                <a href="incident-detail?id=<%=t.getTicketId()%>">
-                                    <%=t.getTicketNumber()%>
-                                </a>
-                            </td>
-                            <td><%=t.getTitle()%></td>
-
-                            <td>
-                                <span class="badge <%=t.getStatus()%>">
-                                    <%=t.getStatus()%>
-                                </span>
-                            </td>
-
-                            <td class="<%=t.getPriority()%>">
-                                <%=t.getPriority()%>
-                            </td>
-                        </tr>
-
-                        <%
+                                String priorityClass = "";
+                                if (t.getPriority().equalsIgnoreCase("LOW")) {
+                                    priorityClass = "priority-low";
+                                } else if (t.getPriority().equalsIgnoreCase("MEDIUM")) {
+                                    priorityClass = "priority-medium";
+                                } else {
+                                    priorityClass = "priority-high";
                                 }
+                    %>
+
+                    <tr>
+                        <td><%= t.getTicketId() %></td>
+                        <td><%= t.getTicketNumber() %></td>
+                        <td><%= t.getTitle() %></td>
+
+                        <td>
+                            <span class="badge <%= statusClass %>">
+                                <%= t.getStatus() %>
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="badge <%= priorityClass %>">
+                                <%= t.getPriority() %>
+                            </span>
+                        </td>
+
+                        <td>
+                            <a class="view-btn"
+                               href="${pageContext.request.contextPath}/incident?action=detail&id=<%= t.getTicketId() %>">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+
+                    <%
                             }
-                        %>
-
-                    </tbody>
-
+                        }
+                    %>
                 </table>
 
             </div>
-
         </div>
 
     </body>

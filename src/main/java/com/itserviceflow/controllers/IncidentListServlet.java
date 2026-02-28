@@ -14,41 +14,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.List;
 
-/**
- *
- * @author vumin
- */
 @WebServlet(name = "IncidentListServlet", urlPatterns = {"/incident-list"})
 public class IncidentListServlet extends HttpServlet {
-
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet IncidentListServlet</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet IncidentListServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -56,28 +24,17 @@ public class IncidentListServlet extends HttpServlet {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
 
-        // Giả lập user login
-        int userId = 1;
+        if (user == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
 
-        String role = "End-user";
-        TicketDAO dao = new TicketDAO();
-        List<Ticket> list = dao.getIncidentList( userId, role);
-        request.setAttribute("incidentList",list);
-        request.getRequestDispatcher("/incidents/incidentList.jsp").forward(request,response);
-
+        response.sendRedirect(request.getContextPath() + "/incident?action=list");
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        doGet(request, response);
     }
-
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
-    
-
 }

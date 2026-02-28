@@ -19,6 +19,8 @@ public class User {
     private String phone;
     private int departmentId;
     private int roleId;
+    // optional name of the role, can be filled via RoleDAO
+    private String roleName;
     private boolean isActive;
 
     public int getUserId() {
@@ -75,6 +77,14 @@ public class User {
 
     public void setRoleId(int roleId) {
         this.roleId = roleId;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
     }
 
     public boolean isActive() {
