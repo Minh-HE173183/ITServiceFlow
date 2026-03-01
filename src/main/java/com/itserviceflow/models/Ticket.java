@@ -17,12 +17,15 @@ public class Ticket {
     private String description;
     private String status;
     private String priority;
-    private int categoryId;
+    private String impact;     // added for incident
+    private String urgency;    // added for incident
+    private Integer categoryId;
     private int reportedBy;
     private Integer assignedTo;
     private Integer departmentId;
     private String cause; 
     private String solution; 
+    private String approvalStatus; // for approvals
     private Date createdAt;
     private Date updatedAt;
 
@@ -85,11 +88,27 @@ public class Ticket {
         this.priority = priority;
     }
 
-    public int getCategoryId() {
+    public String getImpact() {
+        return impact;
+    }
+
+    public void setImpact(String impact) {
+        this.impact = impact;
+    }
+
+    public String getUrgency() {
+        return urgency;
+    }
+
+    public void setUrgency(String urgency) {
+        this.urgency = urgency;
+    }
+
+    public Integer getCategoryId() {
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId) {
+    public void setCategoryId(Integer categoryId) {
         this.categoryId = categoryId;
     }
 
@@ -131,6 +150,14 @@ public class Ticket {
 
     public void setSolution(String solution) {
         this.solution = solution;
+    }
+
+    public String getApprovalStatus() {
+        return approvalStatus;
+    }
+
+    public void setApprovalStatus(String approvalStatus) {
+        this.approvalStatus = approvalStatus;
     }
 
     public Date getCreatedAt() {
