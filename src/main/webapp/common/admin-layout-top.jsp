@@ -110,7 +110,7 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
-            Building CARE
+            ITSM
         </div>
         <ul class="sidebar-menu">
             <a href="#" class="menu-item"><i class="bi bi-people"></i> QUẢN LÝ ĐỐI TÁC</a>
@@ -131,7 +131,7 @@
         <div class="topbar">
             <div class="topbar-left">
                 <i class="bi bi-list fs-4 cursor-pointer"></i>
-                <span class="fw-bold">QL User</span>
+                <span class="fw-bold">User Management</span>
             </div>
             <div class="topbar-right">
                 <i class="bi bi-bell badge-notification"></i>
@@ -144,7 +144,7 @@
                         <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person me-2"></i> Hồ sơ</a></li>
                         <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile#change-pass"><i class="bi bi-shield-lock me-2"></i> Đổi mật khẩu</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/logout"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
+                        <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/auth?action=logout"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
                     </ul>
                 </div>
             </div>
