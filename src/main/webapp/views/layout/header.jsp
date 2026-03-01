@@ -30,7 +30,7 @@
                             <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css" />
     </head>
 
-    <body>
+    <body class="d-flex">
 
         <!-- ══════════════════════════════════════════
      SIDEBAR

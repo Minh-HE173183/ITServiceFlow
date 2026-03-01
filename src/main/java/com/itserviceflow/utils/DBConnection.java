@@ -22,7 +22,7 @@ public class DBConnection {
             "?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8&useUnicode=true";
 
     private static final String USER     = "root";
-    private static final String PASSWORD = "123456";
+    private static final String PASSWORD = "12345";
 
     static {
         try {
@@ -48,6 +48,10 @@ public class DBConnection {
             System.out.println("Database connection failed!");
             return null;
         }
+    }
+    
+    public static void main(String[] args) {
+        System.out.println(DBConnection.getConnection());   
     }
 
 }

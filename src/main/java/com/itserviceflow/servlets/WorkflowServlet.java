@@ -45,10 +45,11 @@ public class WorkflowServlet extends HttpServlet {
 
         try {
             switch (action) {
-                case "detail" -> showDetail(req, resp);
-                case "create" -> showCreateForm(req, resp);
-                case "edit"   -> showEditForm(req, resp);
-                default       -> showList(req, resp);
+                case "detail"           -> showDetail(req, resp);
+                case "create"           -> showCreateForm(req, resp);
+                case "edit"             -> showEditForm(req, resp);
+                case "api-ticket-types" -> sendTicketTypes(req, resp);
+                default                 -> showList(req, resp);
             }
         } catch (SQLException e) {
             throw new ServletException("Database error", e);
@@ -109,7 +110,7 @@ public class WorkflowServlet extends HttpServlet {
         req.setAttribute("countInactive",countInactive);
         req.setAttribute("countDraft",   countDraft);
 
-        req.getRequestDispatcher("/WEB-INF/views/workflow/workflow-list.jsp")
+        req.getRequestDispatcher("/views/workflow/workflow-list.jsp")
            .forward(req, resp);
     }
 
@@ -126,7 +127,7 @@ public class WorkflowServlet extends HttpServlet {
 
         req.setAttribute("workflow", workflow);
         addReferenceData(req);
-        req.getRequestDispatcher("/WEB-INF/views/workflow/workflow-detail.jsp")
+        req.getRequestDispatcher("/views/workflow/workflow-detail.jsp")
            .forward(req, resp);
     }
 
@@ -136,7 +137,7 @@ public class WorkflowServlet extends HttpServlet {
         req.setAttribute("workflow", new Workflow()); // empty object
         req.setAttribute("formAction", "create");
         addReferenceData(req);
-        req.getRequestDispatcher("/WEB-INF/views/workflow/workflow-form.jsp")
+        req.getRequestDispatcher("/views/workflow/workflow-form.jsp")
            .forward(req, resp);
     }
 
@@ -154,14 +155,30 @@ public class WorkflowServlet extends HttpServlet {
         req.setAttribute("workflow", workflow);
         req.setAttribute("formAction", "update");
         addReferenceData(req);
-        req.getRequestDispatcher("/WEB-INF/views/workflow/workflow-form.jsp")
+        req.getRequestDispatcher("/views/workflow/workflow-form.jsp")
            .forward(req, resp);
     }
 
+    /** Ticket types used both for SSR data island and the JSON API. */
+    private static final List<String> TICKET_TYPES =
+            List.of("INCIDENT", "SERVICE_REQUEST", "PROBLEM", "CHANGE");
+
     private void addReferenceData(HttpServletRequest req) {
         req.setAttribute("categories", categoryDAO.getActiveCategories());
-        req.setAttribute("ticketTypes", List.of("INCIDENT", "SERVICE_REQUEST", "PROBLEM", "CHANGE"));
+        req.setAttribute("ticketTypes", TICKET_TYPES);
         req.setAttribute("priorities", List.of("LOW", "MEDIUM", "HIGH", "CRITICAL"));
+    }
+
+    /**
+     * GET /workflows?action=api-ticket-types
+     * Returns a JSON array of all supported ticket types.
+     * Example: ["INCIDENT","SERVICE_REQUEST","PROBLEM","CHANGE"]
+     */
+    private void sendTicketTypes(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        resp.setContentType("application/json;charset=UTF-8");
+        resp.setHeader("Cache-Control", "max-age=300"); // cache 5 min
+        resp.getWriter().print(gson.toJson(TICKET_TYPES));
     }
 
     // ==================================================================
@@ -178,7 +195,7 @@ public class WorkflowServlet extends HttpServlet {
             req.setAttribute("error", "Workflow name is required.");
             req.setAttribute("workflow", w);
             req.setAttribute("formAction", "create");
-            req.getRequestDispatcher("/WEB-INF/views/workflow/workflow-form.jsp")
+            req.getRequestDispatcher("/views/workflow/workflow-form.jsp")
                .forward(req, resp);
             return;
         }
@@ -202,7 +219,7 @@ public class WorkflowServlet extends HttpServlet {
             req.setAttribute("error", "Workflow name is required.");
             req.setAttribute("workflow", w);
             req.setAttribute("formAction", "update");
-            req.getRequestDispatcher("/WEB-INF/views/workflow/workflow-form.jsp")
+            req.getRequestDispatcher("/views/workflow/workflow-form.jsp")
                .forward(req, resp);
             return;
         }

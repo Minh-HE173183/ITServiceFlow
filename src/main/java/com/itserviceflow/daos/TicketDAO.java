@@ -245,6 +245,7 @@ public class TicketDAO {
         t.setDescription(rs.getString("description"));
         t.setStatus(rs.getString("status"));
         t.setPriority(rs.getString("priority"));
+        t.setDifficultyLevel(rs.getString("difficulty_level"));
         t.setCategoryId(rs.getInt("category_id"));
         t.setReportedBy(rs.getInt("reported_by"));
         t.setAssignedTo((Integer) rs.getObject("assigned_to"));
@@ -254,6 +255,29 @@ public class TicketDAO {
         t.setCreatedAt(rs.getTimestamp("created_at"));
         t.setUpdatedAt(rs.getTimestamp("updated_at"));
         return t;
+    }
+
+    /**
+     * Fetches a ticket and joins ticket_category to get difficulty_level.
+     * Use this when you need difficulty for logtime calculation.
+     */
+    public Ticket getTicketWithDetails(int ticketId) {
+        String sql = "SELECT t.*, tc.difficulty_level "
+                   + "FROM ticket t "
+                   + "LEFT JOIN ticket_category tc ON t.category_id = tc.category_id "
+                   + "WHERE t.ticket_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, ticketId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapRowToTicket(rs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     // ---------- incident-specific operations ----------
