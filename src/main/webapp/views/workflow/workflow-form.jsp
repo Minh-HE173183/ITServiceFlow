@@ -306,7 +306,7 @@
                             </div>
                         </div>
 
-                        <div class="workflow-card mb-4">
+<!--                        <div class="workflow-card mb-4">
                             <div class="card-header-bar d-flex align-items-center justify-content-between px-4 py-3"
                                 style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#jsonPreviewCollapse">
                                 <div class="d-flex align-items-center gap-2">
@@ -321,7 +321,7 @@
                                     <div class="json-preview-box" id="jsonPreview">{}</div>
                                 </div>
                             </div>
-                        </div>
+                        </div>-->
 
                         <div class="d-flex align-items-center justify-content-end gap-3">
                             <a href="${pageContext.request.contextPath}/workflows" class="btn btn-secondary px-4"><i

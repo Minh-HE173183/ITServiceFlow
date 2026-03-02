@@ -429,12 +429,12 @@
 
                                                     <%-- Raw JSON config (collapsible) --%>
                                                         <div class="detail-card">
-                                                            <div class="detail-card-header" data-bs-toggle="collapse"
+                                                            <!--                                                            <div class="detail-card-header" data-bs-toggle="collapse"
                                                                 data-bs-target="#jsonCollapse">
                                                                 <i class="bi bi-code-square text-info"></i>
                                                                 Cấu hình thô (JSON)
                                                                 <i class="bi bi-chevron-down ms-auto text-muted"></i>
-                                                            </div>
+                                                            </div>-->
                                                             <div class="collapse" id="jsonCollapse">
                                                                 <div class="detail-card-body">
                                                                     <c:choose>
@@ -745,7 +745,7 @@
                                                             // Trigger
                                                             html += `<div class="mb-4">
                                 <div class="detail-label mb-2"><i class="bi bi-lightning-fill text-warning me-1"></i> Trigger</div>
-                                <span class="badge bg-primary fs-6">${cfg.trigger || 'Unknown'}</span>
+                                <span class="badge bg-primary fs-6">\${cfg.trigger || 'Unknown'}</span>
                             </div>`;
 
                                                             // Conditions
@@ -762,11 +762,11 @@
                                                                             const cat = CATEGORIES.find(c => c.id == val);
                                                                             val = cat ? cat.name : ('Category #' + val);
                                                                         }
-                                                                        let badgeClass = 'bg-info bg-opacity-10 border-info text-info';
-                                                                        if (node.field === 'priority') badgeClass = 'bg-warning bg-opacity-10 border-warning text-warning';
-                                                                        if (node.field === 'ticket_type') badgeClass = 'bg-primary bg-opacity-10 border-primary text-primary';
-                                                                        return `<span class="badge border ${badgeClass} p-2 px-3 rounded-pill my-1">
-                                            <span class="opacity-75">\${fieldLabel}</span>
+                                                                        let badgeClass = 'bg-info bg-opacity-25 border-info';
+                                                                        if (node.field === 'priority') badgeClass = 'bg-warning bg-opacity-25 border-warning';
+                                                                        if (node.field === 'ticket_type') badgeClass = 'bg-primary bg-opacity-25 border-primary';
+                                                                        return `<span class="badge border ${badgeClass} fw-semibold p-2 px-3 rounded-pill my-1" style="color:#212529">
+                                            <span class="opacity-75 fw-normal">\${fieldLabel}</span>
                                             <span class="mx-1">\${node.operator === 'NOT_EQUALS' ? 'không phải' : 'là'}</span>
                                             <strong>\${val}</strong>
                                         </span>`;

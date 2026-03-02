@@ -121,6 +121,11 @@
             <a href="${pageContext.request.contextPath}/admin/users" class="menu-item active">
                 <i class="bi bi-person-gear"></i> Quản lý người dùng
             </a>
+
+            <a href="${pageContext.request.contextPath}/workflows"
+               class="menu-item ${pageContext.request.requestURI.contains('/workflows') ? 'active' : ''}">
+                <i class="bi bi-diagram-3"></i> Quản lý Workflow
+            </a>
             <a href="${pageContext.request.contextPath}/admin/knowledge-base" class="menu-item">
                 <i class="bi bi-journal-text"></i> Knowledge Base
             </a>
