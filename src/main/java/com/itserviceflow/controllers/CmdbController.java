@@ -214,7 +214,7 @@ public class CmdbController extends HttpServlet {
     private void bulkToggleConfigurationItemStatus(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         String[] ids = request.getParameterValues("selectedIds");
-        String toggleTo = request.getParameter("toggleTo"); // e.g. INACTIVE or ACTIVE
+        String toggleTo = request.getParameter("toggleTo"); 
         if (ids != null && toggleTo != null) {
             for (String idStr : ids) {
                 try {

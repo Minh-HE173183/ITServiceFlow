@@ -211,7 +211,6 @@
                     if (confirm('Are you sure you want to perform this action on the selected items? \nWarning: Ensure the selected items are in the valid state for this action.')) {
                         document.getElementById('bulkActionType').value = actionType;
 
-                        // Handle extra params for review and toggle
                         if (actionType === 'bulkReview') {
                             document.getElementById('bulkStatus').value = extraParam;
                         } else if (actionType === 'bulkToggleStatus') {

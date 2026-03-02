@@ -124,7 +124,6 @@ public class ProblemController extends HttpServlet {
         Ticket problem = new Ticket();
         problem.setTitle(title);
         problem.setDescription(description);
-        // Assuming current user is logged in, hardcoding 1 for reportedBy
         problem.setReportedBy(1);
 
         String[] incidentIdStrs = request.getParameterValues("incidentIds");
@@ -173,10 +172,6 @@ public class ProblemController extends HttpServlet {
             for (String idStr : ids) {
                 try {
                     int id = Integer.parseInt(idStr);
-                    // Only delete if it meets the criteria, but the DAO deleteProblemTicket already
-                    // executes the delete.
-                    // For safety, in a real app we'd verify status here, but for now we'll rely on
-                    // UI and DAO.
                     problemDAO.deleteProblemTicket(id);
                 } catch (NumberFormatException ignored) {
                 }
@@ -202,7 +197,6 @@ public class ProblemController extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         String commentText = request.getParameter("commentText");
 
-        // Assuming user 1
         Comment comment = new Comment();
         comment.setTicketId(id);
         comment.setUserId(1);

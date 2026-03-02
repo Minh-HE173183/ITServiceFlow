@@ -181,7 +181,7 @@ public class KnownErrorController extends HttpServlet {
 
     private void reviewKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
-        String status = request.getParameter("status"); // APPROVED or REJECTED
+        String status = request.getParameter("status"); 
         String rejectionReason = request.getParameter("rejectionReason");
 
         knownErrorDAO.reviewKnownError(id, status, 10, rejectionReason);
@@ -190,8 +190,8 @@ public class KnownErrorController extends HttpServlet {
 
     private void bulkReviewKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String[] ids = request.getParameterValues("selectedIds");
-        String status = request.getParameter("status"); // APPROVED or REJECTED
-        String rejectionReason = "Bulk reviewed"; // default reason for bulk
+        String status = request.getParameter("status"); 
+        String rejectionReason = "Bulk reviewed";
         if (ids != null && status != null) {
             for (String idStr : ids) {
                 try {
@@ -214,14 +214,11 @@ public class KnownErrorController extends HttpServlet {
     private void bulkToggleKnownErrorStatus(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         String[] ids = request.getParameterValues("selectedIds");
-        String toggleTo = request.getParameter("toggleTo"); // expects the Target status, e.g. INACTIVE or APPROVED
+        String toggleTo = request.getParameter("toggleTo"); 
         if (ids != null && toggleTo != null) {
             for (String idStr : ids) {
                 try {
                     int id = Integer.parseInt(idStr);
-                    // We cheat a bit. If toggleTo = INACTIVE, the query expects currentStatus =
-                    // APPROVED to set it to INACTIVE.
-                    // If toggleTo = APPROVED, the query expects currentStatus = INACTIVE.
                     String mockCurrentStatus = toggleTo.equals("INACTIVE") ? "APPROVED" : "INACTIVE";
                     knownErrorDAO.toggleKnownErrorStatus(id, mockCurrentStatus);
                 } catch (NumberFormatException ignored) {
