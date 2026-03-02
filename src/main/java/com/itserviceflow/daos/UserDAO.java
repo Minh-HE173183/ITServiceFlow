@@ -169,6 +169,11 @@ public class UserDAO {
         return null;
     }
 
+    public static void main(String[] args) {
+        UserDAO userDao = new UserDAO();
+        System.out.println(userDao.login("admin@test.com", "Admin123"));
+    }
+    
     private void updateLastLogin(int userId) {
         String sql = "UPDATE `user` SET last_login = NOW() WHERE user_id = ?";
         try (PreparedStatement st = conn.prepareStatement(sql)) {

@@ -1,6 +1,5 @@
 package com.itserviceflow.controllers;
 
-
 import com.itserviceflow.daos.UserDAO;
 import com.itserviceflow.models.User;
 import com.itserviceflow.utils.EmailService;
@@ -10,7 +9,8 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.UUID;
-@WebServlet(name = "AuthController", urlPatterns = {"/auth"})
+
+@WebServlet(name = "AuthController", urlPatterns = {"/auth", "/profile"})
 public class AuthController extends HttpServlet {
 
     private UserDAO userDAO = new UserDAO();
@@ -18,6 +18,13 @@ public class AuthController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String path = request.getServletPath();
+
+        if ("/profile".equals(path)) {
+            profileView(request, response);
+            return;
+        }
+
         String action = request.getParameter("action");
         action = (action == null) ? "login" : action;
 
@@ -45,8 +52,23 @@ public class AuthController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String path = request.getServletPath();
         String action = request.getParameter("action");
         action = (action == null) ? "login" : action;
+
+        if ("/profile".equals(path)) {
+            switch (action) {
+                case "updateProfile":
+                    updateProfile(request, response);
+                    break;
+                case "changePassword":
+                    changePassword(request, response);
+                    break;
+                default:
+                    profileView(request, response);
+            }
+            return;
+        }
 
         switch (action) {
             case "login":
@@ -105,6 +127,17 @@ public class AuthController extends HttpServlet {
             request.getRequestDispatcher("/auth/forbid.jsp").forward(request, response);
         } catch (Exception e) {
             System.out.println("forbidView error: " + e);
+        }
+    }
+
+    private void profileView(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            User sessionUser = (User) request.getSession().getAttribute("user");
+            User currentUser = userDAO.findById(sessionUser.getUserId());
+            request.setAttribute("currentUser", currentUser);
+            request.getRequestDispatcher("/user/profile.jsp").forward(request, response);
+        } catch (Exception e) {
+            System.out.println("profileView error: " + e);
         }
     }
 
@@ -191,8 +224,8 @@ public class AuthController extends HttpServlet {
 
     private void resetPassword(HttpServletRequest request, HttpServletResponse response) {
         try {
-            String token = request.getParameter("token");
-            String newPass = request.getParameter("password");
+            String token       = request.getParameter("token");
+            String newPass     = request.getParameter("password");
             String confirmPass = request.getParameter("confirm_password");
 
             if (newPass == null || !newPass.equals(confirmPass)) {
@@ -215,8 +248,58 @@ public class AuthController extends HttpServlet {
         }
     }
 
+    private void updateProfile(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            User sessionUser = (User) request.getSession().getAttribute("user");
+            String fullName  = request.getParameter("fullName");
+            String phone     = request.getParameter("phone");
+
+            User u = new User();
+            u.setUserId(sessionUser.getUserId());
+            u.setFullName(fullName);
+            u.setPhone(phone);
+
+            if (userDAO.updateProfile(u)) {
+                sessionUser.setFullName(fullName);
+                sessionUser.setPhone(phone);
+                request.setAttribute("message", "Cập nhật thông tin thành công!");
+            } else {
+                request.setAttribute("error", "Cập nhật thất bại!");
+            }
+            profileView(request, response);
+        } catch (Exception e) {
+            System.out.println("updateProfile error: " + e);
+        }
+    }
+
+    private void changePassword(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            User sessionUser   = (User) request.getSession().getAttribute("user");
+            String currentPass = request.getParameter("currentPassword");
+            String newPass     = request.getParameter("newPassword");
+            String confirmPass = request.getParameter("confirmPassword");
+
+            if (newPass == null || !newPass.equals(confirmPass)) {
+                request.setAttribute("error", "Mật khẩu xác nhận không khớp!");
+                profileView(request, response);
+                return;
+            }
+
+            User userFromDb = userDAO.findById(sessionUser.getUserId());
+            if (currentPass.equals(userFromDb.getPasswordHash())) {
+                userDAO.updatePassword(sessionUser.getUserId(), newPass);
+                request.setAttribute("message", "Đổi mật khẩu thành công!");
+            } else {
+                request.setAttribute("error", "Mật khẩu hiện tại không đúng!");
+            }
+            profileView(request, response);
+        } catch (Exception e) {
+            System.out.println("changePassword error: " + e);
+        }
+    }
+
     @Override
     public String getServletInfo() {
-        return "AuthController - Handles login, logout, forgot/reset password";
+        return "AuthController - Handles login, logout, forgot/reset password, profile";
     }
 }
