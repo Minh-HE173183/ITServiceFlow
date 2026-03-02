@@ -17,6 +17,7 @@ public class Ticket {
     private String description;
     private String status;
     private String priority;
+    private String difficultyLevel;
     private int categoryId;
     private int reportedBy;
     private Integer assignedTo;
@@ -28,6 +29,27 @@ public class Ticket {
 
     public Ticket() {
     }
+
+    public Ticket(int ticketId, String ticketNumber, String ticketType, String title, String description, String status, String priority, String difficultyLevel, int categoryId, int reportedBy, Integer assignedTo, Integer departmentId, String cause, String solution, Date createdAt, Date updatedAt) {
+        this.ticketId = ticketId;
+        this.ticketNumber = ticketNumber;
+        this.ticketType = ticketType;
+        this.title = title;
+        this.description = description;
+        this.status = status;
+        this.priority = priority;
+        this.difficultyLevel = difficultyLevel;
+        this.categoryId = categoryId;
+        this.reportedBy = reportedBy;
+        this.assignedTo = assignedTo;
+        this.departmentId = departmentId;
+        this.cause = cause;
+        this.solution = solution;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+    
+    
 
     public int getTicketId() {
         return ticketId;
@@ -83,6 +105,14 @@ public class Ticket {
 
     public void setPriority(String priority) {
         this.priority = priority;
+    }
+
+    public String getDifficultyLevel() {
+        return difficultyLevel;
+    }
+
+    public void setDifficultyLevel(String difficultyLevel) {
+        this.difficultyLevel = difficultyLevel;
     }
 
     public int getCategoryId() {

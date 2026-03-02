@@ -66,9 +66,4 @@ public class User {
     public void setRoleName(String roleName) { this.roleName = roleName; }
     public String getDepartmentName() { return departmentName; }
     public void setDepartmentName(String departmentName) { this.departmentName = departmentName; }
-
-    
-    
-
 }
-
