@@ -68,6 +68,9 @@ public class ProblemController extends HttpServlet {
             case "delete":
                 deleteProblem(request, response);
                 break;
+            case "bulkDelete":
+                bulkDeleteProblem(request, response);
+                break;
             case "cancel":
                 cancelProblem(request, response);
                 break;
@@ -121,7 +124,6 @@ public class ProblemController extends HttpServlet {
         Ticket problem = new Ticket();
         problem.setTitle(title);
         problem.setDescription(description);
-        // Assuming current user is logged in, hardcoding 1 for reportedBy
         problem.setReportedBy(1);
 
         String[] incidentIdStrs = request.getParameterValues("incidentIds");
@@ -164,6 +166,20 @@ public class ProblemController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/problem?action=list");
     }
 
+    private void bulkDeleteProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String[] ids = request.getParameterValues("selectedIds");
+        if (ids != null) {
+            for (String idStr : ids) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    problemDAO.deleteProblemTicket(id);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        response.sendRedirect(request.getContextPath() + "/problem?action=list");
+    }
+
     private void cancelProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         problemDAO.cancelProblemTicket(id);
@@ -181,7 +197,6 @@ public class ProblemController extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         String commentText = request.getParameter("commentText");
 
-        // Assuming user 1
         Comment comment = new Comment();
         comment.setTicketId(id);
         comment.setUserId(1);

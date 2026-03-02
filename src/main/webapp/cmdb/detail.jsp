@@ -171,6 +171,7 @@
             <div class="container">
                 <h3>CI Relationship Map</h3>
                 <c:if test="${not empty relationships}">
+                    <h4 style="margin-top:20px; color:#555;">Relationship Details</h4>
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr style="background:#f1f1f1;">
                             <th style="padding: 8px; text-align:left; border-bottom: 2px solid #ccc;">Parent CI ID</th>
