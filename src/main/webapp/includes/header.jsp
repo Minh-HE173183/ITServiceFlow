@@ -1,11 +1,17 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" pageEncoding="UTF-8" %>
-    <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+    <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+        <!DOCTYPE html>
+        <html lang="en">
 
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>ITSM System</title>
+            <!-- Bootstrap 5 CSS -->
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+            <!-- Bootstrap Icons -->
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+            <!-- Google Fonts -->
             <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap"
                 rel="stylesheet">
             <style>
@@ -15,10 +21,14 @@
                     --primary-blue: #3c8dbc;
                 }
 
+                body {
+                    font-family: 'Outfit', sans-serif;
+                    background-color: #f4f7f6;
+                }
+
                 .wrapper {
                     display: flex;
                     min-height: 100vh;
-                    background-color: #f4f7f6;
                 }
 
                 /* Sidebar */
@@ -36,6 +46,7 @@
                     text-align: center;
                     font-weight: bold;
                     font-size: 1.2rem;
+                    color: #fff;
                 }
 
                 .sidebar-menu {
@@ -79,6 +90,7 @@
                     flex: 1;
                     display: flex;
                     flex-direction: column;
+                    overflow-x: hidden;
                 }
 
                 .topbar {
@@ -121,8 +133,17 @@
                 .content-area {
                     padding: 30px;
                     flex: 1;
+                    overflow-y: auto;
+                }
+
+                /* Override default anchor styles in content */
+                .content-area a {
+                    text-decoration: none;
                 }
             </style>
+        </head>
+
+        <body>
 
             <div class="wrapper">
                 <!-- Sidebar -->
@@ -175,36 +196,50 @@
                     </ul>
                 </div>
 
+                <!-- Main Content -->
                 <div class="admin-main">
                     <!-- Topbar -->
                     <div class="topbar">
                         <div class="topbar-left">
                             <i class="bi bi-list fs-4 cursor-pointer"></i>
-                            <span class="fw-bold">User Management</span>
+                            <span class="fw-bold">
+                                <c:choose>
+                                    <c:when test="${pageContext.request.requestURI.contains('/problem/')}">Problem
+                                        Management</c:when>
+                                    <c:when test="${pageContext.request.requestURI.contains('/known-error/')}">Known
+                                        Error Database</c:when>
+                                    <c:when test="${pageContext.request.requestURI.contains('/cmdb/')}">CMDB</c:when>
+                                    <c:otherwise>IT Service Management</c:otherwise>
+                                </c:choose>
+                            </span>
                         </div>
                         <div class="topbar-right">
                             <i class="bi bi-bell badge-notification"></i>
                             <div class="user-info dropdown">
                                 <a class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
-                                    href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
-                                    <img src="https://ui-avatars.com/api/?name=${sessionScope.user.fullName}&background=random"
+                                    href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                    <!-- Fallback user info if session doesn't exist -->
+                                    <img src="https://ui-avatars.com/api/?name=${not empty sessionScope.user ? sessionScope.user.fullName : 'Admin'}&background=random"
                                         alt="User">
-                                    <span class="ms-2 d-none d-md-inline">${sessionScope.user.fullName}</span>
+                                    <span class="ms-2 d-none d-md-inline">${not empty sessionScope.user ?
+                                        sessionScope.user.fullName : 'Hảo Hảo'}</span>
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile"><i
-                                                class="bi bi-person me-2"></i> Hồ sơ</a></li>
-                                    <li><a class="dropdown-item"
-                                            href="${pageContext.request.contextPath}/profile#change-pass"><i
-                                                class="bi bi-shield-lock me-2"></i> Đổi mật khẩu</a></li>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0"
+                                    aria-labelledby="adminDropdown">
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> Hồ sơ</a>
+                                    </li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-shield-lock me-2"></i> Đổi mật
+                                            khẩu</a></li>
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>
-                                    <li><a class="dropdown-item text-danger"
-                                            href="${pageContext.request.contextPath}/auth?action=logout"><i
+                                    <li><a class="dropdown-item text-danger" href="#"><i
                                                 class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Content Area start -->
                     <div class="content-area">
