@@ -67,8 +67,14 @@ public class CmdbController extends HttpServlet {
             case "delete":
                 deleteConfigurationItem(request, response);
                 break;
+            case "bulkDelete":
+                bulkDeleteConfigurationItem(request, response);
+                break;
             case "toggleStatus":
                 toggleConfigurationItemStatus(request, response);
+                break;
+            case "bulkToggleStatus":
+                bulkToggleConfigurationItemStatus(request, response);
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + "/cmdb?action=list");
@@ -78,7 +84,13 @@ public class CmdbController extends HttpServlet {
 
     private void listConfigurationItems(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<ConfigurationItem> items = cmdbDAO.getAllConfigurationItems();
+        String keyword = request.getParameter("keyword");
+        String status = request.getParameter("status");
+
+        List<ConfigurationItem> items = cmdbDAO.searchConfigurationItems(keyword, status);
+
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("statusFilter", status);
         request.setAttribute("configurationItems", items);
         request.getRequestDispatcher("/cmdb/list.jsp").forward(request, response);
     }
@@ -93,6 +105,7 @@ public class CmdbController extends HttpServlet {
         request.setAttribute("ci", ci);
         request.setAttribute("relationships", relationships);
         request.setAttribute("impactedCis", impactedCis);
+
         request.getRequestDispatcher("/cmdb/detail.jsp").forward(request, response);
     }
 
@@ -175,11 +188,43 @@ public class CmdbController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/cmdb?action=list");
     }
 
+    private void bulkDeleteConfigurationItem(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String[] ids = request.getParameterValues("selectedIds");
+        if (ids != null) {
+            for (String idStr : ids) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    cmdbDAO.deleteConfigurationItem(id);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        response.sendRedirect(request.getContextPath() + "/cmdb?action=list");
+    }
+
     private void toggleConfigurationItemStatus(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         String currentStatus = request.getParameter("currentStatus");
         cmdbDAO.toggleConfigurationItemStatus(id, currentStatus);
+        response.sendRedirect(request.getContextPath() + "/cmdb?action=list");
+    }
+
+    private void bulkToggleConfigurationItemStatus(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String[] ids = request.getParameterValues("selectedIds");
+        String toggleTo = request.getParameter("toggleTo"); // e.g. INACTIVE or ACTIVE
+        if (ids != null && toggleTo != null) {
+            for (String idStr : ids) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    String mockCurrentStatus = toggleTo.equals("INACTIVE") ? "ACTIVE" : "INACTIVE";
+                    cmdbDAO.toggleConfigurationItemStatus(id, mockCurrentStatus);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
         response.sendRedirect(request.getContextPath() + "/cmdb?action=list");
     }
 }

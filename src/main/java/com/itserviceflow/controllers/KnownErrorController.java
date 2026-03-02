@@ -66,11 +66,20 @@ public class KnownErrorController extends HttpServlet {
             case "delete":
                 deleteKnownError(request, response);
                 break;
+            case "bulkDelete":
+                bulkDeleteKnownError(request, response);
+                break;
             case "review":
                 reviewKnownError(request, response);
                 break;
+            case "bulkReview":
+                bulkReviewKnownError(request, response);
+                break;
             case "toggleStatus":
                 toggleKnownErrorStatus(request, response);
+                break;
+            case "bulkToggleStatus":
+                bulkToggleKnownErrorStatus(request, response);
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + "/known-error?action=list");
@@ -156,6 +165,20 @@ public class KnownErrorController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/known-error?action=list");
     }
 
+    private void bulkDeleteKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String[] ids = request.getParameterValues("selectedIds");
+        if (ids != null) {
+            for (String idStr : ids) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    knownErrorDAO.deleteKnownError(id);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        response.sendRedirect(request.getContextPath() + "/known-error?action=list");
+    }
+
     private void reviewKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         String status = request.getParameter("status"); // APPROVED or REJECTED
@@ -165,10 +188,46 @@ public class KnownErrorController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/known-error?action=detail&id=" + id);
     }
 
+    private void bulkReviewKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String[] ids = request.getParameterValues("selectedIds");
+        String status = request.getParameter("status"); // APPROVED or REJECTED
+        String rejectionReason = "Bulk reviewed"; // default reason for bulk
+        if (ids != null && status != null) {
+            for (String idStr : ids) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    knownErrorDAO.reviewKnownError(id, status, 10, rejectionReason);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        response.sendRedirect(request.getContextPath() + "/known-error?action=list");
+    }
+
     private void toggleKnownErrorStatus(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         String currentStatus = request.getParameter("currentStatus");
         knownErrorDAO.toggleKnownErrorStatus(id, currentStatus);
+        response.sendRedirect(request.getContextPath() + "/known-error?action=list");
+    }
+
+    private void bulkToggleKnownErrorStatus(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String[] ids = request.getParameterValues("selectedIds");
+        String toggleTo = request.getParameter("toggleTo"); // expects the Target status, e.g. INACTIVE or APPROVED
+        if (ids != null && toggleTo != null) {
+            for (String idStr : ids) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    // We cheat a bit. If toggleTo = INACTIVE, the query expects currentStatus =
+                    // APPROVED to set it to INACTIVE.
+                    // If toggleTo = APPROVED, the query expects currentStatus = INACTIVE.
+                    String mockCurrentStatus = toggleTo.equals("INACTIVE") ? "APPROVED" : "INACTIVE";
+                    knownErrorDAO.toggleKnownErrorStatus(id, mockCurrentStatus);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
         response.sendRedirect(request.getContextPath() + "/known-error?action=list");
     }
 }
