@@ -259,18 +259,16 @@
     </div>
     <div class="login-right">
         <div class="auth-tab">
-            <a href="#">SIGN UP</a>
-            <span>/</span>
             <a href="#" class="active">LOGIN</a>
         </div>
 
         <form action="${pageContext.request.contextPath}/auth?action=login" method="post">
             <h2 class="fw-bold mb-2">Chào mừng trở lại!</h2>
-            <p class="text-muted mb-5">Vui lòng đăng nhập để quản lý dịch vụ IT của bạn.</p>
+            <p class="text-muted mb-5">Vui lòng đăng nhập.</p>
             
             <label class="form-label">Tên đăng nhập / Email</label>
             <div class="input-wrapper">
-                <input type="text" name="username" placeholder="Nhập ID hoặc Email..." required>
+                <input type="text" name="username" placeholder="Nhập tên đăng nhập hoặc email..." required>
                 <i class="bi bi-person"></i>
             </div>
 
@@ -291,14 +289,12 @@
             <div class="login-buttons">
                 <div class="text-muted d-flex align-items-center gap-2 w-100">
                     <hr class="flex-grow-1">
-                    <span class="small fw-bold">HOẶC</span>
+
                     <hr class="flex-grow-1">
                 </div>
             </div>
             
-            <a href="#" class="btn btn-facebook mt-3">
-                <i class="bi bi-facebook fs-5"></i> Tiếp tục với Facebook
-            </a>
+
         </form>
     </div>
 </div>
