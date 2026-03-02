@@ -337,11 +337,14 @@
                                         Draft <span class="fc">${countDraft}</span>
                                     </a>
                                 </div>
-                                <div class="ms-auto" style="max-width:260px; width:100%;">
+                                <div class="ms-auto" style="max-width:280px; width:100%;">
                                     <div class="input-group input-group-sm">
-                                        <span class="input-group-text"><i class="bi bi-search"></i></span>
                                         <input type="text" id="searchInput" class="form-control"
-                                            placeholder="Tìm workflow…" oninput="filterTable()" />
+                                            placeholder="Tìm workflow…" value="${search}"
+                                            onkeydown="if(event.key==='Enter') filterTable()" />
+                                        <button class="btn btn-primary" type="button" onclick="filterTable()">
+                                            <i class="bi bi-search"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -510,12 +513,34 @@
                                         </tbody>
                                     </table>
 
-                                    <c:if test="${not empty workflows}">
+                                    <c:if test="${totalPages > 0}">
                                         <div
-                                            class="p-3 bg-light border-top d-flex align-items-center justify-content-between">
+                                            class="p-3 bg-light border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
                                             <span class="text-muted small">
-                                                Hiển thị <strong>${workflows.size()}</strong> workflow
+                                                Trang <strong>${currentPage}</strong> / <strong>${totalPages}</strong>
+                                                <!--&nbsp;&mdash;&nbsp;-->
+<!--                                                Hiển thị <strong>${fromIdx}&ndash;${toIdx}</strong> /
+                                                <strong>${totalCount}</strong> workflow-->
                                             </span>
+                                            <nav>
+                                                <ul class="pagination pagination-sm mb-0">
+                                                    <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                                        <a class="page-link" href="javascript:void(0)"
+                                                            onclick="handlePageChange(${currentPage - 1})">Trước</a>
+                                                    </li>
+                                                    <c:forEach var="i" begin="1" end="${totalPages}">
+                                                        <li class="page-item ${currentPage == i ? 'active' : ''}">
+                                                            <a class="page-link" href="javascript:void(0)"
+                                                                onclick="handlePageChange(${i})">${i}</a>
+                                                        </li>
+                                                    </c:forEach>
+                                                    <li
+                                                        class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                                        <a class="page-link" href="javascript:void(0)"
+                                                            onclick="handlePageChange(${currentPage + 1})">Sau</a>
+                                                    </li>
+                                                </ul>
+                                            </nav>
                                         </div>
                                     </c:if>
                                 </div>
@@ -583,13 +608,22 @@
                                                 });
                                             });
 
-                                            // Client-side search
+                                            // Client-side search (redirect to server with keyword)
                                             function filterTable() {
-                                                var q = document.getElementById('searchInput').value.toLowerCase();
-                                                document.querySelectorAll('#workflowTable tbody tr').forEach(function (row) {
-                                                    row.style.display = (row.dataset.name || '').toLowerCase().includes(q) ? '' : 'none';
-                                                });
+                                                var q = document.getElementById('searchInput').value;
+                                                var params = new URLSearchParams(window.location.search);
+                                                params.set('search', q);
+                                                params.set('page', '1');
+                                                window.location.search = params.toString();
                                             }
+
+                                            // Pagination
+                                            function handlePageChange(page) {
+                                                var params = new URLSearchParams(window.location.search);
+                                                params.set('page', page);
+                                                window.location.search = params.toString();
+                                            }
+
 
                                             // Modal helpers
                                             function getDeleteModal() {

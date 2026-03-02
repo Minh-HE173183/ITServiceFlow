@@ -84,31 +84,73 @@ public class WorkflowServlet extends HttpServlet {
     // GET handlers
     // ==================================================================
 
+    private static final int DEFAULT_PAGE_SIZE = 10;
+
     private void showList(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, ServletException, IOException {
 
         String statusFilter = req.getParameter("status");
-        List<Workflow> workflows;
+        String search = req.getParameter("search");
 
+        List<Workflow> allFiltered;
         if (statusFilter != null && !statusFilter.isBlank()) {
-            workflows = dao.getWorkflowsByStatus(statusFilter.toUpperCase());
+            allFiltered = dao.getWorkflowsByStatus(statusFilter.toUpperCase());
         } else {
-            workflows = dao.getAllWorkflows();
+            allFiltered = dao.getAllWorkflows();
         }
 
-        // Counts for the filter tabs
-        List<Workflow> all      = dao.getAllWorkflows();
+        // Apply keyword search filter
+        if (search != null && !search.isBlank()) {
+            final String kw = search.trim().toLowerCase();
+            allFiltered = allFiltered.stream()
+                .filter(w -> (w.getWorkflowName() != null && w.getWorkflowName().toLowerCase().contains(kw))
+                          || (w.getDescription()   != null && w.getDescription().toLowerCase().contains(kw)))
+                .toList();
+        }
+
+        // Counts for the filter tabs (always from full list)
+        List<Workflow> all     = dao.getAllWorkflows();
         long countAll      = all.size();
         long countActive   = all.stream().filter(w -> "ACTIVE".equals(w.getStatus())).count();
         long countInactive = all.stream().filter(w -> "INACTIVE".equals(w.getStatus())).count();
         long countDraft    = all.stream().filter(w -> "DRAFT".equals(w.getStatus())).count();
 
+        // Pagination
+        int pageSize = DEFAULT_PAGE_SIZE;
+        try {
+            String ps = req.getParameter("pageSize");
+            if (ps != null && !ps.isBlank()) pageSize = Math.max(1, Integer.parseInt(ps.trim()));
+        } catch (NumberFormatException ignored) {}
+
+        int total      = allFiltered.size();
+        int totalPages = (int) Math.ceil((double) total / pageSize);
+        if (totalPages < 1) totalPages = 1;
+
+        int currentPage = 1;
+        try {
+            String p = req.getParameter("page");
+            if (p != null && !p.isBlank()) currentPage = Integer.parseInt(p.trim());
+        } catch (NumberFormatException ignored) {}
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        int fromIdx = (currentPage - 1) * pageSize;
+        int toIdx   = Math.min(fromIdx + pageSize, total);
+        List<Workflow> workflows = allFiltered.subList(fromIdx, toIdx);
+
         req.setAttribute("workflows",    workflows);
         req.setAttribute("statusFilter", statusFilter == null ? "" : statusFilter);
+        req.setAttribute("search",       search == null ? "" : search);
         req.setAttribute("countAll",     countAll);
         req.setAttribute("countActive",  countActive);
         req.setAttribute("countInactive",countInactive);
         req.setAttribute("countDraft",   countDraft);
+        req.setAttribute("currentPage",  currentPage);
+        req.setAttribute("totalPages",   totalPages);
+        req.setAttribute("pageSize",     pageSize);
+        req.setAttribute("totalCount",   total);
+        req.setAttribute("fromIdx",      fromIdx + 1);
+        req.setAttribute("toIdx",        toIdx);
 
         req.getRequestDispatcher("/views/workflow/workflow-list.jsp")
            .forward(req, resp);
