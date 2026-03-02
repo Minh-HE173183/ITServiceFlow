@@ -1,4 +1,4 @@
-package com.itserviceflow.servlets;
+package com.itserviceflow.controllers;
 
 import com.google.gson.Gson;
 import com.itserviceflow.daos.WorkflowDAO;
