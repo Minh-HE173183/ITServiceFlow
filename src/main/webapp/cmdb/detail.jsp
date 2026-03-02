@@ -150,7 +150,6 @@
                 </div>
             </div>
 
-            <!-- CMDB Impact Analysis View -->
             <div class="container impact-box">
                 <h3>&#9888; Impact Analysis (What happens if this CI fails?)</h3>
                 <p>The following configuration items depend on or are hosted by this infrastructure branch. A failure

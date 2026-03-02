@@ -122,7 +122,6 @@ public class KnownErrorController extends HttpServlet {
         ke.setCause(cause);
         ke.setSolution(solution);
 
-        // Simulating author is User ID 5
         ke.setAuthorId(5);
 
         knownErrorDAO.createKnownError(ke);
@@ -162,7 +161,6 @@ public class KnownErrorController extends HttpServlet {
         String status = request.getParameter("status"); // APPROVED or REJECTED
         String rejectionReason = request.getParameter("rejectionReason");
 
-        // Simulating admin user ID 10
         knownErrorDAO.reviewKnownError(id, status, 10, rejectionReason);
         response.sendRedirect(request.getContextPath() + "/known-error?action=detail&id=" + id);
     }
