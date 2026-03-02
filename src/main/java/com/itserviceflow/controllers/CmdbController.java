@@ -3,6 +3,8 @@ package com.itserviceflow.controllers;
 import com.itserviceflow.daos.CmdbDAO;
 import com.itserviceflow.models.ConfigurationItem;
 import com.itserviceflow.models.CiRelationship;
+import com.itserviceflow.models.User;
+import com.itserviceflow.utils.AuthUtils;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -29,20 +31,39 @@ public class CmdbController extends HttpServlet {
             action = "list";
         }
 
+        if (!AuthUtils.isLoggedIn(request, response))
+            return;
+
+        User currentUser = AuthUtils.getCurrentUser(request);
+        request.setAttribute("currentUser", currentUser);
+
         switch (action) {
             case "list":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_SYSTEM_ENGINEER,
+                        AuthUtils.ROLE_ASSET_MANAGER, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR))
+                    return;
                 listConfigurationItems(request, response);
                 break;
             case "detail":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_SYSTEM_ENGINEER,
+                        AuthUtils.ROLE_ASSET_MANAGER, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR))
+                    return;
                 viewConfigurationItemDetail(request, response);
                 break;
             case "add":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ASSET_MANAGER))
+                    return;
                 showConfigurationItemForm(request, response);
                 break;
             case "edit":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ASSET_MANAGER))
+                    return;
                 showEditForm(request, response);
                 break;
             default:
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_SYSTEM_ENGINEER,
+                        AuthUtils.ROLE_ASSET_MANAGER, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR))
+                    return;
                 listConfigurationItems(request, response);
                 break;
         }
@@ -57,23 +78,38 @@ public class CmdbController extends HttpServlet {
             return;
         }
 
+        if (!AuthUtils.isLoggedIn(request, response))
+            return;
+
         switch (action) {
             case "insert":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ASSET_MANAGER))
+                    return;
                 insertConfigurationItem(request, response);
                 break;
             case "update":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ASSET_MANAGER))
+                    return;
                 updateConfigurationItem(request, response);
                 break;
             case "delete":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ASSET_MANAGER))
+                    return;
                 deleteConfigurationItem(request, response);
                 break;
             case "bulkDelete":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ASSET_MANAGER))
+                    return;
                 bulkDeleteConfigurationItem(request, response);
                 break;
             case "toggleStatus":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ASSET_MANAGER))
+                    return;
                 toggleConfigurationItemStatus(request, response);
                 break;
             case "bulkToggleStatus":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ASSET_MANAGER))
+                    return;
                 bulkToggleConfigurationItemStatus(request, response);
                 break;
             default:
@@ -184,7 +220,15 @@ public class CmdbController extends HttpServlet {
 
     private void deleteConfigurationItem(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
-        cmdbDAO.deleteConfigurationItem(id);
+
+        ConfigurationItem ci = cmdbDAO.getConfigurationItemById(id);
+        // UC78: Delete CI only if status = INACTIVE and no relationships/linked tickets
+        if (ci != null && "INACTIVE".equals(ci.getStatus())) {
+            List<CiRelationship> relationships = cmdbDAO.getCiRelationships(id);
+            if (relationships == null || relationships.isEmpty()) {
+                cmdbDAO.deleteConfigurationItem(id);
+            }
+        }
         response.sendRedirect(request.getContextPath() + "/cmdb?action=list");
     }
 
@@ -195,7 +239,13 @@ public class CmdbController extends HttpServlet {
             for (String idStr : ids) {
                 try {
                     int id = Integer.parseInt(idStr);
-                    cmdbDAO.deleteConfigurationItem(id);
+                    ConfigurationItem ci = cmdbDAO.getConfigurationItemById(id);
+                    if (ci != null && "INACTIVE".equals(ci.getStatus())) {
+                        List<CiRelationship> relationships = cmdbDAO.getCiRelationships(id);
+                        if (relationships == null || relationships.isEmpty()) {
+                            cmdbDAO.deleteConfigurationItem(id);
+                        }
+                    }
                 } catch (NumberFormatException ignored) {
                 }
             }
@@ -214,7 +264,7 @@ public class CmdbController extends HttpServlet {
     private void bulkToggleConfigurationItemStatus(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         String[] ids = request.getParameterValues("selectedIds");
-        String toggleTo = request.getParameter("toggleTo"); 
+        String toggleTo = request.getParameter("toggleTo");
         if (ids != null && toggleTo != null) {
             for (String idStr : ids) {
                 try {

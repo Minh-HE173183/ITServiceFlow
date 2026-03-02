@@ -78,6 +78,16 @@
                   ${param.activeNav == 'sla' ? 'active' : ''}" href="#">
                             <i class="bi bi-clock-history"></i> SLA Policies
                         </a>
+                        <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
+                  ${param.activeNav == 'problem' ? 'active' : ''}"
+                            href="${pageContext.request.contextPath}/problem?action=list">
+                            <i class="bi bi-exclamation-octagon-fill"></i> Problem
+                        </a>
+                        <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
+                  ${param.activeNav == 'known-error' ? 'active' : ''}"
+                            href="${pageContext.request.contextPath}/known-error?action=list">
+                            <i class="bi bi-bug-fill"></i> Known Error
+                        </a>
 
                         <div class="sidebar-section text-uppercase text-secondary px-3 pt-3 pb-2"
                             style="font-size:10px;letter-spacing:1px;font-weight:600;">Knowledge</div>
@@ -91,7 +101,8 @@
                             style="font-size:10px;letter-spacing:1px;font-weight:600;">Infrastructure</div>
 
                         <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
-                  ${param.activeNav == 'cmdb' ? 'active' : ''}" href="#">
+                  ${param.activeNav == 'cmdb' ? 'active' : ''}"
+                            href="${pageContext.request.contextPath}/cmdb?action=list">
                             <i class="bi bi-hdd-network-fill"></i> CMDB
                         </a>
 
