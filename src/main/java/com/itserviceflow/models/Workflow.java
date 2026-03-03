@@ -18,10 +18,11 @@ public class Workflow {
     // Extra fields for display (joined from user table)
     private String createdByName;
 
-    public Workflow() {}
+    public Workflow() {
+    }
 
     public Workflow(int workflowId, String workflowName, String description,
-                    String status, String workflowConfig, int createdBy, Timestamp updatedAt) {
+            String status, String workflowConfig, int createdBy, Timestamp updatedAt) {
         this.workflowId = workflowId;
         this.workflowName = workflowName;
         this.description = description;
@@ -32,29 +33,69 @@ public class Workflow {
     }
 
     // Getters & Setters
-    public int getWorkflowId() { return workflowId; }
-    public void setWorkflowId(int workflowId) { this.workflowId = workflowId; }
+    public int getWorkflowId() {
+        return workflowId;
+    }
 
-    public String getWorkflowName() { return workflowName; }
-    public void setWorkflowName(String workflowName) { this.workflowName = workflowName; }
+    public void setWorkflowId(int workflowId) {
+        this.workflowId = workflowId;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getWorkflowName() {
+        return workflowName;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public void setWorkflowName(String workflowName) {
+        this.workflowName = workflowName;
+    }
 
-    public String getWorkflowConfig() { return workflowConfig; }
-    public void setWorkflowConfig(String workflowConfig) { this.workflowConfig = workflowConfig; }
+    public String getDescription() {
+        return description;
+    }
 
-    public int getCreatedBy() { return createdBy; }
-    public void setCreatedBy(int createdBy) { this.createdBy = createdBy; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public Timestamp getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+    public String getStatus() {
+        return status;
+    }
 
-    public String getCreatedByName() { return createdByName; }
-    public void setCreatedByName(String createdByName) { this.createdByName = createdByName; }
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getWorkflowConfig() {
+        return workflowConfig;
+    }
+
+    public void setWorkflowConfig(String workflowConfig) {
+        this.workflowConfig = workflowConfig;
+    }
+
+    public int getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(int createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getCreatedByName() {
+        return createdByName;
+    }
+
+    public void setCreatedByName(String createdByName) {
+        this.createdByName = createdByName;
+    }
 
     /**
      * Returns true if this workflow can be toggled (ACTIVE <-> INACTIVE).
@@ -69,9 +110,9 @@ public class Workflow {
      */
     public String getStatusBadgeClass() {
         return switch (status) {
-            case "ACTIVE"   -> "badge-active";
+            case "ACTIVE" -> "badge-active";
             case "INACTIVE" -> "badge-inactive";
-            default         -> "badge-draft";
+            default -> "badge-draft";
         };
     }
 }

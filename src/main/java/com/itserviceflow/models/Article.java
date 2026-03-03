@@ -3,8 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.itserviceflow.models;
-import java.util.Date;
 
+import java.util.Date;
 
 /**
  *
@@ -13,7 +13,7 @@ import java.util.Date;
 public class Article {
     private int articleId;
     private String articleNumber;
-    private String articleType; 
+    private String articleType;
     private String title;
     private String content;
     private String summary;
@@ -24,6 +24,7 @@ public class Article {
     private String cause;
     private String solution;
     private Date updatedAt;
+    private String rejectionReason;
 
     public int getArticleId() {
         return articleId;
@@ -58,7 +59,7 @@ public class Article {
     }
 
     public String getContent() {
-        return content;
+        return content != null ? content : "";
     }
 
     public void setContent(String content) {
@@ -127,5 +128,13 @@ public class Article {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason != null ? rejectionReason : "";
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
     }
 }

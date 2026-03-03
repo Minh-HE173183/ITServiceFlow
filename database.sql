@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 	-- ================================================================================
+=======
+-- ================================================================================
+>>>>>>> origin
 -- ITServiceFlow ITSM Platform - MySQL Database Creation
 -- ================================================================================
 
@@ -448,4 +452,16 @@ INSERT INTO ci_type (type_name) VALUES
 ('Router'),
 ('Firewall'),
 ('Database'),
+<<<<<<< HEAD
 ('Application');
+=======
+('Application');/* 
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Other/SQLTemplate.sql to edit this template
+ */
+/**
+ * Author:  vumin
+ * Created: Feb 28, 2026
+ */
+
+>>>>>>> origin

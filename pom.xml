@@ -10,7 +10,10 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+<<<<<<< HEAD
         <!-- compile for Java 17 so classes can run in the Tomcat 10 JVM -->
+=======
+>>>>>>> origin
         <maven.compiler.release>17</maven.compiler.release>
     </properties>
 

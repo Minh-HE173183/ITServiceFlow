@@ -10,7 +10,7 @@ import java.sql.SQLException;
  * Configuration:
  *   - URL:      jdbc:mysql://localhost:3306/itserviceflow_db
  *   - Username: root
- *   - Password: Admin123
+ *   - Password: (configured below)
  *
  * NOTE: For production, externalize credentials via JNDI DataSource or
  *       environment variables instead of hardcoding here.
@@ -54,8 +54,15 @@ public class DBConnection {
         try {
             return DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (SQLException e) {
-            System.err.println("[DBConnection] Failed to connect to database: " + e.getMessage());
-            throw new RuntimeException("Database connection failed", e);
+            e.printStackTrace();
+            System.out.println("Database connection failed!");
+            return null;
         }
     }
+    
+    public static void main(String[] args) {
+        System.out.println(DBConnection.getConnection());   
+    }
+
 }
+
