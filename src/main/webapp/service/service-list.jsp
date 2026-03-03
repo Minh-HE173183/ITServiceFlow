@@ -22,7 +22,7 @@
 
                 <div class="col-md-8">
 
-                    <form action="service-catalog" method="get" class="d-flex">
+                    <form action="/service-catalog" method="get" class="d-flex">
 
                         <input type="text" name="search" class="form-control me-2" 
 
@@ -70,7 +70,7 @@
 
                                     <div class="d-flex gap-2">
 
-                                        <a href="service-detail?id=${svc.serviceId}" class="btn btn-outline-primary px-4 flex-grow-1">
+                                        <a href="/service/service-detail?id=${svc.serviceId}" class="btn btn-outline-primary px-4 flex-grow-1">
 
                                             View
 

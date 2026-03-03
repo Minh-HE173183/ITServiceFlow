@@ -25,6 +25,8 @@ public class Ticket {
     private String solution; 
     private Date createdAt;
     private Date updatedAt;
+    private Integer serviceId;
+    private String justification;
 
     public Ticket() {
     }
@@ -148,4 +150,22 @@ public class Ticket {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    public Integer getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(Integer serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    public String getJustification() {
+        return justification;
+    }
+
+    public void setJustification(String justification) {
+        this.justification = justification;
+    }
+    
+    
 }

@@ -50,7 +50,7 @@ public class ServiceDAO {
 
     public Service getServiceById(int id) {
         Service service = null;
-        // Query kết hợp lấy SLA dựa trên category của dịch vụ (nếu có)
+        
         String sql = "SELECT * FROM service WHERE service_id = ?";
 
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -88,7 +88,7 @@ public class ServiceDAO {
     }
     
     public String deleteService(int serviceId) {
-        // 1. Kiểm tra xem đã có ticket nào sử dụng dịch vụ này chưa
+        // Kiểm tra xem đã có ticket nào sử dụng dịch vụ này chưa
         String checkSql = "SELECT COUNT(*) FROM ticket WHERE service_id = ?";
         String deleteSql = "DELETE FROM service WHERE service_id = ?";
 
@@ -129,7 +129,6 @@ public class ServiceDAO {
     
     public List<Service> getAllServices(String query) {
         List<Service> services = new ArrayList<>();
-        // Bỏ điều kiện status = 'ACTIVE' để lấy cả INACTIVE
         String sql = "SELECT * FROM service WHERE service_name LIKE ? OR description LIKE ?";
 
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -141,7 +140,7 @@ public class ServiceDAO {
                 Service s = new Service();
                 s.setServiceId(rs.getInt("service_id"));
                 s.setServiceName(rs.getString("service_name"));
-                s.setStatus(rs.getString("status")); // Rất quan trọng để hiển thị màu nút
+                s.setStatus(rs.getString("status")); 
                 // ... các set khác
                 services.add(s);
             }
