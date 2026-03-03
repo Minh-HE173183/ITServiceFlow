@@ -26,7 +26,7 @@ public class CreateRequestServlet extends HttpServlet {
             Service service = serviceDAO.getServiceById(serviceId);
             request.setAttribute("service", service);
         }
-        // Chuyển hướng tới file JSP của bạn
+        
         request.getRequestDispatcher("/ticket/create-request.jsp").forward(request, response);
     }
     
@@ -39,7 +39,7 @@ public class CreateRequestServlet extends HttpServlet {
 
 
         if (serviceIdParam != null && !serviceIdParam.isEmpty()) {
-            // Gán giá trị vào đối tượng Ticket để tránh lỗi Null tại TicketDAO:35
+            
             ticket.setServiceId(Integer.parseInt(serviceIdParam));
         } else {
             // Xử lý nếu thiếu ID (quay lại catalog)
@@ -52,7 +52,7 @@ public class CreateRequestServlet extends HttpServlet {
         ticket.setJustification(request.getParameter("justification"));
         ticket.setPriority(request.getParameter("priority"));
         
-        // reportedBy lấy từ session sau khi login (tạm thời để cứng ID = 1)
+        // reportedBy lấy từ session sau khi login tạm thời để cứng ID = 1
         ticket.setReportedBy(1); 
         ticket.setDepartmentId(1);
 
