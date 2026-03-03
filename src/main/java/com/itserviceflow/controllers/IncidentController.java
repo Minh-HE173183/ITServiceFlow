@@ -96,12 +96,33 @@ public class IncidentController extends HttpServlet {
 
     private void listIncidents(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+<<<<<<< Updated upstream
         User user = (User) request.getSession().getAttribute("user");
         Integer userId = (user != null) ? user.getUserId() : null;
         String roleName = (user != null) ? user.getRoleName() : null;
         List<Ticket> list = incidentDAO.getAllIncidents(userId, roleName);
         request.setAttribute("incidents", list);
         request.getRequestDispatcher("/incident/list.jsp").forward(request, response);
+=======
+        // use session user info to filter for end‑users
+        jakarta.servlet.http.HttpSession session = request.getSession();
+        com.itserviceflow.models.User user = (com.itserviceflow.models.User) session.getAttribute("user");
+        int userId = 0;
+        String roleName = "";
+        if (user != null) {
+            userId = user.getUserId();
+            // if roleName not yet set, lookup from DB
+            if (user.getRoleName() == null || user.getRoleName().isEmpty()) {
+                RoleDAO rdao = new RoleDAO();
+                String rn = rdao.getRoleNameById(user.getRoleId());
+                user.setRoleName(rn);
+            }
+            roleName = user.getRoleName();
+        }
+        List<Ticket> list = ticketDAO.getIncidentList(userId, roleName);
+        request.setAttribute("incidentList", list);
+        request.getRequestDispatcher("/incidents/incidentList.jsp").forward(request, response);
+>>>>>>> Stashed changes
     }
 
     private void viewDetail(HttpServletRequest request, HttpServletResponse response)
