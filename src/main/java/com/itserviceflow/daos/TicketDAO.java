@@ -9,7 +9,11 @@ import static com.itserviceflow.utils.DBConnection.getConnection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
+import com.itserviceflow.utils.DBConnection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 /**
  *
  * @author ADMIN
@@ -38,20 +42,11 @@ public class TicketDAO {
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-import com.itserviceflow.utils.DBConnection;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+            e.printStackTrace();
+            return false;
+        }
+    }
 
-/**
- *
- * @author vumin
- */
-public class TicketDAO {
 
     public Ticket getTicketById(int ticketId) {
         String sql = "SELECT * FROM ticket WHERE ticket_id = ?";
