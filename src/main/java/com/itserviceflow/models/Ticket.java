@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.itserviceflow.models;
+
 import java.util.Date;
 
 /**
@@ -17,18 +18,44 @@ public class Ticket {
     private String description;
     private String status;
     private String priority;
+    private String difficultyLevel;
     private int categoryId;
     private int reportedBy;
     private Integer assignedTo;
     private Integer departmentId;
-    private String cause; 
-    private String solution; 
+    private String cause;
+    private String solution;
     private Date createdAt;
     private Date updatedAt;
     private Integer serviceId;
     private String justification;
 
+    // Virtual fields for display
+    private String reportedByName;
+    private String assignedToName;
+
     public Ticket() {
+    }
+
+    public Ticket(int ticketId, String ticketNumber, String ticketType, String title, String description, String status,
+            String priority, String difficultyLevel, int categoryId, int reportedBy, Integer assignedTo,
+            Integer departmentId, String cause, String solution, Date createdAt, Date updatedAt) {
+        this.ticketId = ticketId;
+        this.ticketNumber = ticketNumber;
+        this.ticketType = ticketType;
+        this.title = title;
+        this.description = description;
+        this.status = status;
+        this.priority = priority;
+        this.difficultyLevel = difficultyLevel;
+        this.categoryId = categoryId;
+        this.reportedBy = reportedBy;
+        this.assignedTo = assignedTo;
+        this.departmentId = departmentId;
+        this.cause = cause;
+        this.solution = solution;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public int getTicketId() {
@@ -85,6 +112,14 @@ public class Ticket {
 
     public void setPriority(String priority) {
         this.priority = priority;
+    }
+
+    public String getDifficultyLevel() {
+        return difficultyLevel;
+    }
+
+    public void setDifficultyLevel(String difficultyLevel) {
+        this.difficultyLevel = difficultyLevel;
     }
 
     public int getCategoryId() {
@@ -168,4 +203,19 @@ public class Ticket {
     }
     
     
+    public String getReportedByName() {
+        return reportedByName;
+    }
+
+    public void setReportedByName(String reportedByName) {
+        this.reportedByName = reportedByName;
+    }
+
+    public String getAssignedToName() {
+        return assignedToName;
+    }
+
+    public void setAssignedToName(String assignedToName) {
+        this.assignedToName = assignedToName;
+    }
 }

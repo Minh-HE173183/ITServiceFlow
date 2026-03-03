@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.itserviceflow.daos;
+
 import com.itserviceflow.models.Article;
 import com.itserviceflow.utils.DBConnection;
 
@@ -32,6 +33,44 @@ public class KnownErrorDAO {
         return errors;
     }
 
+    public List<Article> searchKnownErrors(String keyword, String statusFilter) {
+        List<Article> errors = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM article WHERE article_type = 'KNOWN_ERROR'");
+
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        boolean hasStatus = statusFilter != null && !statusFilter.trim().isEmpty() && !statusFilter.equals("ALL");
+
+        if (hasKeyword) {
+            sql.append(" AND (title LIKE ? OR article_number LIKE ?)");
+        }
+        if (hasStatus) {
+            sql.append(" AND status = ?");
+        }
+
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            int paramIndex = 1;
+            if (hasKeyword) {
+                String likeKeyword = "%" + keyword.trim() + "%";
+                stmt.setString(paramIndex++, likeKeyword);
+                stmt.setString(paramIndex++, likeKeyword);
+            }
+            if (hasStatus) {
+                stmt.setString(paramIndex++, statusFilter.trim());
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    errors.add(mapRowToArticle(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return errors;
+    }
+
     public Article getKnownErrorById(int articleId) {
         String sql = "SELECT * FROM article WHERE article_id = ? AND article_type = 'KNOWN_ERROR'";
         try (Connection conn = DBConnection.getConnection();
@@ -50,8 +89,7 @@ public class KnownErrorDAO {
 
     public boolean createKnownError(Article error) {
         String sql = "INSERT INTO article (article_number, article_type, title, content, summary, status, author_id, symptom, cause, solution) "
-                +
-                "VALUES (?, 'KNOWN_ERROR', ?, ?, ?, 'PENDING', ?, ?, ?, ?)";
+                + "VALUES (?, 'KNOWN_ERROR', ?, ?, ?, 'PENDING', ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, "KE-" + System.currentTimeMillis());
@@ -151,6 +189,7 @@ public class KnownErrorDAO {
         a.setCause(rs.getString("cause"));
         a.setSolution(rs.getString("solution"));
         a.setUpdatedAt(rs.getTimestamp("updated_at"));
+        a.setRejectionReason(rs.getString("rejection_reason"));
         return a;
     }
 }
