@@ -167,8 +167,8 @@
                 class="menu-item ${pageContext.request.requestURI.contains('/workflows') ? 'active' : ''}">
                 <i class="bi bi-diagram-3"></i> Workflow Management
             </a>
-            <a href="${pageContext.request.contextPath}/service"
-                class="menu-item ${pageContext.request.requestURI.contains('/service') ? 'active' : ''}">
+            <a href="${pageContext.request.contextPath}/service-catalog"
+                class="menu-item ${pageContext.request.requestURI.contains('/service-catalog') ? 'active' : ''}">
                 <i class="bi bi-hdd-network"></i> Service Catalog
             </a>
         </ul>
