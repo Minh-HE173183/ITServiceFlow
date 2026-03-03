@@ -1,34 +1,44 @@
 <jsp:include page="/includes/header.jsp" />
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<div class="container-fluid bg-white p-4 rounded shadow-sm mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
-        <h2 class="h4 text-primary m-0">Known Error Detail: ${knownError.articleNumber}</h2>
-        <a href="${pageContext.request.contextPath}/known-error?action=list" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to List
-        </a>
-    </div>
+    <div class="container-fluid bg-white p-4 rounded shadow-sm mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+            <h2 class="h4 text-primary m-0">Known Error Detail: ${knownError.articleNumber}</h2>
+            <a href="${pageContext.request.contextPath}/known-error?action=list" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
 
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <p class="mb-2"><strong>Status:</strong>
-                <c:choose>
-                    <c:when test="${knownError.status eq 'APPROVED'}"><span class="badge bg-success">APPROVED</span>
-                    </c:when>
-                    <c:when test="${knownError.status eq 'PENDING'}"><span
-                            class="badge bg-warning text-dark">PENDING</span></c:when>
-                    <c:when test="${knownError.status eq 'REJECTED'}"><span class="badge bg-danger">REJECTED</span>
-                    </c:when>
-                    <c:when test="${knownError.status eq 'INACTIVE'}"><span class="badge bg-secondary">INACTIVE</span>
-                    </c:when>
-                    <c:otherwise><span class="badge bg-primary">${knownError.status}</span></c:otherwise>
-                </c:choose>
-            </p>
-            <p class="mb-2"><strong>Author ID:</strong> ${knownError.authorId}</p>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p class="mb-2"><strong>Status:</strong>
+                    <c:choose>
+                        <c:when test="${knownError.status eq 'APPROVED'}"><span class="badge bg-success">APPROVED</span>
+                        </c:when>
+                        <c:when test="${knownError.status eq 'PENDING'}"><span
+                                class="badge bg-warning text-dark">PENDING</span></c:when>
+                        <c:when test="${knownError.status eq 'REJECTED'}"><span class="badge bg-danger">REJECTED</span>
+                        </c:when>
+                        <c:when test="${knownError.status eq 'INACTIVE'}"><span
+                                class="badge bg-secondary">INACTIVE</span>
+                        </c:when>
+                        <c:otherwise><span class="badge bg-primary">${knownError.status}</span></c:otherwise>
+                    </c:choose>
+                </p>
+                <p class="mb-2"><strong>Author ID:</strong> ${knownError.authorId}</p>
+            </div>
         </div>
         <div class="col-md-6">
             <p class="mb-2"><strong>Last Updated:</strong> ${knownError.updatedAt}</p>
         </div>
     </div>
+
+    <c:if test="${knownError.status eq 'REJECTED'}">
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+            <strong>This Article has been REJECTED.</strong> Please edit to resolve issues.
+        </div>
+    </c:if>
 
     <div class="mb-3">
         <strong>Title:</strong>
@@ -77,7 +87,8 @@
     <c:if test="${knownError.status eq 'PENDING'}">
         <div class="container-fluid bg-white p-4 rounded shadow-sm border border-warning">
             <h3 class="h5 text-warning mb-3"><i class="bi bi-shield-check"></i> Admin Review Panel</h3>
-            <p class="text-muted">Please review the details above to approve or reject this article to make it available
+            <p class="text-muted">Please review the details above to approve or reject this article to make it
+                available
                 for Support Agents.</p>
 
             <form action="${pageContext.request.contextPath}/known-error?action=review" method="post">

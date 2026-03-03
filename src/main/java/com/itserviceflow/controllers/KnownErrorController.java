@@ -121,8 +121,20 @@ public class KnownErrorController extends HttpServlet {
 
     private void listKnownErrors(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<Article> errors = knownErrorDAO.getAllKnownErrors();
+        String keyword = request.getParameter("searchQuery");
+        String statusFilter = request.getParameter("statusFilter");
+
+        List<Article> errors;
+        if ((keyword != null && !keyword.trim().isEmpty())
+                || (statusFilter != null && !statusFilter.equals("ALL") && !statusFilter.trim().isEmpty())) {
+            errors = knownErrorDAO.searchKnownErrors(keyword, statusFilter);
+        } else {
+            errors = knownErrorDAO.getAllKnownErrors();
+        }
+
         request.setAttribute("knownErrors", errors);
+        request.setAttribute("searchQuery", keyword);
+        request.setAttribute("statusFilter", statusFilter);
         request.getRequestDispatcher("/known-error/list.jsp").forward(request, response);
     }
 
@@ -265,7 +277,10 @@ public class KnownErrorController extends HttpServlet {
         }
         int id = Integer.parseInt(request.getParameter("id"));
         String currentStatus = request.getParameter("currentStatus");
-        knownErrorDAO.toggleKnownErrorStatus(id, currentStatus);
+        Article ke = knownErrorDAO.getKnownErrorById(id);
+        if (ke != null && ("APPROVED".equals(ke.getStatus()) || "INACTIVE".equals(ke.getStatus()))) {
+            knownErrorDAO.toggleKnownErrorStatus(id, currentStatus);
+        }
         response.sendRedirect(request.getContextPath() + "/known-error?action=list");
     }
 
@@ -282,8 +297,11 @@ public class KnownErrorController extends HttpServlet {
             for (String idStr : ids) {
                 try {
                     int id = Integer.parseInt(idStr);
-                    String mockCurrentStatus = toggleTo.equals("INACTIVE") ? "APPROVED" : "INACTIVE";
-                    knownErrorDAO.toggleKnownErrorStatus(id, mockCurrentStatus);
+                    Article ke = knownErrorDAO.getKnownErrorById(id);
+                    if (ke != null && ("APPROVED".equals(ke.getStatus()) || "INACTIVE".equals(ke.getStatus()))) {
+                        String mockCurrentStatus = toggleTo.equals("INACTIVE") ? "APPROVED" : "INACTIVE";
+                        knownErrorDAO.toggleKnownErrorStatus(id, mockCurrentStatus);
+                    }
                 } catch (NumberFormatException ignored) {
                 }
             }
