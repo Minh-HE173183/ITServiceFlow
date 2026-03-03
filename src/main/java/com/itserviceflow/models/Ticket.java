@@ -27,6 +27,8 @@ public class Ticket {
     private String solution;
     private Date createdAt;
     private Date updatedAt;
+    private Integer serviceId;
+    private String justification;
 
     // Virtual fields for display
     private String reportedByName;
@@ -184,6 +186,23 @@ public class Ticket {
         this.updatedAt = updatedAt;
     }
 
+    public Integer getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(Integer serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    public String getJustification() {
+        return justification;
+    }
+
+    public void setJustification(String justification) {
+        this.justification = justification;
+    }
+    
+    
     public String getReportedByName() {
         return reportedByName;
     }

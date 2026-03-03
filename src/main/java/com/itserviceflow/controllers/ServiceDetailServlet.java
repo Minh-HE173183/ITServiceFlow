@@ -31,7 +31,7 @@ public class ServiceDetailServlet extends HttpServlet {
             
             if (service != null) {
                 request.setAttribute("service", service);
-                request.getRequestDispatcher("service-detail.jsp").forward(request, response);
+                request.getRequestDispatcher("/service/service-detail.jsp").forward(request, response);
                 return;
             }
         }

@@ -23,7 +23,7 @@ public class CreateServiceServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        // Có thể load thêm danh sách Category từ bảng ticket_category để Admin chọn
+       
         request.getRequestDispatcher("/admin/create-service.jsp").forward(request, response);
     }
 

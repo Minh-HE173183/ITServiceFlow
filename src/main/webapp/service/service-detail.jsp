@@ -52,8 +52,11 @@
             </div>
         </div>
         <div class="card-footer bg-white p-3 text-end">
-            <a href="service-catalog" class="btn btn-secondary me-2">Back to Catalog</a>
-            <a href="create-ticket?serviceId=${service.serviceId}" class="btn btn-success px-4">Request Service</a>
+            <a href="/service-catalog" class="btn btn-secondary me-2">Back to Catalog</a>
+            <a href="${pageContext.request.contextPath}/create-request?serviceId=${service.serviceId}" 
+               class="btn btn-success px-4">
+                Request Service
+            </a>
         </div>
     </div>
 </div>
