@@ -113,7 +113,7 @@ public class IncidentController extends HttpServlet {
         }
         List<Ticket> list = ticketDAO.getIncidentList(userId, roleName);
         request.setAttribute("incidentList", list);
-        request.getRequestDispatcher("/incidents/incident-list.jsp").forward(request, response);
+        request.getRequestDispatcher("/incidents/incidentList.jsp").forward(request, response);
     }
 
     private void viewIncidentDetail(HttpServletRequest request, HttpServletResponse response)
