@@ -54,11 +54,11 @@
                             style="font-size:10px;letter-spacing:1px;font-weight:600;">Core</div>
 
                         <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
-                  ${param.activeNav == 'dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/">
+                   ${param.activeNav == 'dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/">
                             <i class="bi bi-grid-1x2-fill"></i> Dashboard
                         </a>
                         <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
-                  ${param.activeNav == 'tickets' ? 'active' : ''}" href="#">
+                   ${param.activeNav == 'tickets' ? 'active' : ''}" href="#">
                             <i class="bi bi-ticket-perforated-fill"></i> Tickets
                         </a>
 
@@ -66,24 +66,34 @@
                             style="font-size:10px;letter-spacing:1px;font-weight:600;">Service</div>
 
                         <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
-                  ${param.activeNav == 'catalog' ? 'active' : ''}" href="#">
+                   ${param.activeNav == 'catalog' ? 'active' : ''}" href="#">
                             <i class="bi bi-grid-fill"></i> Service Catalog
                         </a>
                         <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
-                  ${param.activeNav == 'workflows' ? 'active' : ''}"
+                   ${param.activeNav == 'workflows' ? 'active' : ''}"
                             href="${pageContext.request.contextPath}/workflows">
                             <i class="bi bi-diagram-3-fill"></i> Workflows
                         </a>
                         <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
-                  ${param.activeNav == 'sla' ? 'active' : ''}" href="#">
+                   ${param.activeNav == 'sla' ? 'active' : ''}" href="#">
                             <i class="bi bi-clock-history"></i> SLA Policies
+                        </a>
+                        <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
+                   ${param.activeNav == 'problem' ? 'active' : ''}"
+                            href="${pageContext.request.contextPath}/problem?action=list">
+                            <i class="bi bi-exclamation-octagon-fill"></i> Problem
+                        </a>
+                        <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
+                   ${param.activeNav == 'known-error' ? 'active' : ''}"
+                            href="${pageContext.request.contextPath}/known-error?action=list">
+                            <i class="bi bi-bug-fill"></i> Known Error
                         </a>
 
                         <div class="sidebar-section text-uppercase text-secondary px-3 pt-3 pb-2"
                             style="font-size:10px;letter-spacing:1px;font-weight:600;">Knowledge</div>
 
                         <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
-                  ${param.activeNav == 'kb' ? 'active' : ''}" href="#">
+                   ${param.activeNav == 'kb' ? 'active' : ''}" href="#">
                             <i class="bi bi-book-fill"></i> Knowledge Base
                         </a>
 
@@ -91,7 +101,8 @@
                             style="font-size:10px;letter-spacing:1px;font-weight:600;">Infrastructure</div>
 
                         <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
-                  ${param.activeNav == 'cmdb' ? 'active' : ''}" href="#">
+                   ${param.activeNav == 'cmdb' ? 'active' : ''}"
+                            href="${pageContext.request.contextPath}/cmdb?action=list">
                             <i class="bi bi-hdd-network-fill"></i> CMDB
                         </a>
 
@@ -99,11 +110,11 @@
                             style="font-size:10px;letter-spacing:1px;font-weight:600;">Admin</div>
 
                         <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
-                  ${param.activeNav == 'users' ? 'active' : ''}" href="#">
+                   ${param.activeNav == 'users' ? 'active' : ''}" href="#">
                             <i class="bi bi-people-fill"></i> Users
                         </a>
                         <a class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded mx-2
-                  ${param.activeNav == 'roles' ? 'active' : ''}" href="#">
+                   ${param.activeNav == 'roles' ? 'active' : ''}" href="#">
                             <i class="bi bi-shield-lock-fill"></i> Roles & Permissions
                         </a>
                     </nav>

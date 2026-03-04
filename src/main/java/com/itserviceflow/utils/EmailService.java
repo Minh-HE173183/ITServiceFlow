@@ -7,8 +7,13 @@ import java.util.Properties;
 
 public class EmailService {
 
+<<<<<<< Updated upstream
     private final String username = "3docorp@gmail.com";
     private final String password = "wjhqdyisjkobdbbx"; 
+=======
+    private final String username = "vietnbhe176247@fpt.edu.vn";
+    private final String password = "wvyuodtqrwtjckzp";
+>>>>>>> Stashed changes
 
     public void sendEmail(String to, String subject, String body) {
         Properties props = new Properties();

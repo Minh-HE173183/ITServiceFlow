@@ -15,6 +15,7 @@ import java.util.List;
 
 @WebServlet("/problem")
 public class ProblemController extends HttpServlet {
+
     private ProblemDAO problemDAO;
 
     @Override
@@ -30,20 +31,45 @@ public class ProblemController extends HttpServlet {
             action = "list";
         }
 
+        if (!AuthUtils.isLoggedIn(request, response)) {
+            return;
+        }
+
+        User currentUser = AuthUtils.getCurrentUser(request);
+        request.setAttribute("currentUser", currentUser); // pass for UI rules (hide delete buttons)
+
         switch (action) {
             case "list":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT,
+                        AuthUtils.ROLE_IT_DIRECTOR)) {
+                    return;
+                }
                 listProblems(request, response);
                 break;
             case "detail":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT,
+                        AuthUtils.ROLE_IT_DIRECTOR)) {
+                    return;
+                }
                 viewProblemDetail(request, response);
                 break;
             case "add":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER)) {
+                    return;
+                }
                 showProblemForm(request, response);
                 break;
             case "edit":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT)) {
+                    return;
+                }
                 showEditForm(request, response);
                 break;
             default:
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT,
+                        AuthUtils.ROLE_IT_DIRECTOR)) {
+                    return;
+                }
                 listProblems(request, response);
                 break;
         }
@@ -58,23 +84,51 @@ public class ProblemController extends HttpServlet {
             return;
         }
 
+        if (!AuthUtils.isLoggedIn(request, response)) {
+            return;
+        }
+
         switch (action) {
             case "insert":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER)) {
+                    return;
+                }
                 insertProblem(request, response);
                 break;
             case "update":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT)) {
+                    return;
+                }
                 updateProblem(request, response);
                 break;
             case "delete":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER)) {
+                    return;
+                }
                 deleteProblem(request, response);
                 break;
+            case "bulkDelete":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER)) {
+                    return;
+                }
+                bulkDeleteProblem(request, response);
+                break;
             case "cancel":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER)) {
+                    return;
+                }
                 cancelProblem(request, response);
                 break;
             case "assign":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER)) {
+                    return;
+                }
                 assignProblem(request, response);
                 break;
             case "addComment":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT)) {
+                    return;
+                }
                 addComment(request, response);
                 break;
             default:

@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.itserviceflow.models;
+
 import java.util.Date;
 
 /**
@@ -10,6 +11,7 @@ import java.util.Date;
  * @author Admin
  */
 public class TicketRelation {
+
     private int relationId;
     private int sourceTicketId;
     private int targetTicketId;

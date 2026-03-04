@@ -20,11 +20,30 @@ public class CmdbDAO {
 
     public List<ConfigurationItem> getAllConfigurationItems() {
         List<ConfigurationItem> items = new ArrayList<>();
-        String sql = "SELECT * FROM configuration_item";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM configuration_item WHERE 1=1");
 
-            while (rs.next()) {
-                items.add(mapRowToCI(rs));
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (ci_name LIKE ? OR ci_code LIKE ?)");
+        }
+        if (status != null && !status.trim().isEmpty() && !status.equals("ALL")) {
+            sql.append(" AND status = ?");
+        }
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String searchPattern = "%" + keyword.trim() + "%";
+                stmt.setString(paramIndex++, searchPattern);
+                stmt.setString(paramIndex++, searchPattern);
+            }
+            if (status != null && !status.trim().isEmpty() && !status.equals("ALL")) {
+                stmt.setString(paramIndex++, status);
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    items.add(mapRowToCI(rs));
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();

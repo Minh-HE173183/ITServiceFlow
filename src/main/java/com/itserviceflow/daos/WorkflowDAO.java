@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Data Access Object for the `workflow` table.
- * Provides CRUD + enable/disable operations.
+ * Data Access Object for the `workflow` table. Provides CRUD + enable/disable
+ * operations.
  */
 public class WorkflowDAO {
 
@@ -26,9 +26,7 @@ public class WorkflowDAO {
                 LEFT JOIN `user` u ON w.created_by = u.user_id
                 ORDER BY w.updated_at DESC
                 """;
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(mapRow(rs));
             }
@@ -50,8 +48,7 @@ public class WorkflowDAO {
                 WHERE w.status = ?
                 ORDER BY w.updated_at DESC
                 """;
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -74,8 +71,7 @@ public class WorkflowDAO {
                 LEFT JOIN `user` u ON w.created_by = u.user_id
                 WHERE w.workflow_id = ?
                 """;
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -94,8 +90,7 @@ public class WorkflowDAO {
                 INSERT INTO workflow (workflow_name, description, status, workflow_config, created_by)
                 VALUES (?, ?, ?, ?, ?)
                 """;
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, w.getWorkflowName());
             ps.setString(2, w.getDescription());
             ps.setString(3, w.getStatus() != null ? w.getStatus() : "DRAFT");
@@ -118,8 +113,7 @@ public class WorkflowDAO {
                 SET workflow_name = ?, description = ?, status = ?, workflow_config = ?
                 WHERE workflow_id = ?
                 """;
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, w.getWorkflowName());
             ps.setString(2, w.getDescription());
             ps.setString(3, w.getStatus());
@@ -134,8 +128,7 @@ public class WorkflowDAO {
     // ---------------------------------------------------------------
     public boolean deleteWorkflow(int id) throws SQLException {
         String sql = "DELETE FROM workflow WHERE workflow_id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
         }
@@ -146,8 +139,7 @@ public class WorkflowDAO {
     // ---------------------------------------------------------------
     public boolean toggleStatus(int id, String newStatus) throws SQLException {
         String sql = "UPDATE workflow SET status = ? WHERE workflow_id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newStatus);
             ps.setInt(2, id);
             return ps.executeUpdate() > 0;

@@ -23,7 +23,6 @@ public class ServiceDAO {
 //        }
 //        return connection;
 //    }
-
     public List<Service> searchServices(String query) {
         List<Service> services = new ArrayList<>();
         // Truy vấn tìm kiếm theo tên hoặc mô tả
@@ -50,7 +49,7 @@ public class ServiceDAO {
 
     public Service getServiceById(int id) {
         Service service = null;
-        // Query kết hợp lấy SLA dựa trên category của dịch vụ (nếu có)
+
         String sql = "SELECT * FROM service WHERE service_id = ?";
 
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -71,7 +70,7 @@ public class ServiceDAO {
         }
         return service;
     }
-    
+
     public boolean createService(Service service) {
         String sql = "INSERT INTO service (service_name, service_code, description, estimated_delivery_day, status) VALUES (?, ?, ?, ?, 'ACTIVE')";
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -86,7 +85,7 @@ public class ServiceDAO {
             return false;
         }
     }
-    
+
     public String deleteService(int serviceId) {
         // 1. Kiểm tra xem đã có ticket nào sử dụng dịch vụ này chưa
         String checkSql = "SELECT COUNT(*) FROM ticket WHERE service_id = ?";
@@ -113,7 +112,7 @@ public class ServiceDAO {
             return "error";
         }
     }
-    
+
     public void toggleServiceStatusById(int serviceId) {
         // SQL tự động đảo ngược trạng thái ngay trong Database
         String sql = "UPDATE service SET status = IF(status='ACTIVE', 'INACTIVE', 'ACTIVE'), "
@@ -126,7 +125,7 @@ public class ServiceDAO {
             e.printStackTrace();
         }
     }
-    
+
     public List<Service> getAllServices(String query) {
         List<Service> services = new ArrayList<>();
         // Bỏ điều kiện status = 'ACTIVE' để lấy cả INACTIVE
@@ -141,7 +140,7 @@ public class ServiceDAO {
                 Service s = new Service();
                 s.setServiceId(rs.getInt("service_id"));
                 s.setServiceName(rs.getString("service_name"));
-                s.setStatus(rs.getString("status")); // Rất quan trọng để hiển thị màu nút
+                s.setStatus(rs.getString("status"));
                 // ... các set khác
                 services.add(s);
             }
