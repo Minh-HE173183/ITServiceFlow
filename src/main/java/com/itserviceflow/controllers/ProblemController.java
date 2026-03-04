@@ -17,6 +17,7 @@ import java.util.List;
 
 @WebServlet("/problem")
 public class ProblemController extends HttpServlet {
+
     private ProblemDAO problemDAO;
 
     @Override
@@ -79,6 +80,10 @@ public class ProblemController extends HttpServlet {
             return;
         }
 
+        if (!AuthUtils.isLoggedIn(request, response)) {
+            return;
+        }
+
         if (!AuthUtils.isLoggedIn(request, response))
             return;
 
@@ -97,6 +102,12 @@ public class ProblemController extends HttpServlet {
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
                     return;
                 deleteProblem(request, response);
+                break;
+            case "bulkDelete":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER)) {
+                    return;
+                }
+                bulkDeleteProblem(request, response);
                 break;
             case "bulkDelete":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
@@ -244,6 +255,20 @@ public class ProblemController extends HttpServlet {
                 } catch (NumberFormatException ignored) {
                 }
             }
+        }
+        response.sendRedirect(request.getContextPath() + "/problem?action=list");
+    }
+
+    private void bulkDeleteProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String[] ids = request.getParameterValues("ids");
+        if (ids != null) {
+            List<Integer> idList = new ArrayList<>();
+            for (String id : ids) {
+                if (id != null && !id.trim().isEmpty()) {
+                    idList.add(Integer.parseInt(id));
+                }
+            }
+            problemDAO.bulkDeleteProblems(idList);
         }
         response.sendRedirect(request.getContextPath() + "/problem?action=list");
     }

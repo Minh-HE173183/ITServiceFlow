@@ -3,8 +3,8 @@ package com.itserviceflow.models;
 import java.util.Date;
 
 /**
- * Model for the time_log table.
- * Records how much time an agent spent on a specific activity for a ticket.
+ * Model for the time_log table. Records how much time an agent spent on a
+ * specific activity for a ticket.
  */
 public class TimeLog {
 
@@ -21,7 +21,8 @@ public class TimeLog {
     private String agentName;
     private String ticketNumber;
 
-    public TimeLog() {}
+    public TimeLog() {
+    }
 
     public TimeLog(int ticketId, int userId, String activityType, double timeSpent, String description) {
         this.ticketId = ticketId;
@@ -32,34 +33,83 @@ public class TimeLog {
     }
 
     // -------- Getters & Setters --------
+    public int getLogId() {
+        return logId;
+    }
 
-    public int getLogId() { return logId; }
-    public void setLogId(int logId) { this.logId = logId; }
+    public void setLogId(int logId) {
+        this.logId = logId;
+    }
 
-    public int getTicketId() { return ticketId; }
-    public void setTicketId(int ticketId) { this.ticketId = ticketId; }
+    public int getTicketId() {
+        return ticketId;
+    }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public void setTicketId(int ticketId) {
+        this.ticketId = ticketId;
+    }
 
-    public String getActivityType() { return activityType; }
-    public void setActivityType(String activityType) { this.activityType = activityType; }
+    public int getUserId() {
+        return userId;
+    }
 
-    public double getTimeSpent() { return timeSpent; }
-    public void setTimeSpent(double timeSpent) { this.timeSpent = timeSpent; }
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getActivityType() {
+        return activityType;
+    }
 
-    public Date getLoggedAt() { return loggedAt; }
-    public void setLoggedAt(Date loggedAt) { this.loggedAt = loggedAt; }
+    public void setActivityType(String activityType) {
+        this.activityType = activityType;
+    }
 
-    public Date getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
+    public double getTimeSpent() {
+        return timeSpent;
+    }
 
-    public String getAgentName() { return agentName; }
-    public void setAgentName(String agentName) { this.agentName = agentName; }
+    public void setTimeSpent(double timeSpent) {
+        this.timeSpent = timeSpent;
+    }
 
-    public String getTicketNumber() { return ticketNumber; }
-    public void setTicketNumber(String ticketNumber) { this.ticketNumber = ticketNumber; }
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Date getLoggedAt() {
+        return loggedAt;
+    }
+
+    public void setLoggedAt(Date loggedAt) {
+        this.loggedAt = loggedAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getAgentName() {
+        return agentName;
+    }
+
+    public void setAgentName(String agentName) {
+        this.agentName = agentName;
+    }
+
+    public String getTicketNumber() {
+        return ticketNumber;
+    }
+
+    public void setTicketNumber(String ticketNumber) {
+        this.ticketNumber = ticketNumber;
+    }
 }

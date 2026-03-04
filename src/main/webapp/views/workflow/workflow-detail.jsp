@@ -430,11 +430,11 @@
                                                     <%-- Raw JSON config (collapsible) --%>
                                                         <div class="detail-card">
                                                             <!--                                                            <div class="detail-card-header" data-bs-toggle="collapse"
-                                                                data-bs-target="#jsonCollapse">
-                                                                <i class="bi bi-code-square text-info"></i>
-                                                                Cấu hình thô (JSON)
-                                                                <i class="bi bi-chevron-down ms-auto text-muted"></i>
-                                                            </div>-->
+                data-bs-target="#jsonCollapse">
+                <i class="bi bi-code-square text-info"></i>
+                Cấu hình thô (JSON)
+                <i class="bi bi-chevron-down ms-auto text-muted"></i>
+            </div>-->
                                                             <div class="collapse" id="jsonCollapse">
                                                                 <div class="detail-card-body">
                                                                     <c:choose>
@@ -600,12 +600,12 @@
 
                                             <%-- Categories metadata for summary rendering --%>
                                                 <script type="application/json" id="metaCategories">
-                [
-                    <c:forEach items="${categories}" var="cat" varStatus="loop">
-                        {"id": ${cat.categoryId}, "name": "${cat.categoryName}"}${!loop.last ? ',' : ''}
-                    </c:forEach>
-                ]
-                </script>
+    [
+    <c:forEach items="${categories}" var="cat" varStatus="loop">
+        {"id": ${cat.categoryId}, "name": "${cat.categoryName}"}${!loop.last ? ',' : ''}
+    </c:forEach>
+    ]
+</script>
 
                                                 <script>
                                                     const CTX = '${pageContext.request.contextPath}';
@@ -629,8 +629,11 @@
                                                     // ── Safe JSON parser ──
                                                     async function safeJson(res) {
                                                         var text = await res.text();
-                                                        try { return JSON.parse(text); }
-                                                        catch (e) { return { success: false, message: 'Server error (HTTP ' + res.status + ').' }; }
+                                                        try {
+                                                            return JSON.parse(text);
+                                                        } catch (e) {
+                                                            return { success: false, message: 'Server error (HTTP ' + res.status + ').' };
+                                                        }
                                                     }
 
                                                     // ── DELETE ──
@@ -645,7 +648,8 @@
                                                     }
 
                                                     document.getElementById('confirmDeleteBtn').addEventListener('click', async function () {
-                                                        if (!pendingDeleteId) return;
+                                                        if (!pendingDeleteId)
+                                                            return;
                                                         var btn = document.getElementById('confirmDeleteBtn');
                                                         btn.disabled = true;
                                                         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xóa…';
@@ -658,7 +662,9 @@
                                                             getDeleteModal().hide();
                                                             if (data.success) {
                                                                 showToast('Xóa workflow thành công.', 'success');
-                                                                setTimeout(function () { window.location.href = CTX + '/workflows'; }, 900);
+                                                                setTimeout(function () {
+                                                                    window.location.href = CTX + '/workflows';
+                                                                }, 900);
                                                             } else {
                                                                 showToast(data.message || 'Xóa thất bại.', 'danger');
                                                                 btn.disabled = false;
@@ -689,7 +695,8 @@
                                                     }
 
                                                     document.getElementById('confirmToggleBtn').addEventListener('click', async function () {
-                                                        if (!pendingToggleId) return;
+                                                        if (!pendingToggleId)
+                                                            return;
                                                         var btn = document.getElementById('confirmToggleBtn');
                                                         btn.disabled = true;
                                                         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang lưu…';
@@ -703,7 +710,9 @@
                                                             getToggleModal().hide();
                                                             if (data.success) {
                                                                 showToast('Cập nhật trạng thái thành công.', 'success');
-                                                                setTimeout(function () { location.reload(); }, 900);
+                                                                setTimeout(function () {
+                                                                    location.reload();
+                                                                }, 900);
                                                             } else {
                                                                 showToast(data.message || 'Cập nhật thất bại.', 'danger');
                                                                 btn.disabled = false;
@@ -726,7 +735,9 @@
                                                             '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
                                                         document.body.appendChild(t);
                                                         new bootstrap.Toast(t, { delay: 3000 }).show();
-                                                        t.addEventListener('hidden.bs.toast', function () { t.remove(); });
+                                                        t.addEventListener('hidden.bs.toast', function () {
+                                                            t.remove();
+                                                        });
                                                     }
 
                                                     // ── SUMMARY RENDERING ──
@@ -754,7 +765,8 @@
                                     <div class="detail-label mb-2"><i class="bi bi-filter-circle text-info me-1"></i> Điều kiện kích hoạt</div>`;
 
                                                                 function renderSummaryNode(node) {
-                                                                    if (!node) return '';
+                                                                    if (!node)
+                                                                        return '';
                                                                     if (node.type === 'condition' || node.field) {
                                                                         let fieldLabel = (node.field || '').replace('_', ' ').toUpperCase();
                                                                         let val = node.value;
@@ -763,8 +775,10 @@
                                                                             val = cat ? cat.name : ('Category #' + val);
                                                                         }
                                                                         let badgeClass = 'bg-info bg-opacity-25 border-info';
-                                                                        if (node.field === 'priority') badgeClass = 'bg-warning bg-opacity-25 border-warning';
-                                                                        if (node.field === 'ticket_type') badgeClass = 'bg-primary bg-opacity-25 border-primary';
+                                                                        if (node.field === 'priority')
+                                                                            badgeClass = 'bg-warning bg-opacity-25 border-warning';
+                                                                        if (node.field === 'ticket_type')
+                                                                            badgeClass = 'bg-primary bg-opacity-25 border-primary';
                                                                         return `<span class="badge border ${badgeClass} fw-semibold p-2 px-3 rounded-pill my-1" style="color:#212529">
                                             <span class="opacity-75 fw-normal">\${fieldLabel}</span>
                                             <span class="mx-1">\${node.operator === 'NOT_EQUALS' ? 'không phải' : 'là'}</span>
@@ -773,7 +787,8 @@
                                                                     } else if (node.type === 'group' || node.logic) {
                                                                         const logic = node.logic || 'AND';
                                                                         const criteria = node.criteria || [];
-                                                                        if (criteria.length === 0) return '';
+                                                                        if (criteria.length === 0)
+                                                                            return '';
                                                                         const childrenHtml = criteria.map(c => renderSummaryNode(c)).join('');
                                                                         return `<div class="border rounded p-2 px-3 bg-light my-2">
                                             <div class="small text-muted mb-1" style="font-size:10px;">MATCH \${logic}</div>

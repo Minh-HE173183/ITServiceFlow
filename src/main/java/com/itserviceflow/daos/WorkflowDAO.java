@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Data Access Object for the `workflow` table.
- * Provides CRUD + enable/disable operations.
+ * Data Access Object for the `workflow` table. Provides CRUD + enable/disable
+ * operations.
  */
 public class WorkflowDAO {
 
