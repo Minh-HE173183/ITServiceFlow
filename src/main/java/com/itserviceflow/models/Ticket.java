@@ -28,8 +28,6 @@ public class Ticket {
     private Integer serviceId;
     private Date createdAt;
     private Date updatedAt;
-    private Integer serviceId;
-    private String justification;
 
     // Virtual fields for display
     private String reportedByName;

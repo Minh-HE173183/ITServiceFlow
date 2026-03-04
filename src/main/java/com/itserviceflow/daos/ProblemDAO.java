@@ -18,11 +18,6 @@ import java.util.List;
  * @author Admin
  */
 public class ProblemDAO {
-
-    public List<Ticket> getAllProblems(String keyword, String statusFilter) {
-        return getAllProblems(null, null);
-    }
-
     public List<Ticket> getAllProblems(String keyword, String statusFilter) {
         List<Ticket> problems = new ArrayList<>();
         StringBuilder sql = new StringBuilder(

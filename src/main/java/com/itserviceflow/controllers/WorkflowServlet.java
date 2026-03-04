@@ -97,8 +97,6 @@ public class WorkflowServlet extends HttpServlet {
     // ==================================================================
     private static final int DEFAULT_PAGE_SIZE = 10;
 
-    private static final int DEFAULT_PAGE_SIZE = 10;
-
     private void showList(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, ServletException, IOException {
 
