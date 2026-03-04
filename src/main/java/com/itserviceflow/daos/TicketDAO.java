@@ -306,5 +306,39 @@ public class TicketDAO {
         return null;
     }
 
+    // ---------- workflow-driven operations ----------
+
+    /**
+     * Cập nhật status của ticket bất kỳ (dùng bởi WorkflowService).
+     */
+    public boolean updateTicketStatus(int ticketId, String newStatus) {
+        String sql = "UPDATE ticket SET status = ? WHERE ticket_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, newStatus);
+            stmt.setInt(2, ticketId);
+            return stmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Cập nhật priority của ticket bất kỳ (dùng bởi WorkflowService).
+     */
+    public boolean updateTicketPriority(int ticketId, String newPriority) {
+        String sql = "UPDATE ticket SET priority = ? WHERE ticket_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, newPriority);
+            stmt.setInt(2, ticketId);
+            return stmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     // ---------- incident-specific operations ----------
 }

@@ -450,15 +450,15 @@
         </div>
 
         <c:if test="${param.logSuccess eq '1'}">
-            <div class="alert alert-success">&#10003; Time log saved successfully.</div>
+            <div class="alert alert-success">Time log saved successfully.</div>
         </c:if>
         <c:if test="${not empty param.logError}">
-            <div class="alert alert-error">&#10007; Could not save time log (${param.logError}).</div>
+            <div class="alert alert-error">Could not save time log (${param.logError}).</div>
         </c:if>
 
         <!-- DETAILS CARD -->
         <div class="card">
-            <div class="card-title">&#128203; Incident Details</div>
+            <div class="card-title">Incident Details</div>
             <div class="detail-grid">
                 <div class="detail-item">
                     <label>Title</label>
@@ -503,13 +503,13 @@
             </div>
             <div class="action-bar">
                 <a href="${pageContext.request.contextPath}/incident?action=edit&id=${incident.ticketId}"
-                   class="btn btn-warning">&#9998; Edit</a>
+                   class="btn btn-warning">Edit</a>
                 <c:if test="${incident.status ne 'CANCELLED' and incident.status ne 'CLOSED'}">
                     <form action="${pageContext.request.contextPath}/incident" method="post"
                           style="margin:0;" onsubmit="return confirm('Cancel this ticket?');">
                         <input type="hidden" name="action" value="cancel">
                         <input type="hidden" name="id" value="${incident.ticketId}">
-                        <button type="submit" class="btn btn-danger">&#128683; Cancel</button>
+                        <button type="submit" class="btn btn-danger">Cancel</button>
                     </form>
                 </c:if>
                 <c:if test="${incident.assignedTo == null and incident.status ne 'CANCELLED'}">
@@ -518,7 +518,7 @@
                         <input type="hidden" name="action" value="assign">
                         <input type="hidden" name="id" value="${incident.ticketId}">
                         <input type="hidden" name="assignedTo" value="${sessionScope.user.userId}">
-                        <button type="submit" class="btn btn-primary">&#128100; Assign to Me</button>
+                        <button type="submit" class="btn btn-primary">Assign to Me</button>
                     </form>
                 </c:if>
             </div>
@@ -591,7 +591,6 @@
                     </c:when>
                     <c:otherwise>
                         <div class="empty-state">
-                            <div class="empty-icon">&#9201;&#65039;</div>
                             <p>No time entries yet.</p>
                             <p style="font-size:13px; margin-top:6px;">Time will be auto-logged when the
                                 agent assigns, resolves, or closes this ticket.</p>
@@ -601,7 +600,7 @@
 
                 <c:if test="${incident.status ne 'CLOSED' and incident.status ne 'CANCELLED'}">
                     <div class="manual-log-form">
-                        <h4>&#10133; Log Time Manually</h4>
+                        <h4>Log Time Manually</h4>
                         <form action="${pageContext.request.contextPath}/incident" method="post">
                             <input type="hidden" name="action" value="logtime">
                             <input type="hidden" name="id" value="${incident.ticketId}">
@@ -618,8 +617,8 @@
                                 </div>
                                 <div class="form-group">
                                     <label>&nbsp;</label>
-                                    <button type="submit" class="btn btn-primary">&#128190; Save
-                                        Log</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        Save Log</button>
                                 </div>
                             </div>
                         </form>

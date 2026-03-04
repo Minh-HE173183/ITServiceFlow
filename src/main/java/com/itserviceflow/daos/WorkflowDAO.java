@@ -37,6 +37,13 @@ public class WorkflowDAO {
     }
 
     // ---------------------------------------------------------------
+    // READ: List all ACTIVE workflows (used by WorkflowService engine)
+    // ---------------------------------------------------------------
+    public List<Workflow> getActiveWorkflows() throws SQLException {
+        return getWorkflowsByStatus("ACTIVE");
+    }
+
+    // ---------------------------------------------------------------
     // READ: List workflows filtered by status
     // ---------------------------------------------------------------
     public List<Workflow> getWorkflowsByStatus(String status) throws SQLException {

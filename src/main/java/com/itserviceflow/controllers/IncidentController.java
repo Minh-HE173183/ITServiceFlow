@@ -5,6 +5,7 @@ import com.itserviceflow.daos.RoleDAO;
 import com.itserviceflow.models.Ticket;
 import com.itserviceflow.models.User;
 import com.itserviceflow.utils.TimeLogService;
+import com.itserviceflow.utils.WorkflowService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -20,11 +21,13 @@ import java.util.List;
 public class IncidentController extends HttpServlet {
     private TicketDAO ticketDAO;
     private TimeLogService timeLogService;
+    private WorkflowService workflowService;
 
     @Override
     public void init() throws ServletException {
         ticketDAO = new TicketDAO();
         timeLogService = new TimeLogService();
+        workflowService = new WorkflowService();
     }
 
     @Override
@@ -184,6 +187,8 @@ public class IncidentController extends HttpServlet {
             Ticket full = ticketDAO.getTicketWithDetails(incident.getTicketId());
             if (full != null) {
                 timeLogService.autoLog(full, creatorId, "INVESTIGATION");
+                // Tự động áp dụng workflow
+                workflowService.onTicketCreated(full);
             }
         }
         if (!relatedIds.isEmpty()) {
