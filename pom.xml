@@ -100,6 +100,19 @@
                 <configuration>
                     <source>19</source>
                     <target>19</target>
+                    <compilerArgs>
+                        <arg>-Xdoclint:none</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <configuration>
+                    <doclint>none</doclint>
+                    <failOnError>false</failOnError>
+                    <failOnWarnings>false</failOnWarnings>
                 </configuration>
             </plugin>
         </plugins>

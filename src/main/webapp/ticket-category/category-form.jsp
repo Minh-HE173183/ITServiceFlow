@@ -344,7 +344,7 @@
     function updateToggleLabel() {
         const on = activeToggle.checked;
         activeHidden.value = on;
-        activeLbl.textContent = on ? 'Hoạt động' : 'Inactive';
+        activeLbl.textContent = on ? 'Active' : 'Inactive';
         activeSub.textContent = on
                 ? 'Danh mục sẽ xuất hiện trong các form ticket.'
                 : 'Danh mục sẽ bị ẩn khỏi các form ticket.';

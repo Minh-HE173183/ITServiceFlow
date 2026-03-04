@@ -515,7 +515,7 @@
                 <select name="status">
                     <option value="">— Tất cả —</option>
                     <option value="active" ${fStatus=='active' ? 'selected' : '' }>
-                        Hoạt động</option>
+                        Active</option>
                     <option value="inactive" ${fStatus=='inactive' ? 'selected' : ''
                             }>Inactive</option>
                 </select>
@@ -651,26 +651,22 @@
                                     <c:when
                                         test="${cat.categoryType == 'INCIDENT'}">
                                         <span
-                                            class="badge-type bt-incident">Sự
-                                            cố</span>
+                                            class="badge-type bt-incident">Incident</span>
                                         </c:when>
                                         <c:when
                                             test="${cat.categoryType == 'SERVICE_REQUEST'}">
                                         <span
-                                            class="badge-type bt-service">Yêu
-                                            cầu dịch vụ</span>
+                                            class="badge-type bt-service">Service Request</span>
                                         </c:when>
                                         <c:when
                                             test="${cat.categoryType == 'CHANGE'}">
                                         <span
-                                            class="badge-type bt-change">Thay
-                                            đổi</span>
+                                            class="badge-type bt-change">Change</span>
                                         </c:when>
                                         <c:when
                                             test="${cat.categoryType == 'PROBLEM'}">
                                         <span
-                                            class="badge-type bt-problem">Vấn
-                                            đề</span>
+                                            class="badge-type bt-problem">Problem</span>
                                         </c:when>
                                         <c:otherwise><span class="badge-type"
                                               style="background:#edf2f7; color:#4a5568;">${cat.categoryType}</span>
@@ -741,8 +737,7 @@
                                         class="${cat.active ? 'status-on' : 'status-off'}">
                                         <i class="bi bi-circle-fill"
                                            style="font-size:7px;"></i>
-                                        ${cat.active ? 'Hoạt động' : 'Không
-                                          hoạt động'}
+                                        ${cat.active ? 'Active' : 'Inactive'}
                                     </span>
                                     <label class="switch">
                                         <input type="checkbox" ${cat.active

@@ -222,6 +222,8 @@
                                     Management</c:when>
                                 <c:when test="${pageContext.request.requestURI.contains('/known-error/')}">Known
                                     Error Database</c:when>
+                                <c:when test="${pageContext.request.requestURI.contains('/ticket-category')}">Ticket
+                                    Categories</c:when>
                                 <c:when test="${pageContext.request.requestURI.contains('/cmdb/')}">CMDB</c:when>
                                 <c:when test="${pageContext.request.requestURI.contains('/dashboard')}">Executive
                                     Dashboard</c:when>

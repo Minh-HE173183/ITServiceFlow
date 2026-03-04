@@ -147,6 +147,18 @@
                         </a>
                         <a href="#" class="menu-item"><i class="bi bi-shield-lock"></i> Danh sách Quyền</a>
                         <a href="#" class="menu-item"><i class="bi bi-gear"></i> Cấu hình hệ thống</a>
+
+                        <li class="menu-header">Ticket Management</li>
+                        <a href="${pageContext.request.contextPath}/ticket-category"
+                            class="menu-item ${pageContext.request.requestURI.contains('/ticket-category') ? 'active' : ''}">
+                            <i class="bi bi-tags"></i> Ticket Categories
+                        </a>
+
+                        <li class="menu-header">Reports &amp; Analytics</li>
+                        <a href="${pageContext.request.contextPath}/time-tracking"
+                            class="menu-item ${pageContext.request.requestURI.contains('/time-tracking') ? 'active' : ''}">
+                            <i class="bi bi-clock-history"></i> Quản lý Time Log
+                        </a>
                     </ul>
                 </div>
 
@@ -155,7 +167,15 @@
                     <div class="topbar">
                         <div class="topbar-left">
                             <i class="bi bi-list fs-4 cursor-pointer"></i>
-                            <span class="fw-bold">QL User</span>
+                            <span class="fw-bold">
+                                <c:choose>
+                                    <c:when test="${pageContext.request.requestURI.contains('/admin/users')}">Quản lý người dùng</c:when>
+                                    <c:when test="${pageContext.request.requestURI.contains('/workflows')}">Quản lý Workflow</c:when>
+                                    <c:when test="${pageContext.request.requestURI.contains('/ticket-category')}">Ticket Categories</c:when>
+                                    <c:when test="${pageContext.request.requestURI.contains('/time-tracking')}">Quản lý Time Log</c:when>
+                                    <c:otherwise>IT Service Management</c:otherwise>
+                                </c:choose>
+                            </span>
                         </div>
                         <div class="topbar-right">
                             <i class="bi bi-bell badge-notification"></i>
