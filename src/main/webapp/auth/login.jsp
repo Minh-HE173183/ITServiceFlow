@@ -222,7 +222,6 @@
     </head>
     <body>
 
-<<<<<<< Updated upstream
 <div class="alert-container">
     <c:if test="${not empty error}">
         <div class="alert alert-danger alert-dismissible fade show shadow-lg" role="alert">
@@ -294,13 +293,11 @@
                     <hr class="flex-grow-1">
                     <span class="small fw-bold">HOẶC</span>
                     <hr class="flex-grow-1">
-=======
         <div class="alert-container">
             <c:if test="${not empty error}">
                 <div class="alert alert-danger alert-dismissible fade show shadow-lg" role="alert">
                     <i class="bi bi-exclamation-circle me-2"></i> ${error}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
->>>>>>> Stashed changes
                 </div>
             </c:if>
             <c:if test="${param.reset == 'success'}">
@@ -331,7 +328,6 @@
                     <li><i class="bi bi-circle-fill"></i> Knowledge Base</li>
                 </ul>
             </div>
-<<<<<<< Updated upstream
             
             <a href="#" class="btn btn-facebook mt-3">
                 <i class="bi bi-facebook fs-5"></i> Tiếp tục với Facebook
