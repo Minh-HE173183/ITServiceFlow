@@ -101,10 +101,11 @@ public class WorkflowServlet extends HttpServlet {
             throws SQLException, ServletException, IOException {
 
         String statusFilter = req.getParameter("status");
-        List<Workflow> workflows;
+        String search = req.getParameter("search");
 
+        List<Workflow> allFiltered;
         if (statusFilter != null && !statusFilter.isBlank()) {
-            workflows = dao.getWorkflowsByStatus(statusFilter.toUpperCase());
+            allFiltered = dao.getWorkflowsByStatus(statusFilter.toUpperCase());
         } else {
             allFiltered = dao.getAllWorkflows();
         }

@@ -19,6 +19,10 @@ import java.util.List;
 public class CmdbDAO {
 
     public List<ConfigurationItem> getAllConfigurationItems() {
+        return getAllConfigurationItems(null, null);
+    }
+
+    public List<ConfigurationItem> getAllConfigurationItems(String keyword, String status) {
         List<ConfigurationItem> items = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM configuration_item WHERE 1=1");
 

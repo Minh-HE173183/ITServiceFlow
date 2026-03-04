@@ -3,6 +3,8 @@ package com.itserviceflow.controllers;
 import com.itserviceflow.daos.ProblemDAO;
 import com.itserviceflow.models.Comment;
 import com.itserviceflow.models.Ticket;
+import com.itserviceflow.models.User;
+import com.itserviceflow.utils.AuthUtils;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -215,6 +217,20 @@ public class ProblemController extends HttpServlet {
     private void deleteProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         problemDAO.deleteProblemTicket(id);
+        response.sendRedirect(request.getContextPath() + "/problem?action=list");
+    }
+
+    private void bulkDeleteProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String[] ids = request.getParameterValues("ids");
+        if (ids != null) {
+            List<Integer> idList = new ArrayList<>();
+            for (String id : ids) {
+                if (id != null && !id.trim().isEmpty()) {
+                    idList.add(Integer.parseInt(id));
+                }
+            }
+            problemDAO.bulkDeleteProblems(idList);
+        }
         response.sendRedirect(request.getContextPath() + "/problem?action=list");
     }
 

@@ -26,7 +26,7 @@ public class TicketDAO {
                 + "status, priority, service_id, reported_by, department_id, created_at) "
                 + "VALUES (?, 'SERVICE_REQUEST', ?, ?, ?, 'New', ?, ?, ?, ?, CURRENT_TIMESTAMP)";
 
-        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             // Tạo mã ticket tự động (Ví dụ: SR-20260302-001)
             String ticketNum = "SR-" + System.currentTimeMillis() / 1000;

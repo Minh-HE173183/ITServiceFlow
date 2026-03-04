@@ -19,6 +19,10 @@ import java.util.List;
 public class ProblemDAO {
 
     public List<Ticket> getAllProblems() {
+        return getAllProblems(null, null);
+    }
+
+    public List<Ticket> getAllProblems(String keyword, String statusFilter) {
         List<Ticket> problems = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT t.*, ur.username AS reported_by_name, ua.username AS assigned_to_name "
@@ -231,6 +235,17 @@ public class ProblemDAO {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public int bulkDeleteProblems(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) return 0;
+        int deleted = 0;
+        for (int id : ids) {
+            if (deleteProblemTicket(id)) {
+                deleted++;
+            }
+        }
+        return deleted;
     }
 
     public boolean addCommentToProblem(Comment comment) {
