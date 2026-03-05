@@ -37,7 +37,7 @@ public class ProblemController extends HttpServlet {
             return;
 
         User currentUser = AuthUtils.getCurrentUser(request);
-        request.setAttribute("currentUser", currentUser); // pass for UI rules (e.g. hide delete buttons)
+        request.setAttribute("currentUser", currentUser); 
 
         switch (action) {
             case "list":
