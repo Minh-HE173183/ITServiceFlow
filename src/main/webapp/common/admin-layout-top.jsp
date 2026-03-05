@@ -169,7 +169,7 @@
             </a>
             <a href="${pageContext.request.contextPath}/admin/service-management"
                 class="menu-item ${pageContext.request.requestURI.contains('/admin/service-management') ? 'active' : ''}">
-                <i class="bi bi-hdd-network"></i> Service Catalog
+                <i class="bi bi-hdd-network"></i> Service Management
             </a>
         </ul>
     </div>
