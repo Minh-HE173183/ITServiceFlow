@@ -1,6 +1,6 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<html>
+    <html>
 
     <head>
 
@@ -22,13 +22,10 @@
 
                 <div class="col-md-8">
 
-                    <form action="service-catalog" method="get" class="d-flex">
+                    <form action="/service-catalog" method="get" class="d-flex">
 
-                        <input type="text" name="search" class="form-control me-2" 
-
-                               placeholder="Search for services (e.g. Laptop, Software)..." 
-
-                               value="${lastSearch}">
+                        <input type="text" name="search" class="form-control me-2"
+                            placeholder="Search for services (Laptop, Software)..." value="${lastSearch}">
 
                         <button type="submit" class="btn btn-primary">Search</button>
 
@@ -52,7 +49,8 @@
 
                                 <div class="card-header bg-white">
 
-                                    <input type="checkbox" name="serviceIds" value="${svc.serviceId}" class="form-check-input">
+                                    <input type="checkbox" name="serviceIds" value="${svc.serviceId}"
+                                        class="form-check-input">
 
                                     <small class="text-muted ms-2">${svc.serviceCode}</small>
 
@@ -70,7 +68,8 @@
 
                                     <div class="d-flex gap-2">
 
-                                        <a href="service-detail?id=${svc.serviceId}" class="btn btn-outline-primary px-4 flex-grow-1">
+                                        <a href="/service/service-detail?id=${svc.serviceId}"
+                                            class="btn btn-outline-primary px-4 flex-grow-1">
 
                                             View
 
@@ -78,9 +77,8 @@
 
 
 
-                                        <button type="button" class="btn btn-outline-danger px-4 flex-grow-1" 
-
-                                                onclick="confirmDeleteOne('${svc.serviceId}')">
+                                        <button type="button" class="btn btn-outline-danger px-4 flex-grow-1"
+                                            onclick="confirmDeleteOne('${svc.serviceId}')">
 
                                             Delete
 
@@ -106,7 +104,8 @@
 
                         <span id="selectedCount">0 items selected</span>
 
-                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete selected items?')">
+                        <button type="submit" class="btn btn-danger"
+                            onclick="return confirm('Are you sure you want to delete selected items?')">
 
                             Delete All
 
@@ -181,8 +180,8 @@
 
         </div>
 
-    </div>
+        </div>
 
-</body>
+    </body>
 
-</html>
+    </html>

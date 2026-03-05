@@ -16,15 +16,13 @@ import java.util.List;
 /**
  * WorkflowServlet — handles all workflow-related HTTP requests.
  *
- * URL patterns:
- *  GET  /workflows                  → list page (with optional ?status= filter)
- *  GET  /workflows?action=detail&id=  → detail page
- *  GET  /workflows?action=create    → blank create form
- *  GET  /workflows?action=edit&id=  → edit form pre-filled
- *  POST /workflows?action=create    → persist new workflow
- *  POST /workflows?action=update    → update existing workflow
- *  POST /workflows?action=delete    → delete workflow (id in body)
- *  POST /workflows?action=toggle    → enable / disable (id + newStatus in body)
+ * URL patterns: GET /workflows -> list page (with optional ?status= filter) GET
+ * /workflows?action=detail&id= -> detail page GET /workflows?action=create ->
+ * blank create form GET /workflows?action=edit&id= -> edit form pre-filled POST
+ * /workflows?action=create -> persist new workflow POST
+ * /workflows?action=update -> update existing workflow POST
+ * /workflows?action=delete -> delete workflow (id in body) POST
+ * /workflows?action=toggle -> enable / disable (id + newStatus in body)
  */
 @WebServlet(name = "WorkflowServlet", urlPatterns = {"/workflows"})
 public class WorkflowServlet extends HttpServlet {
@@ -41,15 +39,22 @@ public class WorkflowServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String action = req.getParameter("action");
-        if (action == null) action = "list";
+        if (action == null) {
+            action = "list";
+        }
 
         try {
             switch (action) {
-                case "detail"           -> showDetail(req, resp);
-                case "create"           -> showCreateForm(req, resp);
-                case "edit"             -> showEditForm(req, resp);
-                case "api-ticket-types" -> sendTicketTypes(req, resp);
-                default                 -> showList(req, resp);
+                case "detail" ->
+                    showDetail(req, resp);
+                case "create" ->
+                    showCreateForm(req, resp);
+                case "edit" ->
+                    showEditForm(req, resp);
+                case "api-ticket-types" ->
+                    sendTicketTypes(req, resp);
+                default ->
+                    showList(req, resp);
             }
         } catch (SQLException e) {
             throw new ServletException("Database error", e);
@@ -65,15 +70,22 @@ public class WorkflowServlet extends HttpServlet {
 
         req.setCharacterEncoding("UTF-8");
         String action = req.getParameter("action");
-        if (action == null) action = "";
+        if (action == null) {
+            action = "";
+        }
 
         try {
             switch (action) {
-                case "create" -> handleCreate(req, resp);
-                case "update" -> handleUpdate(req, resp);
-                case "delete" -> handleDelete(req, resp);
-                case "toggle" -> handleToggle(req, resp);
-                default       -> resp.sendRedirect(req.getContextPath() + "/workflows");
+                case "create" ->
+                    handleCreate(req, resp);
+                case "update" ->
+                    handleUpdate(req, resp);
+                case "delete" ->
+                    handleDelete(req, resp);
+                case "toggle" ->
+                    handleToggle(req, resp);
+                default ->
+                    resp.sendRedirect(req.getContextPath() + "/workflows");
             }
         } catch (SQLException e) {
             throw new ServletException("Database error", e);
@@ -83,7 +95,6 @@ public class WorkflowServlet extends HttpServlet {
     // ==================================================================
     // GET handlers
     // ==================================================================
-
     private static final int DEFAULT_PAGE_SIZE = 10;
 
     private void showList(HttpServletRequest req, HttpServletResponse resp)
@@ -113,32 +124,44 @@ public class WorkflowServlet extends HttpServlet {
         long countAll      = all.size();
         long countActive   = all.stream().filter(w -> "ACTIVE".equals(w.getStatus())).count();
         long countInactive = all.stream().filter(w -> "INACTIVE".equals(w.getStatus())).count();
-        long countDraft    = all.stream().filter(w -> "DRAFT".equals(w.getStatus())).count();
+        long countDraft = all.stream().filter(w -> "DRAFT".equals(w.getStatus())).count();
 
         // Pagination
         int pageSize = DEFAULT_PAGE_SIZE;
         try {
             String ps = req.getParameter("pageSize");
-            if (ps != null && !ps.isBlank()) pageSize = Math.max(1, Integer.parseInt(ps.trim()));
-        } catch (NumberFormatException ignored) {}
+            if (ps != null && !ps.isBlank()) {
+                pageSize = Math.max(1, Integer.parseInt(ps.trim()));
+            }
+        } catch (NumberFormatException ignored) {
+        }
 
-        int total      = allFiltered.size();
+        int total = allFiltered.size();
         int totalPages = (int) Math.ceil((double) total / pageSize);
-        if (totalPages < 1) totalPages = 1;
+        if (totalPages < 1) {
+            totalPages = 1;
+        }
 
         int currentPage = 1;
         try {
             String p = req.getParameter("page");
-            if (p != null && !p.isBlank()) currentPage = Integer.parseInt(p.trim());
-        } catch (NumberFormatException ignored) {}
-        if (currentPage < 1) currentPage = 1;
-        if (currentPage > totalPages) currentPage = totalPages;
+            if (p != null && !p.isBlank()) {
+                currentPage = Integer.parseInt(p.trim());
+            }
+        } catch (NumberFormatException ignored) {
+        }
+        if (currentPage < 1) {
+            currentPage = 1;
+        }
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
 
         int fromIdx = (currentPage - 1) * pageSize;
-        int toIdx   = Math.min(fromIdx + pageSize, total);
+        int toIdx = Math.min(fromIdx + pageSize, total);
         List<Workflow> workflows = allFiltered.subList(fromIdx, toIdx);
 
-        req.setAttribute("workflows",    workflows);
+        req.setAttribute("workflows", workflows);
         req.setAttribute("statusFilter", statusFilter == null ? "" : statusFilter);
         req.setAttribute("search",       search == null ? "" : search);
         req.setAttribute("countAll",     countAll);
@@ -153,7 +176,7 @@ public class WorkflowServlet extends HttpServlet {
         req.setAttribute("toIdx",        toIdx);
 
         req.getRequestDispatcher("/views/workflow/workflow-list.jsp")
-           .forward(req, resp);
+                .forward(req, resp);
     }
 
     private void showDetail(HttpServletRequest req, HttpServletResponse resp)
@@ -170,7 +193,7 @@ public class WorkflowServlet extends HttpServlet {
         req.setAttribute("workflow", workflow);
         addReferenceData(req);
         req.getRequestDispatcher("/views/workflow/workflow-detail.jsp")
-           .forward(req, resp);
+                .forward(req, resp);
     }
 
     private void showCreateForm(HttpServletRequest req, HttpServletResponse resp)
@@ -180,7 +203,7 @@ public class WorkflowServlet extends HttpServlet {
         req.setAttribute("formAction", "create");
         addReferenceData(req);
         req.getRequestDispatcher("/views/workflow/workflow-form.jsp")
-           .forward(req, resp);
+                .forward(req, resp);
     }
 
     private void showEditForm(HttpServletRequest req, HttpServletResponse resp)
@@ -198,12 +221,14 @@ public class WorkflowServlet extends HttpServlet {
         req.setAttribute("formAction", "update");
         addReferenceData(req);
         req.getRequestDispatcher("/views/workflow/workflow-form.jsp")
-           .forward(req, resp);
+                .forward(req, resp);
     }
 
-    /** Ticket types used both for SSR data island and the JSON API. */
-    private static final List<String> TICKET_TYPES =
-            List.of("INCIDENT", "SERVICE_REQUEST", "PROBLEM", "CHANGE");
+    /**
+     * Ticket types used both for SSR data island and the JSON API.
+     */
+    private static final List<String> TICKET_TYPES
+            = List.of("INCIDENT", "SERVICE_REQUEST", "PROBLEM", "CHANGE");
 
     private void addReferenceData(HttpServletRequest req) {
         req.setAttribute("categories", categoryDAO.getActiveCategories());
@@ -212,9 +237,9 @@ public class WorkflowServlet extends HttpServlet {
     }
 
     /**
-     * GET /workflows?action=api-ticket-types
-     * Returns a JSON array of all supported ticket types.
-     * Example: ["INCIDENT","SERVICE_REQUEST","PROBLEM","CHANGE"]
+     * GET /workflows?action=api-ticket-types Returns a JSON array of all
+     * supported ticket types. Example:
+     * ["INCIDENT","SERVICE_REQUEST","PROBLEM","CHANGE"]
      */
     private void sendTicketTypes(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
@@ -226,7 +251,6 @@ public class WorkflowServlet extends HttpServlet {
     // ==================================================================
     // POST handlers
     // ==================================================================
-
     private void handleCreate(HttpServletRequest req, HttpServletResponse resp)
             throws SQLException, IOException, ServletException {
 
@@ -238,7 +262,7 @@ public class WorkflowServlet extends HttpServlet {
             req.setAttribute("workflow", w);
             req.setAttribute("formAction", "create");
             req.getRequestDispatcher("/views/workflow/workflow-form.jsp")
-               .forward(req, resp);
+                    .forward(req, resp);
             return;
         }
 
@@ -262,7 +286,7 @@ public class WorkflowServlet extends HttpServlet {
             req.setAttribute("workflow", w);
             req.setAttribute("formAction", "update");
             req.getRequestDispatcher("/views/workflow/workflow-form.jsp")
-               .forward(req, resp);
+                    .forward(req, resp);
             return;
         }
 
@@ -311,7 +335,7 @@ public class WorkflowServlet extends HttpServlet {
         resp.setContentType("application/json;charset=UTF-8");
         PrintWriter out = resp.getWriter();
 
-        int    id        = parseId(req.getParameter("workflowId"));
+        int id = parseId(req.getParameter("workflowId"));
         String newStatus = req.getParameter("newStatus");
 
         if (id <= 0 || (!"ACTIVE".equals(newStatus) && !"INACTIVE".equals(newStatus))) {
@@ -340,7 +364,6 @@ public class WorkflowServlet extends HttpServlet {
     // ==================================================================
     // Helpers
     // ==================================================================
-
     private Workflow buildFromRequest(HttpServletRequest req) {
         Workflow w = new Workflow();
         w.setWorkflowName(trim(req.getParameter("workflowName")));
@@ -350,16 +373,23 @@ public class WorkflowServlet extends HttpServlet {
 
         String createdByStr = req.getParameter("createdBy");
         if (createdByStr != null && !createdByStr.isBlank()) {
-            try { w.setCreatedBy(Integer.parseInt(createdByStr.trim())); }
-            catch (NumberFormatException ignored) {}
+            try {
+                w.setCreatedBy(Integer.parseInt(createdByStr.trim()));
+            } catch (NumberFormatException ignored) {
+            }
         }
         return w;
     }
 
     private int parseId(String val) {
-        if (val == null) return 0;
-        try { return Integer.parseInt(val.trim()); }
-        catch (NumberFormatException e) { return 0; }
+        if (val == null) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(val.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private String trim(String val) {

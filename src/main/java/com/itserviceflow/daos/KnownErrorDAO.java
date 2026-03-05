@@ -20,9 +20,7 @@ public class KnownErrorDAO {
     public List<Article> getAllKnownErrors() {
         List<Article> errors = new ArrayList<>();
         String sql = "SELECT * FROM article WHERE article_type = 'KNOWN_ERROR'";
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql);
-                ResultSet rs = stmt.executeQuery()) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 errors.add(mapRowToArticle(rs));
@@ -47,8 +45,7 @@ public class KnownErrorDAO {
             sql.append(" AND status = ?");
         }
 
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
 
             int paramIndex = 1;
             if (hasKeyword) {
@@ -71,10 +68,10 @@ public class KnownErrorDAO {
         return errors;
     }
 
+
     public Article getKnownErrorById(int articleId) {
         String sql = "SELECT * FROM article WHERE article_id = ? AND article_type = 'KNOWN_ERROR'";
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, articleId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -90,8 +87,7 @@ public class KnownErrorDAO {
     public boolean createKnownError(Article error) {
         String sql = "INSERT INTO article (article_number, article_type, title, content, summary, status, author_id, symptom, cause, solution) "
                 + "VALUES (?, 'KNOWN_ERROR', ?, ?, ?, 'PENDING', ?, ?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, "KE-" + System.currentTimeMillis());
             stmt.setString(2, error.getTitle());
             stmt.setString(3, error.getContent());
@@ -108,10 +104,9 @@ public class KnownErrorDAO {
     }
 
     public boolean updateKnownError(Article error) {
-        String sql = "UPDATE article SET title = ?, content = ?, summary = ?, symptom = ?, cause = ?, solution = ? " +
-                "WHERE article_id = ? AND article_type = 'KNOWN_ERROR'";
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+        String sql = "UPDATE article SET title = ?, content = ?, summary = ?, symptom = ?, cause = ?, solution = ? "
+                + "WHERE article_id = ? AND article_type = 'KNOWN_ERROR'";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, error.getTitle());
             stmt.setString(2, error.getContent());
             stmt.setString(3, error.getSummary());
@@ -128,8 +123,7 @@ public class KnownErrorDAO {
 
     public boolean deleteKnownError(int articleId) {
         String sql = "DELETE FROM article WHERE article_id = ? AND article_type = 'KNOWN_ERROR' AND status IN ('PENDING', 'REJECTED')";
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, articleId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -144,11 +138,9 @@ public class KnownErrorDAO {
         }
 
         String sql = "UPDATE article SET status = ?, approved_by = ?, approved_at = CURRENT_TIMESTAMP, rejection_reason = ? "
-                +
-                "WHERE article_id = ? AND article_type = 'KNOWN_ERROR'";
+                + "WHERE article_id = ? AND article_type = 'KNOWN_ERROR'";
 
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, status);
             stmt.setInt(2, approvedBy);
             stmt.setString(3, rejectionReason);
@@ -163,8 +155,7 @@ public class KnownErrorDAO {
     public boolean toggleKnownErrorStatus(int articleId, String currentStatus) {
         String newStatus = "APPROVED".equals(currentStatus) ? "INACTIVE" : "APPROVED";
         String sql = "UPDATE article SET status = ? WHERE article_id = ? AND article_type = 'KNOWN_ERROR'";
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, newStatus);
             stmt.setInt(2, articleId);
             return stmt.executeUpdate() > 0;

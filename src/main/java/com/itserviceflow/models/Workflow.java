@@ -98,7 +98,7 @@ public class Workflow {
     }
 
     /**
-     * Returns true if this workflow can be toggled (ACTIVE <-> INACTIVE).
+     * Returns true if this workflow can be toggled (ACTIVE &lt;-&gt; INACTIVE).
      * DRAFT workflows cannot be toggled.
      */
     public boolean isToggleable() {
@@ -110,9 +110,12 @@ public class Workflow {
      */
     public String getStatusBadgeClass() {
         return switch (status) {
-            case "ACTIVE" -> "badge-active";
-            case "INACTIVE" -> "badge-inactive";
-            default -> "badge-draft";
+            case "ACTIVE" ->
+                "badge-active";
+            case "INACTIVE" ->
+                "badge-inactive";
+            default ->
+                "badge-draft";
         };
     }
 }

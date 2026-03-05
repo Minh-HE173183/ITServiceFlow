@@ -24,7 +24,8 @@ public class Ticket {
     private Integer assignedTo;
     private Integer departmentId;
     private String cause;
-    private String solution;
+    private String solution;private String justification;
+    private Integer serviceId;
     private Date createdAt;
     private Date updatedAt;
 
@@ -183,6 +184,23 @@ public class Ticket {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    public Integer getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(Integer serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    public String getJustification() {
+        return justification;
+    }
+
+    public void setJustification(String justification) {
+        this.justification = justification;
+    }
+
 
     public String getReportedByName() {
         return reportedByName;

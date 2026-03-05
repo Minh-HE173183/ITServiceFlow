@@ -17,6 +17,7 @@ import java.util.List;
 
 @WebServlet("/problem")
 public class ProblemController extends HttpServlet {
+
     private ProblemDAO problemDAO;
 
     @Override
@@ -79,6 +80,10 @@ public class ProblemController extends HttpServlet {
             return;
         }
 
+        if (!AuthUtils.isLoggedIn(request, response)) {
+            return;
+        }
+
         if (!AuthUtils.isLoggedIn(request, response))
             return;
 
@@ -99,8 +104,9 @@ public class ProblemController extends HttpServlet {
                 deleteProblem(request, response);
                 break;
             case "bulkDelete":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER)) {
                     return;
+                }
                 bulkDeleteProblem(request, response);
                 break;
             case "cancel":

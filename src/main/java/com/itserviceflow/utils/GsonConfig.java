@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class GsonConfig {
+
     private static final Gson gson;
 
     static {
