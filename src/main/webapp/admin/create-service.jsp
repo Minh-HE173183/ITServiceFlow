@@ -47,7 +47,7 @@
 
                         <hr>
                         <div class="d-flex justify-content-between">
-                            <a href="../service-catalog" class="btn btn-secondary">Cancel</a>
+                            <a href="/admin/service-management" class="btn btn-secondary">Cancel</a>
                             <button type="submit" class="btn btn-primary px-5">Publish Service</button>
                         </div>
                     </form>
