@@ -40,7 +40,7 @@
 
 
 
-            <form action="admin/delete-service" method="post" id="bulkDeleteForm">
+            
 
                 <div class="row">
 
@@ -52,7 +52,7 @@
 
                                 <div class="card-header bg-white">
 
-                                    <input type="checkbox" name="serviceIds" value="${svc.serviceId}" class="form-check-input">
+                                    <input name="serviceIds" value="${svc.serviceId}" class="form-check-input">
 
                                     <small class="text-muted ms-2">${svc.serviceCode}</small>
 
@@ -78,13 +78,13 @@
 
 
 
-                                        <button type="button" class="btn btn-outline-danger px-4 flex-grow-1" 
+<!--                                        <button type="button" class="btn btn-outline-danger px-4 flex-grow-1" 
 
                                                 onclick="confirmDeleteOne('${svc.serviceId}')">
 
                                             Delete
 
-                                        </button>
+                                        </button>-->
 
                                     </div>
 
@@ -100,7 +100,7 @@
 
 
 
-                <div class="fixed-bottom p-4 bg-white border-top shadow" id="adminActions" style="display:none;">
+<!--                <div class="fixed-bottom p-4 bg-white border-top shadow" id="adminActions" style="display:none;">
 
                     <div class="container d-flex justify-content-between align-items-center">
 
@@ -114,13 +114,13 @@
 
                     </div>
 
-                </div>
+                </div>-->
 
-            </form>
+           
 
 
 
-            <script>
+<!--            <script>
                 const checkboxes = document.querySelectorAll('input[name="serviceIds"]');
 
                 checkboxes.forEach(cb => {
@@ -165,7 +165,7 @@
 
                 }
 
-            </script>
+            </script>-->
 
 
 
