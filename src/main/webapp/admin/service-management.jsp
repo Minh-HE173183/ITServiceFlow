@@ -1,10 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" pageEncoding="UTF-8" %>
-<%-- KHÔNG khai báo taglib c ở đây để tránh xung đột --%>
-
-<%-- 1. Include layout trước để nó định nghĩa prefix [c] cho toàn bộ trang --%>
 <%@ include file="/common/admin-layout-top.jsp" %>
-
-<%-- 2. Bây giờ mới dùng thẻ c:set (Lúc này prefix c đã được layout định nghĩa) --%>
 <c:set var="pageTitle" value="Quản lý Service Catalog" scope="request"/>
 
 <style>
