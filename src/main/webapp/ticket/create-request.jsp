@@ -52,12 +52,12 @@
                                     <option value="HIGH">High - Urgent requirements</option>
                                     <option value="CRITICAL">Critical - Immediate attention required</option>
                                 </select>
-                                <div class="form-text">Mức độ ưu tiên sẽ ảnh hưởng đến thời gian phản hồi theo SLA[cite: 45].</div>
+                                <div class="form-text">Mức độ ưu tiên sẽ ảnh hưởng đến thời gian phản hồi theo SLA.</div>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Justification (Lý do cần dịch vụ)</label>
+                            <label class="form-label fw-bold">Justification</label>
                             <textarea name="justification" class="form-control" rows="3" 
                                       placeholder="Vui lòng cho biết lý do bạn cần yêu cầu dịch vụ này..." required></textarea>
                         </div>
@@ -72,7 +72,7 @@
                         
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted small">
-                                <i class="fas fa-info-circle"></i> Trạng thái ban đầu: <strong>New</strong> [cite: 17]
+                                <i class="fas fa-info-circle"></i> Status: <strong>New</strong> 
                             </span>
                             <div>
                                 <a href="${pageContext.request.contextPath}/service-catalog" class="btn btn-light border px-4 me-2">Cancel</a>

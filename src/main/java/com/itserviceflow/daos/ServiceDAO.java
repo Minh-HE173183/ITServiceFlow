@@ -129,7 +129,7 @@ public class ServiceDAO {
 
     public List<Service> getAllServices(String query) {
         List<Service> services = new ArrayList<>();
-        String sql = "SELECT * FROM service WHERE service_name LIKE ? OR description LIKE ? OR service_code ?";
+        String sql = "SELECT * FROM service WHERE service_name LIKE ? OR description LIKE ? OR service_code LIKE ?";
 
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, "%" + query + "%");

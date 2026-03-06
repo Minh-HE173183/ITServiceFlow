@@ -3,7 +3,6 @@
 <c:set var="pageTitle" value="Define New Service Offering" scope="request"/>
 
 <div class="container-fluid">
-    <%-- Breadcrumb for better navigation --%>
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/admin/service-management">Service Management</a></li>
@@ -79,6 +78,4 @@
         </div>
     </div>
 </div>
-
-<%-- 3. Include Footer and Scripts --%>
 <%@ include file="/common/admin-layout-bottom.jsp" %>
