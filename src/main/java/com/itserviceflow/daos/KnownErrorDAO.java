@@ -20,7 +20,9 @@ public class KnownErrorDAO {
     public List<Article> getAllKnownErrors() {
         List<Article> errors = new ArrayList<>();
         String sql = "SELECT * FROM article WHERE article_type = 'KNOWN_ERROR'";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 errors.add(mapRowToArticle(rs));
@@ -31,7 +33,7 @@ public class KnownErrorDAO {
         return errors;
     }
 
-    public List<Article> searchKnownErrors(String keyword, String statusFilter) {
+    public List<Article> searchKnownErrors(String keyword, String statusFilter, int offset, int limit) {
         List<Article> errors = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM article WHERE article_type = 'KNOWN_ERROR'");
 
@@ -44,8 +46,10 @@ public class KnownErrorDAO {
         if (hasStatus) {
             sql.append(" AND status = ?");
         }
+        sql.append(" ORDER BY updated_at DESC LIMIT ? OFFSET ?");
 
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
 
             int paramIndex = 1;
             if (hasKeyword) {
@@ -56,6 +60,8 @@ public class KnownErrorDAO {
             if (hasStatus) {
                 stmt.setString(paramIndex++, statusFilter.trim());
             }
+            stmt.setInt(paramIndex++, limit);
+            stmt.setInt(paramIndex++, offset);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -68,6 +74,43 @@ public class KnownErrorDAO {
         return errors;
     }
 
+    public int getTotalKnownErrors(String keyword, String statusFilter) {
+        int count = 0;
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM article WHERE article_type = 'KNOWN_ERROR'");
+
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        boolean hasStatus = statusFilter != null && !statusFilter.trim().isEmpty() && !statusFilter.equals("ALL");
+
+        if (hasKeyword) {
+            sql.append(" AND (title LIKE ? OR article_number LIKE ?)");
+        }
+        if (hasStatus) {
+            sql.append(" AND status = ?");
+        }
+
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            int paramIndex = 1;
+            if (hasKeyword) {
+                String likeKeyword = "%" + keyword.trim() + "%";
+                stmt.setString(paramIndex++, likeKeyword);
+                stmt.setString(paramIndex++, likeKeyword);
+            }
+            if (hasStatus) {
+                stmt.setString(paramIndex++, statusFilter.trim());
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return count;
+    }
 
     public Article getKnownErrorById(int articleId) {
         String sql = "SELECT * FROM article WHERE article_id = ? AND article_type = 'KNOWN_ERROR'";

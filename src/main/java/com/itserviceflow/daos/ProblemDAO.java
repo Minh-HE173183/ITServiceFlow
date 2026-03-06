@@ -18,7 +18,7 @@ import java.util.List;
  * @author Admin
  */
 public class ProblemDAO {
-    public List<Ticket> getAllProblems(String keyword, String statusFilter) {
+    public List<Ticket> getAllProblems(String keyword, String statusFilter, int offset, int limit) {
         List<Ticket> problems = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT t.*, ur.username AS reported_by_name, ua.username AS assigned_to_name " +
@@ -41,7 +41,9 @@ public class ProblemDAO {
             params.add(statusFilter);
         }
 
-        sql.append(" ORDER BY t.created_at DESC");
+        sql.append(" ORDER BY t.created_at DESC LIMIT ? OFFSET ?");
+        params.add(limit);
+        params.add(offset);
 
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
@@ -59,6 +61,41 @@ public class ProblemDAO {
             e.printStackTrace();
         }
         return problems;
+    }
+
+    public int getTotalProblems(String keyword, String statusFilter) {
+        int count = 0;
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM ticket t WHERE t.ticket_type = 'PROBLEM'");
+        List<Object> params = new ArrayList<>();
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (t.ticket_number LIKE ? OR t.title LIKE ?)");
+            String searchPattern = "%" + keyword.trim() + "%";
+            params.add(searchPattern);
+            params.add(searchPattern);
+        }
+
+        if (statusFilter != null && !statusFilter.trim().isEmpty() && !statusFilter.equalsIgnoreCase("ALL")) {
+            sql.append(" AND t.status = ?");
+            params.add(statusFilter);
+        }
+
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return count;
     }
 
     public Ticket getProblemById(int ticketId) {
@@ -189,7 +226,8 @@ public class ProblemDAO {
 
         String deleteSql = "DELETE FROM ticket WHERE ticket_id = ?";
 
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
             checkStmt.setInt(1, ticketId);
             checkStmt.setInt(2, ticketId);
 
@@ -239,7 +277,8 @@ public class ProblemDAO {
     }
 
     public int bulkDeleteProblems(List<Integer> ids) {
-        if (ids == null || ids.isEmpty()) return 0;
+        if (ids == null || ids.isEmpty())
+            return 0;
         int deleted = 0;
         for (int id : ids) {
             if (deleteProblemTicket(id)) {

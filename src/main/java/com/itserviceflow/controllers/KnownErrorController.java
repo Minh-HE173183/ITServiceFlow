@@ -124,17 +124,28 @@ public class KnownErrorController extends HttpServlet {
         String keyword = request.getParameter("searchQuery");
         String statusFilter = request.getParameter("statusFilter");
 
-        List<Article> errors;
-        if ((keyword != null && !keyword.trim().isEmpty())
-                || (statusFilter != null && !statusFilter.equals("ALL") && !statusFilter.trim().isEmpty())) {
-            errors = knownErrorDAO.searchKnownErrors(keyword, statusFilter);
-        } else {
-            errors = knownErrorDAO.getAllKnownErrors();
+        int page = 1;
+        int pageSize = 5;
+        String pageParam = request.getParameter("page");
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                page = Integer.parseInt(pageParam);
+            } catch (NumberFormatException e) {
+                page = 1;
+            }
         }
+        int offset = (page - 1) * pageSize;
+
+        int totalRecords = knownErrorDAO.getTotalKnownErrors(keyword, statusFilter);
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+
+        List<Article> errors = knownErrorDAO.searchKnownErrors(keyword, statusFilter, offset, pageSize);
 
         request.setAttribute("knownErrors", errors);
         request.setAttribute("searchQuery", keyword);
-        request.setAttribute("statusFilter", statusFilter);
+        request.setAttribute("statusFilter", statusFilter != null ? statusFilter : "ALL");
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
         request.getRequestDispatcher("/known-error/list.jsp").forward(request, response);
     }
 
