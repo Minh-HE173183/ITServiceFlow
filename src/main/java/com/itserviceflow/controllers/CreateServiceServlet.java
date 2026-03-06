@@ -41,7 +41,7 @@ public class CreateServiceServlet extends HttpServlet {
         newSvc.setEstimatedDeliveryDay(delivery);
 
         if (serviceDAO.createService(newSvc)) {
-            response.sendRedirect(request.getContextPath() + "/service-catalog?status=success");
+            response.sendRedirect(request.getContextPath() + "/admin/service-management?status=success");
         } else {
             request.setAttribute("error", "Could not create service. Please check Duplicate Code.");
             request.getRequestDispatcher("/admin/create-service.jsp").forward(request, response);

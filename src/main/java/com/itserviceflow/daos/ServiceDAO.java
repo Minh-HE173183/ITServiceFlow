@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.itserviceflow.daos.ServiceDAO;
 import com.itserviceflow.models.Service;
+import com.itserviceflow.utils.DBConnection;
 import static com.itserviceflow.utils.DBConnection.getConnection;
 
 public class ServiceDAO {
@@ -49,6 +50,7 @@ public class ServiceDAO {
 
     public Service getServiceById(int id) {
         Service service = null;
+
         String sql = "SELECT * FROM service WHERE service_id = ?";
 
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -127,7 +129,7 @@ public class ServiceDAO {
 
     public List<Service> getAllServices(String query) {
         List<Service> services = new ArrayList<>();
-        String sql = "SELECT * FROM service WHERE service_name LIKE ? OR description LIKE ?";
+        String sql = "SELECT * FROM service WHERE service_name LIKE ? OR description LIKE ? OR service_code LIKE ?";
 
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, "%" + query + "%");
@@ -139,12 +141,29 @@ public class ServiceDAO {
                 s.setServiceId(rs.getInt("service_id"));
                 s.setServiceName(rs.getString("service_name"));
                 s.setStatus(rs.getString("status"));
-                // ... các set khác
+                s.setServiceCode(rs.getString("service_code"));
                 services.add(s);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return services;
+    }
+
+    public boolean updateService(Service service) {
+        String sql = "UPDATE service SET service_name = ?, description = ?, service_code = ?, "
+                + "estimated_delivery_day = ?, status = ? WHERE service_id = ?";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, service.getServiceName());
+            ps.setString(2, service.getDescription());
+            ps.setString(3, service.getServiceCode());
+            ps.setInt(4, service.getEstimatedDeliveryDay());
+            ps.setString(5, service.getStatus());
+            ps.setInt(6, service.getServiceId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
