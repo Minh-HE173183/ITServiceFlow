@@ -14,6 +14,8 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.mindrot.jbcrypt.BCrypt;
+
 
 
 /**
@@ -157,7 +159,7 @@ public class UserDAO {
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {
                     User u = mapUser(rs);
-                    if (password.equals( u.getPasswordHash())) {
+                    if (BCrypt.checkpw(password, u.getPasswordHash())) {
                         updateLastLogin(u.getUserId());
                         return u;
                     }
@@ -225,7 +227,7 @@ public class UserDAO {
     public boolean updatePassword(int userId, String newPassword) {
         String sql = "UPDATE `user` SET password_hash = ?, reset_token_used = 1 WHERE user_id = ?";
         try (PreparedStatement st = conn.prepareStatement(sql)) {
-            st.setString(1, newPassword);
+            st.setString(1, BCrypt.hashpw(newPassword, BCrypt.gensalt()));
             st.setInt(2, userId);
             return st.executeUpdate() > 0;
         } catch (Exception e) {
@@ -268,7 +270,7 @@ public class UserDAO {
         try (PreparedStatement st = conn.prepareStatement(sql)) {
             st.setString(1, u.getUsername());
             st.setString(2, u.getEmail());
-            st.setString(3, u.getPasswordHash());
+            st.setString(3, BCrypt.hashpw(u.getPasswordHash(), BCrypt.gensalt()));
             st.setString(4, u.getFullName());
             st.setString(5, u.getPhone());
             if (u.getDepartmentId() != null && u.getDepartmentId() > 0) st.setInt(6, u.getDepartmentId()); else st.setNull(6, java.sql.Types.INTEGER);
