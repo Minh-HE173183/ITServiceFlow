@@ -135,6 +135,28 @@
                         </c:if>
                     </tbody>
                 </table>
+
+                <!-- Pagination -->
+                <c:if test="${totalPages > 1}">
+                    <nav aria-label="Page navigation" class="mt-3">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                <a class="page-link"
+                                    href="?action=list&searchQuery=${searchQuery}&statusFilter=${statusFilter}&page=${currentPage - 1}">Previous</a>
+                            </li>
+                            <c:forEach begin="1" end="${totalPages}" var="i">
+                                <li class="page-item ${currentPage == i ? 'active' : ''}">
+                                    <a class="page-link"
+                                        href="?action=list&searchQuery=${searchQuery}&statusFilter=${statusFilter}&page=${i}">${i}</a>
+                                </li>
+                            </c:forEach>
+                            <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                <a class="page-link"
+                                    href="?action=list&searchQuery=${searchQuery}&statusFilter=${statusFilter}&page=${currentPage + 1}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </c:if>
             </div>
         </form>
     </div>

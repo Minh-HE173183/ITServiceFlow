@@ -1,6 +1,7 @@
 package com.itserviceflow.controllers;
 
 import com.itserviceflow.daos.ProblemDAO;
+import com.itserviceflow.daos.TicketDAO;
 import com.itserviceflow.models.Comment;
 import com.itserviceflow.models.Ticket;
 import com.itserviceflow.models.User;
@@ -19,10 +20,12 @@ import java.util.List;
 public class ProblemController extends HttpServlet {
 
     private ProblemDAO problemDAO;
+    private TicketDAO ticketDAO;
 
     @Override
     public void init() throws ServletException {
         problemDAO = new ProblemDAO();
+        ticketDAO = new TicketDAO();
     }
 
     @Override
@@ -37,7 +40,7 @@ public class ProblemController extends HttpServlet {
             return;
 
         User currentUser = AuthUtils.getCurrentUser(request);
-        request.setAttribute("currentUser", currentUser); 
+        request.setAttribute("currentUser", currentUser);
 
         switch (action) {
             case "list":
@@ -135,10 +138,28 @@ public class ProblemController extends HttpServlet {
         String keyword = request.getParameter("keyword");
         String statusFilter = request.getParameter("status");
 
-        List<Ticket> problems = problemDAO.getAllProblems(keyword, statusFilter);
+        int page = 1;
+        int pageSize = 5;
+        String pageParam = request.getParameter("page");
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                page = Integer.parseInt(pageParam);
+            } catch (NumberFormatException e) {
+                page = 1;
+            }
+        }
+        int offset = (page - 1) * pageSize;
+
+        int totalRecords = problemDAO.getTotalProblems(keyword, statusFilter);
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+
+        List<Ticket> problems = problemDAO.getAllProblems(keyword, statusFilter, offset, pageSize);
+
         request.setAttribute("problems", problems);
         request.setAttribute("keyword", keyword);
         request.setAttribute("statusFilter", statusFilter != null ? statusFilter : "ALL");
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
         request.getRequestDispatcher("/problem/list.jsp").forward(request, response);
     }
 
@@ -157,6 +178,9 @@ public class ProblemController extends HttpServlet {
 
     private void showProblemForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        User currentUser = AuthUtils.getCurrentUser(request);
+        List<Ticket> incidents = ticketDAO.getIncidentList(currentUser.getUserId(), currentUser.getRoleName());
+        request.setAttribute("incidents", incidents);
         request.getRequestDispatcher("/problem/form.jsp").forward(request, response);
     }
 

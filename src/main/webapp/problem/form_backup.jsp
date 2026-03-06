@@ -46,14 +46,14 @@
 
         <c:if test="${empty problem}">
             <div class="mb-3">
-                <label for="incidentIds" class="form-label fw-bold">Link Incident (Optional)</label>
-                <select class="form-select" id="incidentIds" name="incidentIds">
-                    <option value="">-- Select an Incident --</option>
+                <label for="incidentIds" class="form-label fw-bold">Link Incidents (Optional)</label>
+                <select multiple class="form-select" id="incidentIds" name="incidentIds" size="5">
                     <c:forEach var="inc" items="${incidents}">
                         <option value="${inc.ticketId}">${inc.ticketNumber} - ${inc.title}</option>
                     </c:forEach>
                 </select>
-                <div class="form-text">Choose an incident related to this problem.</div>
+                <div class="form-text">Hold Ctrl (Windows) or Command (Mac) to select multiple incidents matching this
+                    problem.</div>
             </div>
         </c:if>
 
