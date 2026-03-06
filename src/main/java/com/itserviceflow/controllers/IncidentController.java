@@ -136,6 +136,11 @@ public class IncidentController extends HttpServlet {
 
     private void showForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // Load categories for dropdown
+        com.itserviceflow.daos.TicketCategoryDAO categoryDAO = new com.itserviceflow.daos.TicketCategoryDAO();
+        java.util.List<com.itserviceflow.models.TicketCategory> categories = categoryDAO.getActiveCategories();
+        request.setAttribute("categories", categories);
+        
         request.getRequestDispatcher("/incidents/incident-form.jsp").forward(request, response);
     }
 
@@ -143,6 +148,12 @@ public class IncidentController extends HttpServlet {
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         Ticket incident = ticketDAO.getIncidentById(id);
+        
+        // Load categories for dropdown
+        com.itserviceflow.daos.TicketCategoryDAO categoryDAO = new com.itserviceflow.daos.TicketCategoryDAO();
+        java.util.List<com.itserviceflow.models.TicketCategory> categories = categoryDAO.getActiveCategories();
+        request.setAttribute("categories", categories);
+        
         request.setAttribute("incident", incident);
         request.getRequestDispatcher("/incidents/incident-form.jsp").forward(request, response);
     }
