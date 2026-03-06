@@ -66,7 +66,6 @@
                 </div>
             </div>
         </nav>
->>>>>>> main
 
         <script>
             // Xử lý xóa query params để tránh lặp lại thông báo khi refresh

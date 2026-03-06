@@ -4,6 +4,7 @@ import com.itserviceflow.daos.ServiceDAO;
 import com.itserviceflow.daos.TicketDAO;
 import com.itserviceflow.models.Service;
 import com.itserviceflow.models.Ticket;
+import com.itserviceflow.utils.WorkflowService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,6 +16,7 @@ import java.io.IOException;
 public class CreateRequestServlet extends HttpServlet {
     private TicketDAO ticketDAO = new TicketDAO();
     private ServiceDAO serviceDAO = new ServiceDAO();
+    private WorkflowService workflowService = new WorkflowService();
     
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
@@ -57,6 +59,11 @@ public class CreateRequestServlet extends HttpServlet {
         ticket.setDepartmentId(1);
 
         if (ticketDAO.createServiceRequest(ticket)) {
+            // Tự động áp dụng workflow
+            Ticket created = ticketDAO.getTicketWithDetails(ticket.getTicketId());
+            if (created != null) {
+                workflowService.onTicketCreated(created);
+            }
             // Sau khi tạo thành công, quay về catalog 
             response.sendRedirect(request.getContextPath() + "/service-catalog?msg=success");
         } else {

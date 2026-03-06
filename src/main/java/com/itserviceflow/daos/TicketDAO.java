@@ -21,7 +21,7 @@ import java.util.List;
 public class TicketDAO {
 
     public boolean createServiceRequest(Ticket ticket) {
-        // ticket_type mặc định là 'SERVICE_REQUEST' theo US06 
+        // ticket_type mặc định là 'SERVICE_REQUEST' theo US06
         String sql = "INSERT INTO ticket (ticket_number, ticket_type, title, description, justification, "
                 + "status, priority, service_id, reported_by, department_id, created_at) "
                 + "VALUES (?, 'SERVICE_REQUEST', ?, ?, ?, 'New', ?, ?, ?, ?, CURRENT_TIMESTAMP)";
@@ -50,8 +50,7 @@ public class TicketDAO {
 
     public Ticket getTicketById(int ticketId) {
         String sql = "SELECT * FROM ticket WHERE ticket_id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, ticketId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -286,16 +285,15 @@ public class TicketDAO {
     }
 
     /**
-     * Fetches a ticket and joins ticket_category to get difficulty_level.
-     * Use this when you need difficulty for logtime calculation.
+     * Fetches a ticket and joins ticket_category to get difficulty_level. Use
+     * this when you need difficulty for logtime calculation.
      */
     public Ticket getTicketWithDetails(int ticketId) {
         String sql = "SELECT t.*, tc.difficulty_level "
-                   + "FROM ticket t "
-                   + "LEFT JOIN ticket_category tc ON t.category_id = tc.category_id "
-                   + "WHERE t.ticket_id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                + "FROM ticket t "
+                + "LEFT JOIN ticket_category tc ON t.category_id = tc.category_id "
+                + "WHERE t.ticket_id = ?";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, ticketId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -306,6 +304,40 @@ public class TicketDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    // ---------- workflow-driven operations ----------
+
+    /**
+     * Cập nhật status của ticket bất kỳ (dùng bởi WorkflowService).
+     */
+    public boolean updateTicketStatus(int ticketId, String newStatus) {
+        String sql = "UPDATE ticket SET status = ? WHERE ticket_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, newStatus);
+            stmt.setInt(2, ticketId);
+            return stmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Cập nhật priority của ticket bất kỳ (dùng bởi WorkflowService).
+     */
+    public boolean updateTicketPriority(int ticketId, String newPriority) {
+        String sql = "UPDATE ticket SET priority = ? WHERE ticket_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, newPriority);
+            stmt.setInt(2, ticketId);
+            return stmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     // ---------- incident-specific operations ----------

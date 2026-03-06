@@ -152,21 +152,23 @@
                         ITSM
                     </div>
                     <ul class="sidebar-menu">
-                        <li class="menu-header">Hệ thống</li>
-                        <a href="${pageContext.request.contextPath}/admin/users"
-                            class="menu-item ${pageContext.request.requestURI.endsWith('/admin/users.jsp') ? 'active' : ''}">
-                            <i class="bi bi-person-gear"></i> Quản lý người dùng
-                        </a>
-                        <a href="${pageContext.request.contextPath}/admin/knowledge-base"
-                            class="menu-item ${pageContext.request.requestURI.endsWith('/admin/knowledge-base.jsp') ? 'active' : ''}">
-                            <i class="bi bi-journal-text"></i> Knowledge Base
-                        </a>
-                        <a href="${pageContext.request.contextPath}/admin/knowledge-article"
-                            class="menu-item ${pageContext.request.requestURI.endsWith('/admin/knowledge-article.jsp') ? 'active' : ''}">
-                            <i class="bi bi-newspaper"></i> Knowledge Article
-                        </a>
-                        <a href="#" class="menu-item"><i class="bi bi-shield-lock"></i> Danh sách Quyền</a>
-                        <a href="#" class="menu-item"><i class="bi bi-gear"></i> Cấu hình hệ thống</a>
+                        <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 10}">
+                            <li class="menu-header">Hệ thống</li>
+                            <a href="${pageContext.request.contextPath}/admin/users"
+                                class="menu-item ${pageContext.request.requestURI.endsWith('/admin/users.jsp') ? 'active' : ''}">
+                                <i class="bi bi-person-gear"></i> Quản lý người dùng
+                            </a>
+                            <a href="${pageContext.request.contextPath}/admin/knowledge-base"
+                                class="menu-item ${pageContext.request.requestURI.endsWith('/admin/knowledge-base.jsp') ? 'active' : ''}">
+                                <i class="bi bi-journal-text"></i> Knowledge Base
+                            </a>
+                            <a href="${pageContext.request.contextPath}/admin/knowledge-article"
+                                class="menu-item ${pageContext.request.requestURI.endsWith('/admin/knowledge-article.jsp') ? 'active' : ''}">
+                                <i class="bi bi-newspaper"></i> Knowledge Article
+                            </a>
+                            <a href="#" class="menu-item"><i class="bi bi-shield-lock"></i> Danh sách Quyền</a>
+                            <a href="#" class="menu-item"><i class="bi bi-gear"></i> Cấu hình hệ thống</a>
+                        </c:if>
 
                         <li class="menu-header">Ticket Management</li>
                         <a href="${pageContext.request.contextPath}/problem?action=list"
@@ -176,6 +178,10 @@
                         <a href="${pageContext.request.contextPath}/known-error?action=list"
                             class="menu-item ${pageContext.request.requestURI.contains('/known-error/') ? 'active' : ''}">
                             <i class="bi bi-bug"></i> Known Error Database
+                        </a>
+                        <a href="${pageContext.request.contextPath}/ticket-category"
+                            class="menu-item ${pageContext.request.requestURI.contains('/ticket-category') ? 'active' : ''}">
+                            <i class="bi bi-tags"></i> Ticket Categories
                         </a>
 
                         <li class="menu-header">Infrastructure</li>
@@ -193,6 +199,16 @@
                             class="menu-item ${pageContext.request.requestURI.contains('/service') ? 'active' : ''}">
                             <i class="bi bi-hdd-network"></i> Service Catalog
                         </a>
+
+                        <li class="menu-header">Reports &amp; Analytics</li>
+                        <a href="${pageContext.request.contextPath}/dashboard"
+                            class="menu-item ${pageContext.request.requestURI.contains('/dashboard') ? 'active' : ''}">
+                            <i class="bi bi-speedometer2"></i> Executive Dashboard
+                        </a>
+                        <a href="${pageContext.request.contextPath}/time-tracking"
+                            class="menu-item ${pageContext.request.requestURI.contains('/time-tracking') ? 'active' : ''}">
+                            <i class="bi bi-clock-history"></i> Time Tracking
+                        </a>
                     </ul>
                 </div>
 
@@ -208,7 +224,13 @@
                                         Management</c:when>
                                     <c:when test="${pageContext.request.requestURI.contains('/known-error/')}">Known
                                         Error Database</c:when>
+                                    <c:when test="${pageContext.request.requestURI.contains('/ticket-category')}">Ticket
+                                        Categories</c:when>
                                     <c:when test="${pageContext.request.requestURI.contains('/cmdb/')}">CMDB</c:when>
+                                    <c:when test="${pageContext.request.requestURI.contains('/dashboard')}">Executive
+                                        Dashboard</c:when>
+                                    <c:when test="${pageContext.request.requestURI.contains('/time-tracking')}">Time
+                                        Tracking</c:when>
                                     <c:otherwise>IT Service Management</c:otherwise>
                                 </c:choose>
                             </span>

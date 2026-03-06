@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DepartmentDAO {
+
     private Connection conn;
 
     public DepartmentDAO() {
@@ -18,8 +19,7 @@ public class DepartmentDAO {
     public List<Department> listAll() {
         List<Department> list = new ArrayList<>();
         String sql = "SELECT * FROM department WHERE status = 'ACTIVE'";
-        try (PreparedStatement st = conn.prepareStatement(sql);
-             ResultSet rs = st.executeQuery()) {
+        try (PreparedStatement st = conn.prepareStatement(sql); ResultSet rs = st.executeQuery()) {
             while (rs.next()) {
                 Department d = new Department();
                 d.setDepartmentId(rs.getInt("department_id"));

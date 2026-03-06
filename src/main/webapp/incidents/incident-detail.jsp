@@ -1,667 +1,670 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-    <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-        <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-            <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-                <!DOCTYPE html>
-                <html lang="en">
-
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Incident Detail - ${incident.ticketNumber}</title>
-                    <style>
-                        * {
-                            box-sizing: border-box;
-                            margin: 0;
-                            padding: 0;
-                        }
-
-                        body {
-                            font-family: 'Segoe UI', sans-serif;
-                            background: #f0f4f8;
-                            color: #2d3748;
-                            padding: 24px;
-                        }
-
-                        .page-header {
-                            display: flex;
-                            align-items: center;
-                            gap: 16px;
-                            margin-bottom: 24px;
-                        }
-
-                        .back-btn {
-                            display: inline-flex;
-                            align-items: center;
-                            gap: 6px;
-                            padding: 8px 16px;
-                            background: #fff;
-                            border: 1px solid #e2e8f0;
-                            border-radius: 8px;
-                            color: #4a5568;
-                            text-decoration: none;
-                            font-size: 14px;
-                            font-weight: 500;
-                        }
-
-                        .back-btn:hover {
-                            background: #edf2f7;
-                        }
-
-                        .page-title {
-                            font-size: 22px;
-                            font-weight: 700;
-                            color: #1a202c;
-                        }
-
-                        .card {
-                            background: #fff;
-                            border-radius: 12px;
-                            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-                            padding: 24px;
-                            margin-bottom: 20px;
-                        }
-
-                        .card-title {
-                            font-size: 16px;
-                            font-weight: 700;
-                            color: #2d3748;
-                            margin-bottom: 16px;
-                            padding-bottom: 10px;
-                            border-bottom: 2px solid #e2e8f0;
-                        }
-
-                        .detail-grid {
-                            display: grid;
-                            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                            gap: 16px;
-                        }
-
-                        .detail-item label {
-                            font-size: 11px;
-                            font-weight: 600;
-                            color: #718096;
-                            text-transform: uppercase;
-                            letter-spacing: 0.5px;
-                            display: block;
-                            margin-bottom: 4px;
-                        }
-
-                        .detail-item span {
-                            font-size: 14px;
-                            color: #2d3748;
-                            font-weight: 500;
-                        }
-
-                        .badge {
-                            display: inline-block;
-                            padding: 3px 10px;
-                            border-radius: 99px;
-                            font-size: 12px;
-                            font-weight: 600;
-                        }
-
-                        .badge-critical {
-                            background: #fff5f5;
-                            color: #c53030;
-                        }
-
-                        .badge-high {
-                            background: #fffaf0;
-                            color: #c05621;
-                        }
-
-                        .badge-medium {
-                            background: #fffff0;
-                            color: #b7791f;
-                        }
-
-                        .badge-low {
-                            background: #f0fff4;
-                            color: #276749;
-                        }
-
-                        .badge-new {
-                            background: #ebf8ff;
-                            color: #2b6cb0;
-                        }
-
-                        .badge-in_progress {
-                            background: #faf5ff;
-                            color: #6b46c1;
-                        }
-
-                        .badge-resolved {
-                            background: #f0fff4;
-                            color: #276749;
-                        }
-
-                        .badge-closed {
-                            background: #edf2f7;
-                            color: #4a5568;
-                        }
-
-                        .badge-cancelled {
-                            background: #fff5f5;
-                            color: #c53030;
-                        }
-
-                        .action-bar {
-                            display: flex;
-                            gap: 10px;
-                            flex-wrap: wrap;
-                            margin-top: 20px;
-                            padding-top: 16px;
-                            border-top: 1px solid #e2e8f0;
-                        }
-
-                        .btn {
-                            display: inline-flex;
-                            align-items: center;
-                            gap: 6px;
-                            padding: 9px 18px;
-                            border-radius: 8px;
-                            border: none;
-                            cursor: pointer;
-                            font-size: 14px;
-                            font-weight: 600;
-                            text-decoration: none;
-                            transition: all 0.15s;
-                        }
-
-                        .btn-primary {
-                            background: #4299e1;
-                            color: #fff;
-                        }
-
-                        .btn-primary:hover {
-                            background: #3182ce;
-                        }
-
-                        .btn-warning {
-                            background: #ecc94b;
-                            color: #744210;
-                        }
-
-                        .btn-warning:hover {
-                            background: #d69e2e;
-                        }
-
-                        .btn-danger {
-                            background: #fc8181;
-                            color: #742a2a;
-                        }
-
-                        .btn-danger:hover {
-                            background: #f56565;
-                        }
-
-                        .tabs {
-                            display: flex;
-                            gap: 4px;
-                            border-bottom: 2px solid #e2e8f0;
-                        }
-
-                        .tab-btn {
-                            padding: 10px 22px;
-                            background: none;
-                            border: none;
-                            cursor: pointer;
-                            font-size: 14px;
-                            font-weight: 600;
-                            color: #718096;
-                            border-bottom: 2px solid transparent;
-                            margin-bottom: -2px;
-                            transition: all .15s;
-                        }
-
-                        .tab-btn.active {
-                            color: #4299e1;
-                            border-bottom-color: #4299e1;
-                        }
-
-                        .tab-btn:hover {
-                            color: #4299e1;
-                        }
-
-                        .tab-content {
-                            display: none;
-                            padding-top: 20px;
-                        }
-
-                        .tab-content.active {
-                            display: block;
-                        }
-
-                        .timelog-summary {
-                            display: flex;
-                            gap: 16px;
-                            margin-bottom: 20px;
-                            flex-wrap: wrap;
-                        }
-
-                        .timelog-stat {
-                            border-radius: 10px;
-                            padding: 16px 24px;
-                            min-width: 160px;
-                            color: #fff;
-                        }
-
-                        .ts-purple {
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        }
-
-                        .ts-green {
-                            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-                        }
-
-                        .stat-value {
-                            font-size: 28px;
-                            font-weight: 800;
-                        }
-
-                        .stat-label {
-                            font-size: 12px;
-                            opacity: 0.85;
-                            margin-top: 2px;
-                        }
-
-                        .timelog-table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            font-size: 14px;
-                        }
-
-                        .timelog-table th {
-                            background: #f7fafc;
-                            color: #718096;
-                            font-size: 11px;
-                            font-weight: 700;
-                            text-transform: uppercase;
-                            letter-spacing: 0.5px;
-                            padding: 10px 14px;
-                            text-align: left;
-                        }
-
-                        .timelog-table td {
-                            padding: 12px 14px;
-                            border-bottom: 1px solid #f0f4f8;
-                            vertical-align: middle;
-                        }
-
-                        .timelog-table tr:hover td {
-                            background: #f7fafc;
-                        }
-
-                        .timelog-table tr:last-child td {
-                            border-bottom: none;
-                        }
-
-                        .activity-chip {
-                            display: inline-block;
-                            padding: 3px 10px;
-                            border-radius: 6px;
-                            font-size: 11px;
-                            font-weight: 700;
-                        }
-
-                        .chip-assigned {
-                            background: #ebf8ff;
-                            color: #2b6cb0;
-                        }
-
-                        .chip-investigation {
-                            background: #faf5ff;
-                            color: #6b46c1;
-                        }
-
-                        .chip-resolved {
-                            background: #f0fff4;
-                            color: #276749;
-                        }
-
-                        .chip-closed {
-                            background: #edf2f7;
-                            color: #4a5568;
-                        }
-
-                        .chip-manual {
-                            background: #fffaf0;
-                            color: #c05621;
-                        }
-
-                        .time-value {
-                            font-weight: 700;
-                            color: #6b46c1;
-                        }
-
-                        .manual-log-form {
-                            background: #f7fafc;
-                            border: 1px solid #e2e8f0;
-                            border-radius: 10px;
-                            padding: 20px;
-                            margin-top: 24px;
-                        }
-
-                        .manual-log-form h4 {
-                            font-size: 14px;
-                            font-weight: 700;
-                            margin-bottom: 14px;
-                            color: #4a5568;
-                        }
-
-                        .form-row {
-                            display: flex;
-                            gap: 12px;
-                            flex-wrap: wrap;
-                            align-items: flex-end;
-                        }
-
-                        .form-group {
-                            display: flex;
-                            flex-direction: column;
-                            gap: 4px;
-                        }
-
-                        .form-group label {
-                            font-size: 12px;
-                            font-weight: 600;
-                            color: #718096;
-                        }
-
-                        .form-group input {
-                            padding: 9px 12px;
-                            border: 1px solid #e2e8f0;
-                            border-radius: 8px;
-                            font-size: 14px;
-                        }
-
-                        .form-group input:focus {
-                            outline: none;
-                            border-color: #4299e1;
-                            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
-                        }
-
-                        .fg-time {
-                            width: 140px;
-                        }
-
-                        .fg-desc {
-                            flex: 1;
-                            min-width: 220px;
-                        }
-
-                        .related-list {
-                            list-style: none;
-                        }
-
-                        .related-list li {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            padding: 10px 14px;
-                            background: #f7fafc;
-                            border-radius: 8px;
-                            margin-bottom: 6px;
-                        }
-
-                        .related-list li strong {
-                            color: #4299e1;
-                        }
-
-                        .empty-state {
-                            text-align: center;
-                            padding: 40px;
-                            color: #a0aec0;
-                        }
-
-                        .empty-icon {
-                            font-size: 36px;
-                            margin-bottom: 8px;
-                        }
-
-                        .alert {
-                            padding: 12px 16px;
-                            border-radius: 8px;
-                            font-size: 14px;
-                            margin-bottom: 16px;
-                            font-weight: 500;
-                        }
-
-                        .alert-success {
-                            background: #f0fff4;
-                            color: #276749;
-                            border: 1px solid #9ae6b4;
-                        }
-
-                        .alert-error {
-                            background: #fff5f5;
-                            color: #c53030;
-                            border: 1px solid #feb2b2;
-                        }
-                    </style>
-                </head>
-
-                <body>
-
-                    <div class="page-header">
-                        <a href="${pageContext.request.contextPath}/incident?action=list" class="back-btn">&#8592; Back
-                            to List</a>
-                        <div class="page-title">Incident: ${incident.ticketNumber}</div>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Incident Detail - ${incident.ticketNumber}</title>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: 'Segoe UI', sans-serif;
+                background: #f0f4f8;
+                color: #2d3748;
+                padding: 24px;
+            }
+
+            .page-header {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+
+            .back-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 16px;
+                background: #fff;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                color: #4a5568;
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 500;
+            }
+
+            .back-btn:hover {
+                background: #edf2f7;
+            }
+
+            .page-title {
+                font-size: 22px;
+                font-weight: 700;
+                color: #1a202c;
+            }
+
+            .card {
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+                padding: 24px;
+                margin-bottom: 20px;
+            }
+
+            .card-title {
+                font-size: 16px;
+                font-weight: 700;
+                color: #2d3748;
+                margin-bottom: 16px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #e2e8f0;
+            }
+
+            .detail-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 16px;
+            }
+
+            .detail-item label {
+                font-size: 11px;
+                font-weight: 600;
+                color: #718096;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                display: block;
+                margin-bottom: 4px;
+            }
+
+            .detail-item span {
+                font-size: 14px;
+                color: #2d3748;
+                font-weight: 500;
+            }
+
+            .badge {
+                display: inline-block;
+                padding: 3px 10px;
+                border-radius: 99px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            .badge-critical {
+                background: #fff5f5;
+                color: #c53030;
+            }
+
+            .badge-high {
+                background: #fffaf0;
+                color: #c05621;
+            }
+
+            .badge-medium {
+                background: #fffff0;
+                color: #b7791f;
+            }
+
+            .badge-low {
+                background: #f0fff4;
+                color: #276749;
+            }
+
+            .badge-new {
+                background: #ebf8ff;
+                color: #2b6cb0;
+            }
+
+            .badge-in_progress {
+                background: #faf5ff;
+                color: #6b46c1;
+            }
+
+            .badge-resolved {
+                background: #f0fff4;
+                color: #276749;
+            }
+
+            .badge-closed {
+                background: #edf2f7;
+                color: #4a5568;
+            }
+
+            .badge-cancelled {
+                background: #fff5f5;
+                color: #c53030;
+            }
+
+            .action-bar {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-top: 20px;
+                padding-top: 16px;
+                border-top: 1px solid #e2e8f0;
+            }
+
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 9px 18px;
+                border-radius: 8px;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 600;
+                text-decoration: none;
+                transition: all 0.15s;
+            }
+
+            .btn-primary {
+                background: #4299e1;
+                color: #fff;
+            }
+
+            .btn-primary:hover {
+                background: #3182ce;
+            }
+
+            .btn-warning {
+                background: #ecc94b;
+                color: #744210;
+            }
+
+            .btn-warning:hover {
+                background: #d69e2e;
+            }
+
+            .btn-danger {
+                background: #fc8181;
+                color: #742a2a;
+            }
+
+            .btn-danger:hover {
+                background: #f56565;
+            }
+
+            .tabs {
+                display: flex;
+                gap: 4px;
+                border-bottom: 2px solid #e2e8f0;
+            }
+
+            .tab-btn {
+                padding: 10px 22px;
+                background: none;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 600;
+                color: #718096;
+                border-bottom: 2px solid transparent;
+                margin-bottom: -2px;
+                transition: all .15s;
+            }
+
+            .tab-btn.active {
+                color: #4299e1;
+                border-bottom-color: #4299e1;
+            }
+
+            .tab-btn:hover {
+                color: #4299e1;
+            }
+
+            .tab-content {
+                display: none;
+                padding-top: 20px;
+            }
+
+            .tab-content.active {
+                display: block;
+            }
+
+            .timelog-summary {
+                display: flex;
+                gap: 16px;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+            }
+
+            .timelog-stat {
+                border-radius: 10px;
+                padding: 16px 24px;
+                min-width: 160px;
+                color: #fff;
+            }
+
+            .ts-purple {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+
+            .ts-green {
+                background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            }
+
+            .stat-value {
+                font-size: 28px;
+                font-weight: 800;
+            }
+
+            .stat-label {
+                font-size: 12px;
+                opacity: 0.85;
+                margin-top: 2px;
+            }
+
+            .timelog-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 14px;
+            }
+
+            .timelog-table th {
+                background: #f7fafc;
+                color: #718096;
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                padding: 10px 14px;
+                text-align: left;
+            }
+
+            .timelog-table td {
+                padding: 12px 14px;
+                border-bottom: 1px solid #f0f4f8;
+                vertical-align: middle;
+            }
+
+            .timelog-table tr:hover td {
+                background: #f7fafc;
+            }
+
+            .timelog-table tr:last-child td {
+                border-bottom: none;
+            }
+
+            .activity-chip {
+                display: inline-block;
+                padding: 3px 10px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 700;
+            }
+
+            .chip-assigned {
+                background: #ebf8ff;
+                color: #2b6cb0;
+            }
+
+            .chip-investigation {
+                background: #faf5ff;
+                color: #6b46c1;
+            }
+
+            .chip-resolved {
+                background: #f0fff4;
+                color: #276749;
+            }
+
+            .chip-closed {
+                background: #edf2f7;
+                color: #4a5568;
+            }
+
+            .chip-manual {
+                background: #fffaf0;
+                color: #c05621;
+            }
+
+            .time-value {
+                font-weight: 700;
+                color: #6b46c1;
+            }
+
+            .manual-log-form {
+                background: #f7fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+                padding: 20px;
+                margin-top: 24px;
+            }
+
+            .manual-log-form h4 {
+                font-size: 14px;
+                font-weight: 700;
+                margin-bottom: 14px;
+                color: #4a5568;
+            }
+
+            .form-row {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+                align-items: flex-end;
+            }
+
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .form-group label {
+                font-size: 12px;
+                font-weight: 600;
+                color: #718096;
+            }
+
+            .form-group input {
+                padding: 9px 12px;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                font-size: 14px;
+            }
+
+            .form-group input:focus {
+                outline: none;
+                border-color: #4299e1;
+                box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+            }
+
+            .fg-time {
+                width: 140px;
+            }
+
+            .fg-desc {
+                flex: 1;
+                min-width: 220px;
+            }
+
+            .related-list {
+                list-style: none;
+            }
+
+            .related-list li {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 14px;
+                background: #f7fafc;
+                border-radius: 8px;
+                margin-bottom: 6px;
+            }
+
+            .related-list li strong {
+                color: #4299e1;
+            }
+
+            .empty-state {
+                text-align: center;
+                padding: 40px;
+                color: #a0aec0;
+            }
+
+            .empty-icon {
+                font-size: 36px;
+                margin-bottom: 8px;
+            }
+
+            .alert {
+                padding: 12px 16px;
+                border-radius: 8px;
+                font-size: 14px;
+                margin-bottom: 16px;
+                font-weight: 500;
+            }
+
+            .alert-success {
+                background: #f0fff4;
+                color: #276749;
+                border: 1px solid #9ae6b4;
+            }
+
+            .alert-error {
+                background: #fff5f5;
+                color: #c53030;
+                border: 1px solid #feb2b2;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <div class="page-header">
+            <a href="${pageContext.request.contextPath}/incident?action=list" class="back-btn">&#8592; Back
+                to List</a>
+            <div class="page-title">Incident: ${incident.ticketNumber}</div>
+        </div>
+
+        <c:if test="${param.logSuccess eq '1'}">
+            <div class="alert alert-success">Time log saved successfully.</div>
+        </c:if>
+        <c:if test="${not empty param.logError}">
+            <div class="alert alert-error">Could not save time log (${param.logError}).</div>
+        </c:if>
+
+        <!-- DETAILS CARD -->
+        <div class="card">
+            <div class="card-title">Incident Details</div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <label>Title</label>
+                    <span>${incident.title}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Status</label>
+                    <span class="badge badge-${fn:toLowerCase(incident.status)}">${incident.status}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Priority</label>
+                    <span
+                        class="badge badge-${fn:toLowerCase(incident.priority)}">${incident.priority}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Difficulty</label>
+                    <span>${not empty incident.difficultyLevel ? incident.difficultyLevel : 'N/A'}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Category ID</label>
+                    <span>${incident.categoryId}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Reported By</label>
+                    <span>User #${incident.reportedBy}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Assigned To</label>
+                    <c:choose>
+                        <c:when test="${incident.assignedTo == null}">
+                            <span style="color:#a0aec0;">Unassigned</span>
+                        </c:when>
+                        <c:otherwise>
+                            <span>Agent #${incident.assignedTo}</span>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
+            <div class="detail-item" style="margin-top:16px;">
+                <label>Description</label>
+                <span>${incident.description}</span>
+            </div>
+            <div class="action-bar">
+                <a href="${pageContext.request.contextPath}/incident?action=edit&id=${incident.ticketId}"
+                   class="btn btn-warning">Edit</a>
+                <c:if test="${incident.status ne 'CANCELLED' and incident.status ne 'CLOSED'}">
+                    <form action="${pageContext.request.contextPath}/incident" method="post"
+                          style="margin:0;" onsubmit="return confirm('Cancel this ticket?');">
+                        <input type="hidden" name="action" value="cancel">
+                        <input type="hidden" name="id" value="${incident.ticketId}">
+                        <button type="submit" class="btn btn-danger">Cancel</button>
+                    </form>
+                </c:if>
+                <c:if test="${incident.assignedTo == null and incident.status ne 'CANCELLED'}">
+                    <form action="${pageContext.request.contextPath}/incident" method="post"
+                          style="margin:0;">
+                        <input type="hidden" name="action" value="assign">
+                        <input type="hidden" name="id" value="${incident.ticketId}">
+                        <input type="hidden" name="assignedTo" value="${sessionScope.user.userId}">
+                        <button type="submit" class="btn btn-primary">Assign to Me</button>
+                    </form>
+                </c:if>
+            </div>
+        </div>
+
+        <!-- TABS CARD -->
+        <div class="card" style="padding-bottom: 28px;">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('timelog', this)">&#9201; Time Log</button>
+                <button class="tab-btn" onclick="switchTab('related', this)">&#128279; Related
+                    Incidents</button>
+            </div>
+
+            <!-- TIME LOG TAB -->
+            <div id="tab-timelog" class="tab-content active">
+                <div class="timelog-summary">
+                    <div class="timelog-stat ts-purple">
+                        <div class="stat-value">
+                            <fmt:formatNumber value="${totalTimeSpent}" maxFractionDigits="2" />h
+                        </div>
+                        <div class="stat-label">Total Time Logged</div>
                     </div>
-
-                    <c:if test="${param.logSuccess eq '1'}">
-                        <div class="alert alert-success">&#10003; Time log saved successfully.</div>
-                    </c:if>
-                    <c:if test="${not empty param.logError}">
-                        <div class="alert alert-error">&#10007; Could not save time log (${param.logError}).</div>
-                    </c:if>
-
-                    <!-- DETAILS CARD -->
-                    <div class="card">
-                        <div class="card-title">&#128203; Incident Details</div>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <label>Title</label>
-                                <span>${incident.title}</span>
-                            </div>
-                            <div class="detail-item">
-                                <label>Status</label>
-                                <span class="badge badge-${fn:toLowerCase(incident.status)}">${incident.status}</span>
-                            </div>
-                            <div class="detail-item">
-                                <label>Priority</label>
-                                <span
-                                    class="badge badge-${fn:toLowerCase(incident.priority)}">${incident.priority}</span>
-                            </div>
-                            <div class="detail-item">
-                                <label>Difficulty</label>
-                                <span>${not empty incident.difficultyLevel ? incident.difficultyLevel : 'N/A'}</span>
-                            </div>
-                            <div class="detail-item">
-                                <label>Category ID</label>
-                                <span>${incident.categoryId}</span>
-                            </div>
-                            <div class="detail-item">
-                                <label>Reported By</label>
-                                <span>User #${incident.reportedBy}</span>
-                            </div>
-                            <div class="detail-item">
-                                <label>Assigned To</label>
-                                <c:choose>
-                                    <c:when test="${incident.assignedTo == null}">
-                                        <span style="color:#a0aec0;">Unassigned</span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span>Agent #${incident.assignedTo}</span>
-                                    </c:otherwise>
-                                </c:choose>
-                            </div>
-                        </div>
-                        <div class="detail-item" style="margin-top:16px;">
-                            <label>Description</label>
-                            <span>${incident.description}</span>
-                        </div>
-                        <div class="action-bar">
-                            <a href="${pageContext.request.contextPath}/incident?action=edit&id=${incident.ticketId}"
-                                class="btn btn-warning">&#9998; Edit</a>
-                            <c:if test="${incident.status ne 'CANCELLED' and incident.status ne 'CLOSED'}">
-                                <form action="${pageContext.request.contextPath}/incident" method="post"
-                                    style="margin:0;" onsubmit="return confirm('Cancel this ticket?');">
-                                    <input type="hidden" name="action" value="cancel">
-                                    <input type="hidden" name="id" value="${incident.ticketId}">
-                                    <button type="submit" class="btn btn-danger">&#128683; Cancel</button>
-                                </form>
-                            </c:if>
-                            <c:if test="${incident.assignedTo == null and incident.status ne 'CANCELLED'}">
-                                <form action="${pageContext.request.contextPath}/incident" method="post"
-                                    style="margin:0;">
-                                    <input type="hidden" name="action" value="assign">
-                                    <input type="hidden" name="id" value="${incident.ticketId}">
-                                    <input type="hidden" name="assignedTo" value="${sessionScope.user.userId}">
-                                    <button type="submit" class="btn btn-primary">&#128100; Assign to Me</button>
-                                </form>
-                            </c:if>
-                        </div>
+                    <div class="timelog-stat ts-green">
+                        <div class="stat-value">${fn:length(timeLogs)}</div>
+                        <div class="stat-label">Log Entries</div>
                     </div>
+                </div>
 
-                    <!-- TABS CARD -->
-                    <div class="card" style="padding-bottom: 28px;">
-                        <div class="tabs">
-                            <button class="tab-btn active" onclick="switchTab('timelog',this)">&#9201; Time Log</button>
-                            <button class="tab-btn" onclick="switchTab('related',this)">&#128279; Related
-                                Incidents</button>
-                        </div>
-
-                        <!-- TIME LOG TAB -->
-                        <div id="tab-timelog" class="tab-content active">
-                            <div class="timelog-summary">
-                                <div class="timelog-stat ts-purple">
-                                    <div class="stat-value">
-                                        <fmt:formatNumber value="${totalTimeSpent}" maxFractionDigits="2" />h
-                                    </div>
-                                    <div class="stat-label">Total Time Logged</div>
-                                </div>
-                                <div class="timelog-stat ts-green">
-                                    <div class="stat-value">${fn:length(timeLogs)}</div>
-                                    <div class="stat-label">Log Entries</div>
-                                </div>
-                            </div>
-
-                            <c:choose>
-                                <c:when test="${not empty timeLogs}">
-                                    <table class="timelog-table">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Activity</th>
-                                                <th>Agent</th>
-                                                <th>Time Spent</th>
-                                                <th>Description</th>
-                                                <th>Logged At</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <c:forEach var="log" items="${timeLogs}" varStatus="s">
-                                                <tr>
-                                                    <td style="color:#a0aec0;">${s.index + 1}</td>
-                                                    <td>
-                                                        <span
-                                                            class="activity-chip chip-${fn:toLowerCase(log.activityType)}">${log.activityType}</span>
-                                                    </td>
-                                                    <td>
-                                                        <c:choose>
-                                                            <c:when test="${not empty log.agentName}">${log.agentName}
-                                                            </c:when>
-                                                            <c:otherwise>User #${log.userId}</c:otherwise>
-                                                        </c:choose>
-                                                    </td>
-                                                    <td><span class="time-value">
-                                                            <fmt:formatNumber value="${log.timeSpent}"
-                                                                maxFractionDigits="2" />h
-                                                        </span></td>
-                                                    <td style="color:#718096;">${log.description}</td>
-                                                    <td style="color:#a0aec0; font-size:12px;">
-                                                        <fmt:formatDate value="${log.loggedAt}"
+                <c:choose>
+                    <c:when test="${not empty timeLogs}">
+                        <table class="timelog-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Activity</th>
+                                    <th>Agent</th>
+                                    <th>Time Spent</th>
+                                    <th>Description</th>
+                                    <th>Logged At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach var="log" items="${timeLogs}" varStatus="s">
+                                    <tr>
+                                        <td style="color:#a0aec0;">${s.index + 1}</td>
+                                        <td>
+                                            <span
+                                                class="activity-chip chip-${fn:toLowerCase(log.activityType)}">${log.activityType}</span>
+                                        </td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${not empty log.agentName}">${log.agentName}
+                                                </c:when>
+                                                <c:otherwise>User #${log.userId}</c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td><span class="time-value">
+                                                <fmt:formatNumber value="${log.timeSpent}"
+                                                                  maxFractionDigits="2" />h
+                                            </span></td>
+                                        <td style="color:#718096;">${log.description}</td>
+                                        <td style="color:#a0aec0; font-size:12px;">
+                                            <fmt:formatDate value="${log.loggedAt}"
                                                             pattern="dd/MM/yyyy HH:mm" />
-                                                    </td>
-                                                </tr>
-                                            </c:forEach>
-                                        </tbody>
-                                    </table>
-                                </c:when>
-                                <c:otherwise>
-                                    <div class="empty-state">
-                                        <div class="empty-icon">&#9201;&#65039;</div>
-                                        <p>No time entries yet.</p>
-                                        <p style="font-size:13px; margin-top:6px;">Time will be auto-logged when the
-                                            agent assigns, resolves, or closes this ticket.</p>
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="empty-state">
+                            <p>No time entries yet.</p>
+                            <p style="font-size:13px; margin-top:6px;">Time will be auto-logged when the
+                                agent assigns, resolves, or closes this ticket.</p>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
 
-                            <c:if test="${incident.status ne 'CLOSED' and incident.status ne 'CANCELLED'}">
-                                <div class="manual-log-form">
-                                    <h4>&#10133; Log Time Manually</h4>
-                                    <form action="${pageContext.request.contextPath}/incident" method="post">
-                                        <input type="hidden" name="action" value="logtime">
-                                        <input type="hidden" name="id" value="${incident.ticketId}">
-                                        <div class="form-row">
-                                            <div class="form-group fg-time">
-                                                <label for="timeSpent">Hours spent</label>
-                                                <input type="number" id="timeSpent" name="timeSpent" step="0.25"
-                                                    min="0.25" max="24" placeholder="e.g. 1.5" required>
-                                            </div>
-                                            <div class="form-group fg-desc">
-                                                <label for="logDescription">Description</label>
-                                                <input type="text" id="logDescription" name="logDescription"
-                                                    placeholder="What did you work on?" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>&nbsp;</label>
-                                                <button type="submit" class="btn btn-primary">&#128190; Save
-                                                    Log</button>
-                                            </div>
-                                        </div>
-                                    </form>
+                <c:if test="${incident.status ne 'CLOSED' and incident.status ne 'CANCELLED'}">
+                    <div class="manual-log-form">
+                        <h4>Log Time Manually</h4>
+                        <form action="${pageContext.request.contextPath}/incident" method="post">
+                            <input type="hidden" name="action" value="logtime">
+                            <input type="hidden" name="id" value="${incident.ticketId}">
+                            <div class="form-row">
+                                <div class="form-group fg-time">
+                                    <label for="timeSpent">Hours spent</label>
+                                    <input type="number" id="timeSpent" name="timeSpent" step="0.25"
+                                           min="0.25" max="24" placeholder="1.5" required>
                                 </div>
-                            </c:if>
-                        </div>
-
-                        <!-- RELATED INCIDENTS TAB -->
-                        <div id="tab-related" class="tab-content">
-                            <c:choose>
-                                <c:when test="${not empty relatedIncidents}">
-                                    <ul class="related-list">
-                                        <c:forEach var="inc" items="${relatedIncidents}">
-                                            <li>
-                                                <div>
-                                                    <strong>${inc.ticketNumber}</strong>
-                                                    <span style="margin-left:10px; color:#4a5568;">${inc.title}</span>
-                                                </div>
-                                                <span
-                                                    class="badge badge-${fn:toLowerCase(inc.status)}">${inc.status}</span>
-                                            </li>
-                                        </c:forEach>
-                                    </ul>
-                                </c:when>
-                                <c:otherwise>
-                                    <div class="empty-state">
-                                        <div class="empty-icon">&#128279;</div>
-                                        <p>No related incidents found.</p>
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
+                                <div class="form-group fg-desc">
+                                    <label for="logDescription">Description</label>
+                                    <input type="text" id="logDescription" name="logDescription"
+                                           placeholder="What did you work on?" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary">
+                                        Save Log</button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
+                </c:if>
+            </div>
 
-                    <script>
-                        function switchTab(tabId, btnEl) {
-                            document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
-                            document.querySelectorAll('.tab-content').forEach(function (t) { t.classList.remove('active'); });
-                            btnEl.classList.add('active');
-                            document.getElementById('tab-' + tabId).classList.add('active');
-                        }
-                    </script>
-                </body>
+            <!-- RELATED INCIDENTS TAB -->
+            <div id="tab-related" class="tab-content">
+                <c:choose>
+                    <c:when test="${not empty relatedIncidents}">
+                        <ul class="related-list">
+                            <c:forEach var="inc" items="${relatedIncidents}">
+                                <li>
+                                    <div>
+                                        <strong>${inc.ticketNumber}</strong>
+                                        <span style="margin-left:10px; color:#4a5568;">${inc.title}</span>
+                                    </div>
+                                    <span
+                                        class="badge badge-${fn:toLowerCase(inc.status)}">${inc.status}</span>
+                                </li>
+                            </c:forEach>
+                        </ul>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="empty-state">
+                            <div class="empty-icon">&#128279;</div>
+                            <p>No related incidents found.</p>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </div>
 
-                </html>
+        <script>
+            function switchTab(tabId, btnEl) {
+                document.querySelectorAll('.tab-btn').forEach(function (b) {
+                    b.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-content').forEach(function (t) {
+                    t.classList.remove('active');
+                });
+                btnEl.classList.add('active');
+                document.getElementById('tab-' + tabId).classList.add('active');
+            }
+        </script>
+    </body>
+
+</html>
