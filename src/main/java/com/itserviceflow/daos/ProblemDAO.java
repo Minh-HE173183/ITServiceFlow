@@ -219,6 +219,54 @@ public class ProblemDAO {
         }
     }
 
+    public void updateProblemRelations(int problemId, List<Integer> incidentIds, int updatedBy) {
+        String deleteSql = "DELETE FROM ticket_relation WHERE target_ticket_id = ? AND relation_type = 'CAUSED_BY'";
+        String insertSql = "INSERT INTO ticket_relation (source_ticket_id, target_ticket_id, relation_type, created_by) VALUES (?, ?, 'CAUSED_BY', ?)";
+
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement delStmt = conn.prepareStatement(deleteSql)) {
+                delStmt.setInt(1, problemId);
+                delStmt.executeUpdate();
+            }
+
+            if (incidentIds != null && !incidentIds.isEmpty()) {
+                try (PreparedStatement insStmt = conn.prepareStatement(insertSql)) {
+                    for (int incId : incidentIds) {
+                        insStmt.setInt(1, incId);
+                        insStmt.setInt(2, problemId);
+                        insStmt.setInt(3, updatedBy);
+                        insStmt.addBatch();
+                    }
+                    insStmt.executeBatch();
+                }
+            }
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     public boolean deleteProblemTicket(int ticketId) {
         String checkSql = "SELECT status, assigned_to, "
                 + "(SELECT COUNT(*) FROM ticket_relation WHERE target_ticket_id = ?) as rel_count "
@@ -251,11 +299,12 @@ public class ProblemDAO {
         return false;
     }
 
-    public boolean cancelProblemTicket(int ticketId) {
-        String sql = "UPDATE ticket SET status = 'CANCELLED', cancelled_at = CURRENT_TIMESTAMP "
+    public boolean cancelProblemTicket(int ticketId, String justification) {
+        String sql = "UPDATE ticket SET status = 'CANCELLED', justification = ?, cancelled_at = CURRENT_TIMESTAMP "
                 + "WHERE ticket_id = ? AND ticket_type = 'PROBLEM'";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, ticketId);
+            stmt.setString(1, justification);
+            stmt.setInt(2, ticketId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -303,7 +352,9 @@ public class ProblemDAO {
 
     public List<Comment> getCommentsByTicketId(int ticketId) {
         List<Comment> comments = new ArrayList<>();
-        String sql = "SELECT * FROM comment WHERE ticket_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT c.*, u.username as user_name FROM comment c "
+                + "JOIN user u ON c.user_id = u.user_id "
+                + "WHERE c.ticket_id = ? ORDER BY c.created_at DESC";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, ticketId);
@@ -313,6 +364,7 @@ public class ProblemDAO {
                     c.setCommentId(rs.getInt("comment_id"));
                     c.setTicketId(rs.getInt("ticket_id"));
                     c.setUserId(rs.getInt("user_id"));
+                    c.setUserName(rs.getString("user_name"));
                     c.setCommentText(rs.getString("comment_text"));
                     c.setCreatedAt(rs.getTimestamp("created_at"));
                     comments.add(c);
@@ -339,6 +391,7 @@ public class ProblemDAO {
         t.setDepartmentId((Integer) rs.getObject("department_id"));
         t.setCause(rs.getString("cause"));
         t.setSolution(rs.getString("solution"));
+        t.setJustification(rs.getString("justification"));
         t.setCreatedAt(rs.getTimestamp("created_at"));
         t.setUpdatedAt(rs.getTimestamp("updated_at"));
 
