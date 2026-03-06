@@ -24,11 +24,10 @@ public class Ticket {
     private Integer assignedTo;
     private Integer departmentId;
     private String cause;
-    private String solution;
+    private String solution;private String justification;
+    private Integer serviceId;
     private Date createdAt;
     private Date updatedAt;
-    private Integer serviceId;
-    private String justification;
 
     // Virtual fields for display
     private String reportedByName;
@@ -201,8 +200,8 @@ public class Ticket {
     public void setJustification(String justification) {
         this.justification = justification;
     }
-    
-    
+
+
     public String getReportedByName() {
         return reportedByName;
     }

@@ -1,6 +1,7 @@
 package com.itserviceflow.controllers;
 
 import com.itserviceflow.daos.ProblemDAO;
+import com.itserviceflow.daos.TicketDAO;
 import com.itserviceflow.models.Comment;
 import com.itserviceflow.models.Ticket;
 import com.itserviceflow.models.User;
@@ -17,11 +18,14 @@ import java.util.List;
 
 @WebServlet("/problem")
 public class ProblemController extends HttpServlet {
+
     private ProblemDAO problemDAO;
+    private TicketDAO ticketDAO;
 
     @Override
     public void init() throws ServletException {
         problemDAO = new ProblemDAO();
+        ticketDAO = new TicketDAO();
     }
 
     @Override
@@ -36,7 +40,7 @@ public class ProblemController extends HttpServlet {
             return;
 
         User currentUser = AuthUtils.getCurrentUser(request);
-        request.setAttribute("currentUser", currentUser); // pass for UI rules (e.g. hide delete buttons)
+        request.setAttribute("currentUser", currentUser);
 
         switch (action) {
             case "list":
@@ -57,7 +61,7 @@ public class ProblemController extends HttpServlet {
                 showProblemForm(request, response);
                 break;
             case "edit":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
                     return;
                 showEditForm(request, response);
                 break;
@@ -79,6 +83,10 @@ public class ProblemController extends HttpServlet {
             return;
         }
 
+        if (!AuthUtils.isLoggedIn(request, response)) {
+            return;
+        }
+
         if (!AuthUtils.isLoggedIn(request, response))
             return;
 
@@ -89,7 +97,7 @@ public class ProblemController extends HttpServlet {
                 insertProblem(request, response);
                 break;
             case "update":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
                     return;
                 updateProblem(request, response);
                 break;
@@ -99,8 +107,9 @@ public class ProblemController extends HttpServlet {
                 deleteProblem(request, response);
                 break;
             case "bulkDelete":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER)) {
                     return;
+                }
                 bulkDeleteProblem(request, response);
                 break;
             case "cancel":
@@ -108,11 +117,7 @@ public class ProblemController extends HttpServlet {
                     return;
                 cancelProblem(request, response);
                 break;
-            case "assign":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
-                    return;
-                assignProblem(request, response);
-                break;
+
             case "addComment":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
                     return;
@@ -129,10 +134,28 @@ public class ProblemController extends HttpServlet {
         String keyword = request.getParameter("keyword");
         String statusFilter = request.getParameter("status");
 
-        List<Ticket> problems = problemDAO.getAllProblems(keyword, statusFilter);
+        int page = 1;
+        int pageSize = 5;
+        String pageParam = request.getParameter("page");
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                page = Integer.parseInt(pageParam);
+            } catch (NumberFormatException e) {
+                page = 1;
+            }
+        }
+        int offset = (page - 1) * pageSize;
+
+        int totalRecords = problemDAO.getTotalProblems(keyword, statusFilter);
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+
+        List<Ticket> problems = problemDAO.getAllProblems(keyword, statusFilter, offset, pageSize);
+
         request.setAttribute("problems", problems);
         request.setAttribute("keyword", keyword);
         request.setAttribute("statusFilter", statusFilter != null ? statusFilter : "ALL");
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
         request.getRequestDispatcher("/problem/list.jsp").forward(request, response);
     }
 
@@ -151,6 +174,9 @@ public class ProblemController extends HttpServlet {
 
     private void showProblemForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        User currentUser = AuthUtils.getCurrentUser(request);
+        List<Ticket> incidents = ticketDAO.getIncidentList(currentUser.getUserId(), currentUser.getRoleName());
+        request.setAttribute("incidents", incidents);
         request.getRequestDispatcher("/problem/form.jsp").forward(request, response);
     }
 
@@ -158,7 +184,13 @@ public class ProblemController extends HttpServlet {
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         Ticket problem = problemDAO.getProblemById(id);
+        User currentUser = AuthUtils.getCurrentUser(request);
+        List<Ticket> incidents = ticketDAO.getIncidentList(currentUser.getUserId(), currentUser.getRoleName());
+        List<Ticket> linkedIncidents = problemDAO.getLinkedIncidents(id);
+
         request.setAttribute("problem", problem);
+        request.setAttribute("incidents", incidents);
+        request.setAttribute("linkedIncidents", linkedIncidents);
         request.getRequestDispatcher("/problem/form.jsp").forward(request, response);
     }
 
@@ -211,6 +243,23 @@ public class ProblemController extends HttpServlet {
         problem.setSolution(solution);
 
         problemDAO.updateProblemTicket(problem);
+
+        String[] incidentIdStrs = request.getParameterValues("incidentIds");
+        List<Integer> incidentIds = new ArrayList<>();
+        if (incidentIdStrs != null) {
+            String combined = String.join(",", incidentIdStrs);
+            for (String str : combined.split(",")) {
+                if (!str.trim().isEmpty()) {
+                    try {
+                        incidentIds.add(Integer.parseInt(str.trim()));
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+        }
+        User user = AuthUtils.getCurrentUser(request);
+        problemDAO.updateProblemRelations(id, incidentIds, user.getUserId());
+
         response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
     }
 
@@ -250,7 +299,8 @@ public class ProblemController extends HttpServlet {
 
     private void cancelProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
-        problemDAO.cancelProblemTicket(id);
+        String cancelReason = request.getParameter("cancelReason");
+        problemDAO.cancelProblemTicket(id, cancelReason);
         response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
     }
 

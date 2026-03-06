@@ -142,7 +142,6 @@ public class ServiceDAO {
                 s.setServiceName(rs.getString("service_name"));
                 s.setStatus(rs.getString("status"));
                 s.setServiceCode(rs.getString("service_code"));
-
                 services.add(s);
             }
         } catch (SQLException e) {

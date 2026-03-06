@@ -37,6 +37,21 @@
                                        required placeholder="SR-CLOUD-01">
                             </div>
                         </div>
+                        <div class="card-body">
+                            <c:if test="${not empty error}">
+                                <div class="alert alert-danger">${error}</div>
+                            </c:if>
+                            <form action="create-service" method="post">
+                                <div class="row mb-3">
+                                    <div class="col-md-8">
+                                        <label class="form-label font-weight-bold">Service Name</label>
+                                        <input type="text" name="serviceName" class="form-control" required placeholder="e.g., Cloud Storage Expansion">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Service Code</label>
+                                        <input type="text" name="serviceCode" class="form-control" required placeholder="SR-CLOUD-01">
+                                    </div>
+                                </div>
 
                         <div class="mb-4">
                             <label class="form-label fw-bold">Detailed Description</label>
@@ -72,7 +87,7 @@
                                 <i class="bi bi-cloud-upload me-2"></i>Publish Service
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>

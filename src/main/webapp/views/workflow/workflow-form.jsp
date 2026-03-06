@@ -198,7 +198,7 @@
                                         <label class="form-label" for="workflowName">Workflow Name <span
                                                 class="text-danger">*</span></label>
                                         <input type="text" id="workflowName" name="workflowName" class="form-control"
-                                            placeholder="e.g. IT Equipment Purchase Approval"
+                                            placeholder="IT Equipment Purchase Approval"
                                             value="<c:out value='${workflow.workflowName}'/>" maxlength="255"
                                             required />
                                         <div class="invalid-feedback">Workflow name is required.</div>
@@ -307,21 +307,21 @@
                         </div>
 
 <!--                        <div class="workflow-card mb-4">
-                            <div class="card-header-bar d-flex align-items-center justify-content-between px-4 py-3"
-                                style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#jsonPreviewCollapse">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="fa fa-code text-secondary"></i>
-                                    <span class="text-secondary fw-semibold" style="font-size:13px;">Preview Generated
-                                        JSON</span>
-                                </div>
-                                <i class="fa fa-chevron-down text-secondary"></i>
-                            </div>
-                            <div class="collapse" id="jsonPreviewCollapse">
-                                <div class="px-4 pb-4 pt-3">
-                                    <div class="json-preview-box" id="jsonPreview">{}</div>
-                                </div>
-                            </div>
-                        </div>-->
+            <div class="card-header-bar d-flex align-items-center justify-content-between px-4 py-3"
+                style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#jsonPreviewCollapse">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa fa-code text-secondary"></i>
+                    <span class="text-secondary fw-semibold" style="font-size:13px;">Preview Generated
+                        JSON</span>
+                </div>
+                <i class="fa fa-chevron-down text-secondary"></i>
+            </div>
+            <div class="collapse" id="jsonPreviewCollapse">
+                <div class="px-4 pb-4 pt-3">
+                    <div class="json-preview-box" id="jsonPreview">{}</div>
+                </div>
+            </div>
+        </div>-->
 
                         <div class="d-flex align-items-center justify-content-end gap-3">
                             <a href="${pageContext.request.contextPath}/workflows" class="btn btn-secondary px-4"><i
@@ -337,20 +337,20 @@
                         <script type="application/json"
                             id="existingConfig"><c:out value="${workflow.workflowConfig}" escapeXml="false"/></script>
                         <script type="application/json" id="metaTicketTypes"><%
-    List<?> _tt = (List<?>) request.getAttribute("ticketTypes");
-    if (_tt == null) _tt = List.of("INCIDENT","SERVICE_REQUEST","PROBLEM","CHANGE");
-    out.print(gson.toJson(_tt));
-%></script>
+List<?> _tt = (List<?>) request.getAttribute("ticketTypes");
+if (_tt == null) _tt = List.of("INCIDENT","SERVICE_REQUEST","PROBLEM","CHANGE");
+out.print(gson.toJson(_tt));
+    %></script>
                         <script type="application/json" id="metaPriorities"><%
-    List<?> _pr = (List<?>) request.getAttribute("priorities");
-    if (_pr == null) _pr = List.of("LOW","MEDIUM","HIGH","CRITICAL");
-    out.print(gson.toJson(_pr));
-%></script>
+List<?> _pr = (List<?>) request.getAttribute("priorities");
+if (_pr == null) _pr = List.of("LOW","MEDIUM","HIGH","CRITICAL");
+out.print(gson.toJson(_pr));
+    %></script>
                         <script type="application/json" id="metaCategories"><%
     List<?> _cats = (List<?>) request.getAttribute("categories");
     if (_cats == null) _cats = List.of();
     out.print(gson.toJson(_cats));
-%></script>
+    %></script>
 
                         <script>
                             // STATE
@@ -369,7 +369,9 @@
                                 TICKET_TYPES = JSON.parse(document.getElementById('metaTicketTypes').textContent.trim() || '[]');
                                 PRIORITIES = JSON.parse(document.getElementById('metaPriorities').textContent.trim() || '[]');
                                 CATEGORIES = JSON.parse(document.getElementById('metaCategories').textContent.trim() || '[]');
-                            } catch (e) { console.error('Error parsing metadata islands:', e); }
+                            } catch (e) {
+                                console.error('Error parsing metadata islands:', e);
+                            }
 
                             const ROLES = ['Manager', 'Finance', 'IT Support', 'HR', 'Director', 'Security Team', 'Legal'];
                             const ACTIONS = [
@@ -388,7 +390,8 @@
                                 if (raw && raw !== 'null') {
                                     try {
                                         const cfg = JSON.parse(raw);
-                                        if (cfg.trigger) selectedTrigger = cfg.trigger;
+                                        if (cfg.trigger)
+                                            selectedTrigger = cfg.trigger;
                                         if (cfg.conditions) {
                                             conditionLogic = cfg.conditions.logic || 'AND';
                                             (cfg.conditions.criteria || []).forEach(c => {
@@ -400,7 +403,8 @@
                                                 steps.push({ id: ++stepIdCounter, name: s.name || '', role: s.role || ROLES[0], action: s.action || 'APPROVE_REJECT', sla_hours: s.sla_hours || 24 });
                                             });
                                         }
-                                    } catch (e) { }
+                                    } catch (e) {
+                                    }
                                 }
                                 renderTriggerSelection();
                                 renderConditions();
@@ -420,7 +424,8 @@
                                             TICKET_TYPES = data;
                                             renderConditions();
                                         }
-                                    }).catch(() => { });
+                                    }).catch(() => {
+                                    });
                             }
 
                             function selectTrigger(el) {
@@ -438,7 +443,8 @@
 
                             function renderTriggerSelection() {
                                 document.querySelectorAll('.trigger-option').forEach(o => {
-                                    if (o.dataset.trigger === selectedTrigger) o.classList.add('selected');
+                                    if (o.dataset.trigger === selectedTrigger)
+                                        o.classList.add('selected');
                                 });
                                 updateTriggerUI();
                             }
@@ -461,9 +467,11 @@
                                 const c = conditions.find(c => c.id === id);
                                 if (c) {
                                     c[field] = value;
-                                    if (field === 'field') c.value = '';
+                                    if (field === 'field')
+                                        c.value = '';
                                 }
-                                if (field === 'field') renderConditions();
+                                if (field === 'field')
+                                    renderConditions();
                                 updateJsonPreview();
                             }
 
@@ -479,13 +487,13 @@
                                 let html = '';
                                 if (conditions.length > 1) {
                                     html += `<div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom border-secondary-subtle">
-                <span class="text-secondary small">Match</span>
-                <select class="form-select form-select-sm fw-bold border-secondary-subtle" style="width: auto;" onchange="conditionLogic = this.value; updateJsonPreview();">
-                    <option value="AND" \${conditionLogic === 'AND' ? 'selected' : ''}>ALL (AND)</option>
-                    <option value="OR" \${conditionLogic === 'OR' ? 'selected' : ''}>ANY (OR)</option>
-                </select>
-                <span class="text-secondary small">of the following conditions:</span>
-            </div>`;
+<span class="text-secondary small">Match</span>
+<select class="form-select form-select-sm fw-bold border-secondary-subtle" style="width: auto;" onchange="conditionLogic = this.value; updateJsonPreview();">
+<option value="AND" \${conditionLogic === 'AND' ? 'selected' : ''}>ALL (AND)</option>
+<option value="OR" \${conditionLogic === 'OR' ? 'selected' : ''}>ANY (OR)</option>
+</select>
+<span class="text-secondary small">of the following conditions:</span>
+</div>`;
                                 }
                                 html += '<div class="conditions-list">';
                                 conditions.forEach(c => html += renderConditionRow(c));
@@ -508,33 +516,33 @@
                                 let valueInput = '';
                                 if (c.field === 'ticket_type') {
                                     valueInput = `<select class="form-select form-select-sm" onchange="updateCondition(\${c.id}, 'value', this.value)">
-                <option value="">-- Type --</option>
-                \${TICKET_TYPES.map(t => '<option value="' + t + '"' + (c.value === t ? ' selected' : '') + '>' + t + '</option>').join('')}
-            </select>`;
+<option value="">-- Type --</option>
+\${TICKET_TYPES.map(t => '<option value="' + t + '"' + (c.value === t ? ' selected' : '') + '>' + t + '</option>').join('')}
+</select>`;
                                 } else if (c.field === 'priority') {
                                     valueInput = `<select class="form-select form-select-sm" onchange="updateCondition(\${c.id}, 'value', this.value)">
-                <option value="">-- Priority --</option>
-                \${PRIORITIES.map(p => '<option value="' + p + '"' + (c.value === p ? ' selected' : '') + '>' + p + '</option>').join('')}
-            </select>`;
+<option value="">-- Priority --</option>
+\${PRIORITIES.map(p => '<option value="' + p + '"' + (c.value === p ? ' selected' : '') + '>' + p + '</option>').join('')}
+</select>`;
                                 } else if (c.field === 'category_id') {
                                     valueInput = `<select class="form-select form-select-sm" onchange="updateCondition(\${c.id}, 'value', this.value)">
-                <option value="">-- Category --</option>
-                \${CATEGORIES.map(cat => '<option value="' + cat.categoryId + '"' + (c.value == cat.categoryId ? ' selected' : '') + '>' + cat.categoryName + '</option>').join('')}
-            </select>`;
+<option value="">-- Category --</option>
+\${CATEGORIES.map(cat => '<option value="' + cat.categoryId + '"' + (c.value == cat.categoryId ? ' selected' : '') + '>' + cat.categoryName + '</option>').join('')}
+</select>`;
                                 }
 
                                 return `<div class="row g-2 mb-2 align-items-center condition-row p-2 border border-secondary-subtle rounded bg-light bg-opacity-10">
-            <div class="col-md-3">
-                <select class="form-select form-select-sm" onchange="updateCondition(\${c.id}, 'field', this.value)">\${fieldOptions}</select>
-            </div>
-            <div class="col-md-2">
-                <select class="form-select form-select-sm" onchange="updateCondition(\${c.id}, 'operator', this.value)">\${operatorOptions}</select>
-            </div>
-            <div class="col-md-6">\${valueInput}</div>
-            <div class="col-md-1 text-end">
-                <button type="button" class="btn btn-sm text-danger" onclick="removeCondition(\${c.id})"><i class="bi bi-trash"></i></button>
-            </div>
-        </div>`;
+<div class="col-md-3">
+<select class="form-select form-select-sm" onchange="updateCondition(\${c.id}, 'field', this.value)">\${fieldOptions}</select>
+</div>
+<div class="col-md-2">
+<select class="form-select form-select-sm" onchange="updateCondition(\${c.id}, 'operator', this.value)">\${operatorOptions}</select>
+</div>
+<div class="col-md-6">\${valueInput}</div>
+<div class="col-md-1 text-end">
+<button type="button" class="btn btn-sm text-danger" onclick="removeCondition(\${c.id})"><i class="bi bi-trash"></i></button>
+</div>
+</div>`;
                             }
 
                             function addStep() {
@@ -561,34 +569,43 @@
                                     let upBtn = i > 0 ? `<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Up" onclick="moveStep(\${s.id}, -1)"><i class="fa fa-chevron-up"></i></button>` : `<span style="display:inline-block;width:22px;"></span>`;
                                     let downBtn = i < steps.length - 1 ? `<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Down" onclick="moveStep(\${s.id}, 1)"><i class="fa fa-chevron-down"></i></button>` : `<span style="display:inline-block;width:22px;"></span>`;
                                     html += `<div class="step-card p-3 mb-2 d-flex align-items-start gap-3">
-                <div class="d-flex flex-column align-items-center gap-1">
-                    <div class="step-number">\${i + 1}</div>
-                    \${upBtn} \${downBtn}
-                </div>
-                <div class="flex-grow-1 row g-3">
-                    <div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Step Name" value="\${escHtml(s.name)}" oninput="updateStepField(\${s.id}, 'name', this.value)" /></div>
-                    <div class="col-md-3"><select class="form-select form-select-sm" onchange="updateStepField(\${s.id}, 'role', this.value)">\${roleOptions}</select></div>
-                    <div class="col-md-3"><select class="form-select form-select-sm" onchange="updateStepField(\${s.id}, 'action', this.value)">\${actionOptions}</select></div>
-                    <div class="col-md-2"><input type="number" class="form-control form-control-sm" value="\${s.sla_hours}" oninput="updateStepField(\${s.id}, 'sla_hours', this.value)" /></div>
-                </div>
-                <button type="button" class="btn btn-sm text-danger" onclick="removeStep(\${s.id})"><i class="fa fa-trash"></i></button>
-            </div>`;
+<div class="d-flex flex-column align-items-center gap-1">
+<div class="step-number">\${i + 1}</div>
+\${upBtn} \${downBtn}
+</div>
+<div class="flex-grow-1 row g-3">
+<div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Step Name" value="\${escHtml(s.name)}" oninput="updateStepField(\${s.id}, 'name', this.value)" /></div>
+<div class="col-md-3"><select class="form-select form-select-sm" onchange="updateStepField(\${s.id}, 'role', this.value)">\${roleOptions}</select></div>
+<div class="col-md-3"><select class="form-select form-select-sm" onchange="updateStepField(\${s.id}, 'action', this.value)">\${actionOptions}</select></div>
+<div class="col-md-2"><input type="number" class="form-control form-control-sm" value="\${s.sla_hours}" oninput="updateStepField(\${s.id}, 'sla_hours', this.value)" /></div>
+</div>
+<button type="button" class="btn btn-sm text-danger" onclick="removeStep(\${s.id})"><i class="fa fa-trash"></i></button>
+</div>`;
                                 });
                                 container.innerHTML = html;
                             }
 
                             function updateStepField(id, field, value) {
                                 var s = steps.find(s => s.id === id);
-                                if (s) s[field] = (field === 'sla_hours') ? (parseInt(value, 10) || 0) : value;
+                                if (s)
+                                    s[field] = (field === 'sla_hours') ? (parseInt(value, 10) || 0) : value;
                                 updateJsonPreview();
                             }
-                            function removeStep(id) { steps = steps.filter(s => s.id !== id); renderSteps(); updateJsonPreview(); }
+                            function removeStep(id) {
+                                steps = steps.filter(s => s.id !== id);
+                                renderSteps();
+                                updateJsonPreview();
+                            }
                             function moveStep(id, dir) {
                                 var idx = steps.findIndex(s => s.id === id);
-                                if (idx < 0) return;
+                                if (idx < 0)
+                                    return;
                                 var newIdx = idx + dir;
-                                if (newIdx < 0 || newIdx >= steps.length) return;
-                                var tmp = steps[idx]; steps[idx] = steps[newIdx]; steps[newIdx] = tmp;
+                                if (newIdx < 0 || newIdx >= steps.length)
+                                    return;
+                                var tmp = steps[idx];
+                                steps[idx] = steps[newIdx];
+                                steps[newIdx] = tmp;
                                 renderSteps();
                                 updateJsonPreview();
                             }
@@ -637,8 +654,13 @@
                                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
                             });
 
-                            function saveDraft() { document.getElementById('status').value = 'DRAFT'; document.getElementById('workflowForm').requestSubmit(); }
-                            function escHtml(str) { return str ? String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])) : ''; }
+                            function saveDraft() {
+                                document.getElementById('status').value = 'DRAFT';
+                                document.getElementById('workflowForm').requestSubmit();
+                            }
+                            function escHtml(str) {
+                                return str ? String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])) : '';
+                            }
                         </script>
 
                         <jsp:include page="/common/admin-layout-bottom.jsp" />

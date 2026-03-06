@@ -20,12 +20,12 @@
     </div>
 
     <form action="${pageContext.request.contextPath}/cmdb" method="get"
-        class="bg-light p-3 rounded mb-4 border d-flex gap-3 align-items-center">
+          class="bg-light p-3 rounded mb-4 border d-flex gap-3 align-items-center">
         <input type="hidden" name="action" value="list">
 
         <div class="flex-grow-1">
             <input type="text" class="form-control" name="keyword" placeholder="Search by name or code..."
-                value="${keyword}">
+                   value="${keyword}">
         </div>
 
         <div style="width: 250px;">
@@ -52,7 +52,7 @@
                 <thead class="table-light">
                     <tr>
                         <th style="width: 40px;"><input type="checkbox" id="selectAll" class="form-check-input"
-                                onclick="toggleAll(this)"></th>
+                                                        onclick="toggleAll(this)"></th>
                         <th>CI Code</th>
                         <th>Name</th>
                         <th>IP Address</th>
@@ -66,12 +66,12 @@
                         <tr>
                             <td>
                                 <input type="checkbox" name="selectedIds" value="${ci.ciId}"
-                                    class="rowCheckbox form-check-input">
+                                       class="rowCheckbox form-check-input">
                             </td>
                             <td><strong>${ci.ciCode}</strong></td>
                             <td>${ci.ciName}</td>
                             <td>${ci.ipAddress == null ? '<span class="text-muted fst-italic">N/A</span>' :
-                                ci.ipAddress}</td>
+                                  ci.ipAddress}</td>
                             <td>
                                 <c:choose>
                                     <c:when test="${ci.status eq 'ACTIVE'}"><span class="badge bg-success">ACTIVE</span>
@@ -86,19 +86,19 @@
                                 </c:choose>
                             </td>
                             <td>${ci.ownerId == null ? '<span class="text-muted fst-italic">Unassigned</span>' :
-                                ci.ownerId}</td>
+                                  ci.ownerId}</td>
                             <td class="d-flex gap-1">
                                 <a href="${pageContext.request.contextPath}/cmdb?action=detail&id=${ci.ciId}"
-                                    class="btn btn-info btn-sm text-white">
+                                   class="btn btn-info btn-sm text-white">
                                     <i class="bi bi-diagram-3"></i> View
                                 </a>
 
                                 <c:if test="${ci.status eq 'INACTIVE'}">
                                     <form action="${pageContext.request.contextPath}/cmdb?action=delete" method="post"
-                                        class="m-0">
+                                          class="m-0">
                                         <input type="hidden" name="id" value="${ci.ciId}">
                                         <button type="submit" class="btn btn-danger btn-sm"
-                                            onclick="return confirm('Are you sure you want to permanently delete this CI? It must not have linked tickets/relations.');">
+                                                onclick="return confirm('Are you sure you want to permanently delete this CI? It must not have linked tickets/relations.');">
                                             <i class="bi bi-trash"></i> Delete
                                         </button>
                                     </form>
@@ -107,11 +107,11 @@
                                 <!-- For simulation purposes, only allowing toggle between ACTIVE and INACTIVE to match DAO -->
                                 <c:if test="${ci.status eq 'ACTIVE' || ci.status eq 'INACTIVE'}">
                                     <form action="${pageContext.request.contextPath}/cmdb?action=toggleStatus"
-                                        method="post" class="m-0">
+                                          method="post" class="m-0">
                                         <input type="hidden" name="id" value="${ci.ciId}">
                                         <input type="hidden" name="currentStatus" value="${ci.status}">
                                         <button type="submit"
-                                            class="btn ${ci.status eq 'ACTIVE' ? 'btn-secondary' : 'btn-success'} btn-sm">
+                                                class="btn ${ci.status eq 'ACTIVE' ? 'btn-secondary' : 'btn-success'} btn-sm">
                                             <i
                                                 class="bi ${ci.status eq 'ACTIVE' ? 'bi-pause-circle' : 'bi-play-circle'}"></i>
                                             ${ci.status eq 'ACTIVE' ? 'Disable' : 'Enable'}
