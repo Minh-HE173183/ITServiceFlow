@@ -61,7 +61,7 @@ public class ProblemController extends HttpServlet {
                 showProblemForm(request, response);
                 break;
             case "edit":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
                     return;
                 showEditForm(request, response);
                 break;
@@ -97,7 +97,7 @@ public class ProblemController extends HttpServlet {
                 insertProblem(request, response);
                 break;
             case "update":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
                     return;
                 updateProblem(request, response);
                 break;
@@ -117,11 +117,7 @@ public class ProblemController extends HttpServlet {
                     return;
                 cancelProblem(request, response);
                 break;
-            case "assign":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
-                    return;
-                assignProblem(request, response);
-                break;
+
             case "addComment":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
                     return;
@@ -188,7 +184,13 @@ public class ProblemController extends HttpServlet {
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         Ticket problem = problemDAO.getProblemById(id);
+        User currentUser = AuthUtils.getCurrentUser(request);
+        List<Ticket> incidents = ticketDAO.getIncidentList(currentUser.getUserId(), currentUser.getRoleName());
+        List<Ticket> linkedIncidents = problemDAO.getLinkedIncidents(id);
+
         request.setAttribute("problem", problem);
+        request.setAttribute("incidents", incidents);
+        request.setAttribute("linkedIncidents", linkedIncidents);
         request.getRequestDispatcher("/problem/form.jsp").forward(request, response);
     }
 
@@ -241,6 +243,23 @@ public class ProblemController extends HttpServlet {
         problem.setSolution(solution);
 
         problemDAO.updateProblemTicket(problem);
+
+        String[] incidentIdStrs = request.getParameterValues("incidentIds");
+        List<Integer> incidentIds = new ArrayList<>();
+        if (incidentIdStrs != null) {
+            String combined = String.join(",", incidentIdStrs);
+            for (String str : combined.split(",")) {
+                if (!str.trim().isEmpty()) {
+                    try {
+                        incidentIds.add(Integer.parseInt(str.trim()));
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+        }
+        User user = AuthUtils.getCurrentUser(request);
+        problemDAO.updateProblemRelations(id, incidentIds, user.getUserId());
+
         response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
     }
 
@@ -280,7 +299,8 @@ public class ProblemController extends HttpServlet {
 
     private void cancelProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
-        problemDAO.cancelProblemTicket(id);
+        String cancelReason = request.getParameter("cancelReason");
+        problemDAO.cancelProblemTicket(id, cancelReason);
         response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
     }
 
