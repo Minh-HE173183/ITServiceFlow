@@ -1,205 +1,115 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-    <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-        <html>
+<jsp:include page="/includes/header.jsp" />
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-        <head>
-            <title>Known Error Detail - ${knownError.articleNumber}</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    background-color: #f4f7f6;
-                    padding: 20px;
-                }
+    <div class="container-fluid bg-white p-4 rounded shadow-sm mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+            <h2 class="h4 text-primary m-0">Known Error Detail: ${knownError.articleNumber}</h2>
+            <a href="${pageContext.request.contextPath}/known-error?action=list" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
 
-                .container {
-                    background-color: white;
-                    padding: 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                    margin-bottom: 20px;
-                }
-
-                h2,
-                h3 {
-                    color: #333;
-                    margin-top: 0;
-                }
-
-                .detail-group {
-                    margin-bottom: 15px;
-                }
-
-                .label {
-                    font-weight: bold;
-                    color: #555;
-                    display: block;
-                    margin-bottom: 5px;
-                }
-
-                .value {
-                    color: #000;
-                    padding: 10px;
-                    background-color: #f8f9fa;
-                    border-radius: 4px;
-                    border: 1px solid #e9ecef;
-                    white-space: pre-wrap;
-                }
-
-                .inline-val {
-                    display: inline;
-                    background: none;
-                    border: none;
-                    padding: 0;
-                }
-
-                .btn {
-                    padding: 8px 12px;
-                    background-color: #007bff;
-                    color: white;
-                    text-decoration: none;
-                    border-radius: 4px;
-                    border: none;
-                    cursor: pointer;
-                    display: inline-block;
-                    font-size: 14px;
-                }
-
-                .btn-warning {
-                    background-color: #ffc107;
-                    color: #212529;
-                }
-
-                .btn-danger {
-                    background-color: #dc3545;
-                }
-
-                .btn-success {
-                    background-color: #28a745;
-                }
-
-                .btn-secondary {
-                    background-color: #6c757d;
-                }
-
-                .btn-group {
-                    margin-top: 20px;
-                    display: flex;
-                    gap: 10px;
-                }
-
-                .status-badge {
-                    padding: 4px 8px;
-                    border-radius: 12px;
-                    font-size: 14px;
-                    font-weight: bold;
-                    color: white;
-                }
-
-                .status-PENDING {
-                    background-color: #ffc107;
-                    color: #212529;
-                }
-
-                .status-APPROVED {
-                    background-color: #28a745;
-                }
-
-                .status-REJECTED {
-                    background-color: #dc3545;
-                }
-
-                .status-INACTIVE {
-                    background-color: #6c757d;
-                }
-
-                .review-panel {
-                    border: 1px solid #ffc107;
-                    padding: 15px;
-                    border-radius: 4px;
-                    background-color: #fffdf5;
-                    margin-top: 20px;
-                }
-
-                .form-group {
-                    margin-bottom: 10px;
-                }
-
-                textarea {
-                    width: 100%;
-                    padding: 8px;
-                    border: 1px solid #ccc;
-                    border-radius: 4px;
-                }
-            </style>
-        </head>
-
-        <body>
-            <div class="container">
-                <a href="${pageContext.request.contextPath}/known-error?action=list" class="btn btn-secondary"
-                    style="margin-bottom: 20px;">&larr; Back to List</a>
-
-                <h2>Known Error: ${knownError.articleNumber} <span
-                        class="status-badge status-${knownError.status}">${knownError.status}</span></h2>
-
-                <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-                    <div><strong>Author ID:</strong> ${knownError.authorId}</div>
-                    <div><strong>Last Updated:</strong> ${knownError.updatedAt}</div>
-                </div>
-
-                <div class="detail-group">
-                    <span class="label">Title:</span>
-                    <div class="value">${knownError.title}</div>
-                </div>
-                <div class="detail-group">
-                    <span class="label">Summary:</span>
-                    <div class="value">${knownError.summary}</div>
-                </div>
-
-                <h3>Technical Details</h3>
-                <div class="detail-group">
-                    <span class="label">Symptom:</span>
-                    <div class="value">${knownError.symptom}</div>
-                </div>
-                <div class="detail-group">
-                    <span class="label">Root Cause:</span>
-                    <div class="value">${knownError.cause}</div>
-                </div>
-                <div class="detail-group">
-                    <span class="label">Workaround & Solution:</span>
-                    <div class="value">${knownError.solution}</div>
-                </div>
-                <div class="detail-group">
-                    <span class="label">Detailed Content:</span>
-                    <div class="value">${knownError.content}</div>
-                </div>
-
-                <div class="btn-group">
-                    <a href="${pageContext.request.contextPath}/known-error?action=edit&id=${knownError.articleId}"
-                        class="btn btn-warning">Edit Article</a>
-                </div>
-
-                <c:if test="${knownError.status eq 'PENDING'}">
-                    <div class="review-panel">
-                        <h3>Admin Review Panel</h3>
-                        <p>Please review the details above to approve or reject this article to make it available for
-                            Support Agents.</p>
-                        <form action="${pageContext.request.contextPath}/known-error?action=review" method="post">
-                            <input type="hidden" name="id" value="${knownError.articleId}">
-
-                            <div class="form-group">
-                                <label>Rejection Reason (Optional):</label>
-                                <textarea name="rejectionReason" rows="3"
-                                    placeholder="If rejecting, please state the reason..."></textarea>
-                            </div>
-
-                            <button type="submit" name="status" value="APPROVED" class="btn btn-success">Approve
-                                Article</button>
-                            <button type="submit" name="status" value="REJECTED" class="btn btn-danger">Reject
-                                Article</button>
-                        </form>
-                    </div>
-                </c:if>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p class="mb-2"><strong>Status:</strong>
+                    <c:choose>
+                        <c:when test="${knownError.status eq 'APPROVED'}"><span class="badge bg-success">APPROVED</span>
+                        </c:when>
+                        <c:when test="${knownError.status eq 'PENDING'}"><span
+                                class="badge bg-warning text-dark">PENDING</span></c:when>
+                        <c:when test="${knownError.status eq 'REJECTED'}"><span class="badge bg-danger">REJECTED</span>
+                        </c:when>
+                        <c:when test="${knownError.status eq 'INACTIVE'}"><span
+                                class="badge bg-secondary">INACTIVE</span>
+                        </c:when>
+                        <c:otherwise><span class="badge bg-primary">${knownError.status}</span></c:otherwise>
+                    </c:choose>
+                </p>
+                <p class="mb-2"><strong>Author ID:</strong> ${knownError.authorId}</p>
             </div>
-        </body>
+        </div>
+        <div class="col-md-6">
+            <p class="mb-2"><strong>Last Updated:</strong> ${knownError.updatedAt}</p>
+        </div>
+    </div>
 
-        </html>
+    <c:if test="${knownError.status eq 'REJECTED'}">
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+            <strong>This Article has been REJECTED.</strong> Please edit to resolve issues.
+        </div>
+    </c:if>
+
+    <div class="mb-3">
+        <strong>Title:</strong>
+        <div class="p-3 bg-light border rounded mt-1">${knownError.title}</div>
+    </div>
+    <div class="mb-4">
+        <strong>Summary:</strong>
+        <div class="p-3 bg-light border rounded mt-1">${knownError.summary}</div>
+    </div>
+
+    <hr>
+    <h3 class="h5 mt-4 mb-3 text-secondary">Technical Details</h3>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <strong>Symptom:</strong>
+            <div class="p-3 bg-white border rounded mt-2 text-dark" style="white-space: pre-wrap;">${knownError.symptom}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <strong>Root Cause:</strong>
+            <div class="p-3 bg-white border rounded mt-2 text-danger" style="white-space: pre-wrap;">${knownError.cause}
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <strong>Workaround & Solution:</strong>
+        <div class="p-3 bg-white border rounded mt-2 text-success" style="white-space: pre-wrap;">${knownError.solution}
+        </div>
+    </div>
+
+    <c:if test="${not empty knownError.content}">
+        <div class="mb-4">
+            <strong>Detailed Content / References:</strong>
+            <div class="p-3 bg-light border rounded mt-2" style="white-space: pre-wrap;">${knownError.content}</div>
+        </div>
+    </c:if>
+
+    <div class="mt-4">
+        <a href="${pageContext.request.contextPath}/known-error?action=edit&id=${knownError.articleId}"
+            class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Edit Article
+        </a>
+    </div>
+
+    <c:if test="${knownError.status eq 'PENDING'}">
+        <div class="container-fluid bg-white p-4 rounded shadow-sm border border-warning">
+            <h3 class="h5 text-warning mb-3"><i class="bi bi-shield-check"></i> Admin Review Panel</h3>
+            <p class="text-muted">Please review the details above to approve or reject this article to make it
+                available
+                for Support Agents.</p>
+
+            <form action="${pageContext.request.contextPath}/known-error?action=review" method="post">
+                <input type="hidden" name="id" value="${knownError.articleId}">
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Rejection Reason (Optional):</label>
+                    <textarea class="form-control" name="rejectionReason" rows="3"
+                        placeholder="If rejecting, please state the reason..."></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" name="status" value="APPROVED" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Approve Article
+                    </button>
+                    <button type="submit" name="status" value="REJECTED" class="btn btn-danger">
+                        <i class="bi bi-x-circle"></i> Reject Article
+                    </button>
+                </div>
+            </form>
+        </div>
+    </c:if>
+
+    <jsp:include page="/includes/footer.jsp" />

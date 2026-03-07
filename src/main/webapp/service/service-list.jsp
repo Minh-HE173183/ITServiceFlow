@@ -1,6 +1,6 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<html>
+    <html>
 
     <head>
 
@@ -22,13 +22,10 @@
 
                 <div class="col-md-8">
 
-                    <form action="service-catalog" method="get" class="d-flex">
+                    <form action="/service-catalog" method="get" class="d-flex">
 
-                        <input type="text" name="search" class="form-control me-2" 
-
-                               placeholder="Search for services (e.g. Laptop, Software)..." 
-
-                               value="${lastSearch}">
+                        <input type="text" name="search" class="form-control me-2"
+                            placeholder="Search for services (Laptop, Software)..." value="${lastSearch}">
 
                         <button type="submit" class="btn btn-primary">Search</button>
 
@@ -40,7 +37,7 @@
 
 
 
-            <form action="admin/delete-service" method="post" id="bulkDeleteForm">
+            
 
                 <div class="row">
 
@@ -52,7 +49,7 @@
 
                                 <div class="card-header bg-white">
 
-                                    <input type="checkbox" name="serviceIds" value="${svc.serviceId}" class="form-check-input">
+                                    <input name="serviceIds" value="${svc.serviceId}" class="form-check-input">
 
                                     <small class="text-muted ms-2">${svc.serviceCode}</small>
 
@@ -70,7 +67,8 @@
 
                                     <div class="d-flex gap-2">
 
-                                        <a href="service-detail?id=${svc.serviceId}" class="btn btn-outline-primary px-4 flex-grow-1">
+                                        <a href="/service/service-detail?id=${svc.serviceId}"
+                                            class="btn btn-outline-primary px-4 flex-grow-1">
 
                                             View
 
@@ -78,13 +76,13 @@
 
 
 
-                                        <button type="button" class="btn btn-outline-danger px-4 flex-grow-1" 
+<!--                                        <button type="button" class="btn btn-outline-danger px-4 flex-grow-1" 
 
                                                 onclick="confirmDeleteOne('${svc.serviceId}')">
 
                                             Delete
 
-                                        </button>
+                                        </button>-->
 
                                     </div>
 
@@ -100,13 +98,14 @@
 
 
 
-                <div class="fixed-bottom p-4 bg-white border-top shadow" id="adminActions" style="display:none;">
+<!--                <div class="fixed-bottom p-4 bg-white border-top shadow" id="adminActions" style="display:none;">
 
                     <div class="container d-flex justify-content-between align-items-center">
 
                         <span id="selectedCount">0 items selected</span>
 
-                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete selected items?')">
+                        <button type="submit" class="btn btn-danger"
+                            onclick="return confirm('Are you sure you want to delete selected items?')">
 
                             Delete All
 
@@ -114,13 +113,13 @@
 
                     </div>
 
-                </div>
+                </div>-->
 
-            </form>
+           
 
 
 
-            <script>
+<!--            <script>
                 const checkboxes = document.querySelectorAll('input[name="serviceIds"]');
 
                 checkboxes.forEach(cb => {
@@ -165,7 +164,7 @@
 
                 }
 
-            </script>
+            </script>-->
 
 
 
@@ -181,8 +180,8 @@
 
         </div>
 
-    </div>
+        </div>
 
-</body>
+    </body>
 
-</html>
+    </html>

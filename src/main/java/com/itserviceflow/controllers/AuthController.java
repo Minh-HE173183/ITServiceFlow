@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import org.mindrot.jbcrypt.BCrypt;
 
-@WebServlet(name = "AuthController", urlPatterns = {"/auth", "/profile"})
+@WebServlet(name = "AuthController", urlPatterns = { "/auth", "/profile" })
 public class AuthController extends HttpServlet {
 
     private UserDAO userDAO = new UserDAO();
@@ -163,6 +163,8 @@ public class AuthController extends HttpServlet {
 
                 if (user.getRoleId() != null && user.getRoleId() == 10) {
                     response.sendRedirect(request.getContextPath() + "/admin/users");
+                } else if (user.getRoleId() != null && user.getRoleId() != 1) {
+                    response.sendRedirect(request.getContextPath() + "/problem?action=list");
                 } else {
                     response.sendRedirect(request.getContextPath() + "/profile");
                 }
@@ -225,8 +227,8 @@ public class AuthController extends HttpServlet {
 
     private void resetPassword(HttpServletRequest request, HttpServletResponse response) {
         try {
-            String token       = request.getParameter("token");
-            String newPass     = request.getParameter("password");
+            String token = request.getParameter("token");
+            String newPass = request.getParameter("password");
             String confirmPass = request.getParameter("confirm_password");
 
             if (newPass == null || !newPass.equals(confirmPass)) {
@@ -252,8 +254,8 @@ public class AuthController extends HttpServlet {
     private void updateProfile(HttpServletRequest request, HttpServletResponse response) {
         try {
             User sessionUser = (User) request.getSession().getAttribute("user");
-            String fullName  = request.getParameter("fullName");
-            String phone     = request.getParameter("phone");
+            String fullName = request.getParameter("fullName");
+            String phone = request.getParameter("phone");
 
             User u = new User();
             u.setUserId(sessionUser.getUserId());
@@ -275,9 +277,9 @@ public class AuthController extends HttpServlet {
 
     private void changePassword(HttpServletRequest request, HttpServletResponse response) {
         try {
-            User sessionUser   = (User) request.getSession().getAttribute("user");
+            User sessionUser = (User) request.getSession().getAttribute("user");
             String currentPass = request.getParameter("currentPassword");
-            String newPass     = request.getParameter("newPassword");
+            String newPass = request.getParameter("newPassword");
             String confirmPass = request.getParameter("confirmPassword");
 
             if (newPass == null || !newPass.equals(confirmPass)) {

@@ -1,186 +1,150 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-    <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-        <html>
+<jsp:include page="/includes/header.jsp" />
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+    <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+        <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-        <head>
-            <title>Problem Detail - ${problem.ticketNumber}</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    background-color: #f4f7f6;
-                    padding: 20px;
-                }
-
-                .container {
-                    background-color: white;
-                    padding: 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                    margin-bottom: 20px;
-                }
-
-                h2,
-                h3 {
-                    color: #333;
-                    margin-top: 0;
-                }
-
-                .detail-group {
-                    margin-bottom: 15px;
-                }
-
-                .label {
-                    font-weight: bold;
-                    color: #555;
-                }
-
-                .value {
-                    color: #000;
-                }
-
-                .btn {
-                    padding: 8px 12px;
-                    background-color: #007bff;
-                    color: white;
-                    text-decoration: none;
-                    border-radius: 4px;
-                    border: none;
-                    cursor: pointer;
-                    display: inline-block;
-                    font-size: 14px;
-                }
-
-                .btn-warning {
-                    background-color: #ffc107;
-                    color: #212529;
-                }
-
-                .btn-danger {
-                    background-color: #dc3545;
-                }
-
-                .btn-secondary {
-                    background-color: #6c757d;
-                }
-
-                .btn-group {
-                    margin-top: 20px;
-                    display: flex;
-                    gap: 10px;
-                }
-
-                ul {
-                    list-style-type: none;
-                    padding: 0;
-                }
-
-                li {
-                    padding: 10px;
-                    background: #eaeff5;
-                    margin-bottom: 5px;
-                    border-radius: 4px;
-                }
-
-                .form-group {
-                    margin-bottom: 15px;
-                }
-
-                textarea,
-                input[type="text"],
-                input[type="number"] {
-                    width: 100%;
-                    padding: 10px;
-                    border: 1px solid #ccc;
-                    border-radius: 4px;
-                    box-sizing: border-box;
-                }
-            </style>
-        </head>
-
-        <body>
-            <div class="container">
-                <a href="${pageContext.request.contextPath}/problem?action=list" class="btn btn-secondary"
-                    style="margin-bottom: 20px;">&larr; Back to List</a>
-
-                <h2>Problem Detail: ${problem.ticketNumber}</h2>
-                <div class="detail-group">
-                    <span class="label">Title:</span> <span class="value">${problem.title}</span>
+            <div class="container-fluid bg-white p-4 rounded shadow-sm mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                    <h2 class="h4 text-primary m-0">Problem Detail: ${problem.ticketNumber}</h2>
+                    <a href="${pageContext.request.contextPath}/problem?action=list" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to List
+                    </a>
                 </div>
-                <div class="detail-group">
-                    <span class="label">Description:</span> <span class="value">${problem.description}</span>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Title:</strong> ${problem.title}</p>
+                        <p class="mb-2"><strong>Status:</strong> <span class="badge bg-info">${problem.status}</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Reported By:</strong> ${not empty problem.reportedByName ?
+                            problem.reportedByName : 'User ID '.concat(problem.reportedBy)}</p>
+                    </div>
                 </div>
-                <div class="detail-group">
-                    <span class="label">Status:</span> <span class="value">${problem.status}</span>
+
+                <div class="mb-4">
+                    <strong>Description:</strong>
+                    <div class="p-3 bg-light rounded mt-2 border">${problem.description}</div>
                 </div>
-                <div class="detail-group">
-                    <span class="label">Reported By:</span> <span class="value">${problem.reportedBy}</span>
-                </div>
-                <div class="detail-group">
-                    <span class="label">Assigned To:</span> <span class="value">${problem.assignedTo == null ?
-                        'Unassigned' : problem.assignedTo}</span>
-                </div>
+
+                <c:if test="${problem.status eq 'CANCELLED'}">
+                    <div class="mb-4">
+                        <strong>Cancellation Reason:</strong>
+                        <div class="p-3 bg-danger bg-opacity-10 text-danger rounded mt-2 border border-danger">
+                            ${not empty problem.justification ? problem.justification : '<i>No reason provided</i>'}
+                        </div>
+                    </div>
+                </c:if>
 
                 <hr>
-                <h3>Root Cause Analysis (RCA)</h3>
-                <div class="detail-group">
-                    <span class="label">Root Cause:</span> <span class="value">${problem.cause == null ? 'Not identified
-                        yet' : problem.cause}</span>
+                <h3 class="h5 mt-4 mb-3 text-secondary">Root Cause Analysis (RCA)</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Root Cause:</strong>
+                        <div class="p-3 bg-white border rounded mt-2 text-danger">
+                            ${problem.cause == null ? '<i>Not identified yet</i>' : problem.cause}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Workaround/Solution:</strong>
+                        <div class="p-3 bg-white border rounded mt-2 text-success">
+                            ${problem.solution == null ? '<i>No solution provided</i>' : problem.solution}
+                        </div>
+                    </div>
                 </div>
-                <div class="detail-group">
-                    <span class="label">Workaround/Solution:</span> <span class="value">${problem.solution == null ? 'No
-                        solution provided' : problem.solution}</span>
-                </div>
 
-                <div class="btn-group">
-                    <a href="${pageContext.request.contextPath}/problem?action=edit&id=${problem.ticketId}"
-                        class="btn btn-warning">Edit/Update RCA</a>
-
-                    <c:if test="${problem.status ne 'CANCELLED'}">
-                        <form action="${pageContext.request.contextPath}/problem?action=cancel" method="post"
-                            onsubmit="return confirm('Cancel this Problem investigation?');">
-                            <input type="hidden" name="id" value="${problem.ticketId}">
-                            <button type="submit" class="btn btn-danger">Cancel Ticket</button>
-                        </form>
-                    </c:if>
-
-                    <c:if test="${problem.assignedTo == null && problem.status ne 'CANCELLED'}">
-                        <form action="${pageContext.request.contextPath}/problem?action=assign" method="post"
-                            style="display:flex; gap: 5px; align-items:center;">
-                            <input type="hidden" name="id" value="${problem.ticketId}">
-                            <!-- Giả lập assign cho Expert ID 5 -->
-                            <input type="hidden" name="assignedTo" value="5">
-                            <button type="submit" class="btn">Assign to Me (ID:5)</button>
-                        </form>
+                <div class="d-flex gap-2 mt-4">
+                    <c:if test="${sessionScope.user.roleId == 3}">
+                        <c:if test="${problem.status ne 'CANCELLED'}">
+                            <a href="${pageContext.request.contextPath}/problem?action=edit&id=${problem.ticketId}"
+                                class="btn btn-warning">
+                                <i class="bi bi-pencil"></i> Edit/Update RCA
+                            </a>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                                data-bs-target="#cancelModal">
+                                <i class="bi bi-x-circle"></i> Cancel Ticket
+                            </button>
+                        </c:if>
                     </c:if>
                 </div>
             </div>
 
-            <div class="container">
-                <h3>Linked Incidents</h3>
+            <div class="container-fluid bg-white p-4 rounded shadow-sm mb-4">
+                <h3 class="h5 mb-3 text-secondary">Linked Incidents</h3>
                 <c:if test="${not empty linkedIncidents}">
-                    <ul>
+                    <ul class="list-group">
                         <c:forEach var="inc" items="${linkedIncidents}">
-                            <li><strong>${inc.ticketNumber}</strong> - ${inc.title} <span
-                                    style="float:right; color:#666;">[${inc.status}]</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><strong>${inc.ticketNumber}</strong> - ${inc.title}</span>
+                                <span class="badge bg-secondary rounded-pill">${inc.status}</span>
+                            </li>
                         </c:forEach>
                     </ul>
                 </c:if>
                 <c:if test="${empty linkedIncidents}">
-                    <p style="color: #666;">No incidents linked to this problem.</p>
+                    <p class="text-muted fst-italic">No incidents linked to this problem.</p>
                 </c:if>
             </div>
 
-            <div class="container">
-                <h3>Investigation Comments</h3>
+            <div class="container-fluid bg-white p-4 rounded shadow-sm">
+                <h3 class="h5 mb-3 text-secondary">Investigation Comments</h3>
+
+                <c:if test="${not empty comments}">
+                    <div class="mb-4">
+                        <c:forEach var="cmt" items="${comments}">
+                            <div class="card mb-2 border-0 bg-light">
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <strong><i class="bi bi-person-circle"></i> ${cmt.userName}</strong>
+                                        <small class="text-muted">
+                                            <fmt:formatDate value="${cmt.createdAt}" pattern="dd/MM/yyyy HH:mm" />
+                                        </small>
+                                    </div>
+                                    <p class="mb-0 text-dark" style="white-space: pre-wrap;">${cmt.commentText}</p>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </c:if>
+
                 <form action="${pageContext.request.contextPath}/problem?action=addComment" method="post">
                     <input type="hidden" name="id" value="${problem.ticketId}">
-                    <div class="form-group">
-                        <textarea name="commentText" rows="4" placeholder="Add a new finding, note, or update..."
-                            required></textarea>
+                    <div class="mb-3">
+                        <textarea class="form-control" name="commentText" rows="4"
+                            placeholder="Add a new finding, note, or update..." required></textarea>
                     </div>
-                    <button type="submit" class="btn">Add Comment</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-chat-text"></i> Post Comment</button>
                 </form>
             </div>
-        </body>
 
-        </html>
+            <!-- Cancel Problem Modal -->
+            <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="cancelModalLabel">Cancel Problem Ticket</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form action="${pageContext.request.contextPath}/problem?action=cancel" method="post">
+                            <div class="modal-body">
+                                <input type="hidden" name="id" value="${problem.ticketId}">
+                                <div class="mb-3">
+                                    <label for="cancelReason" class="form-label fw-bold">Cancellation Reason <span
+                                            class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="cancelReason" name="cancelReason" rows="3"
+                                        required></textarea>
+                                    <div class="form-text">Please provide a reason for cancelling this investigation.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-danger">Confirm Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <jsp:include page="/includes/footer.jsp" />

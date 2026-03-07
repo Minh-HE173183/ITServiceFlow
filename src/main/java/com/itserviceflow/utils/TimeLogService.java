@@ -9,20 +9,14 @@ import com.itserviceflow.models.Ticket;
  * and recording time entries (logtime) when agents act on tickets.
  *
  * ┌──────────────────────────────────────────────────────────────────────────┐
- * │            time_spent = Base × Priority × Difficulty × Activity          │
+ * │ time_spent = Base × Priority × Difficulty × Activity │
  * ├──────────────────────────────────────────────────────────────────────────┤
- * │  Base (ticket_type)          │ Priority multiplier                       │
- * │    INCIDENT          1.0 h   │   LOW       0.5×                          │
- * │    SERVICE_REQUEST   0.5 h   │   MEDIUM    1.0×                          │
- * │    PROBLEM           2.0 h   │   HIGH      1.5×                          │
- * │    CHANGE            3.0 h   │   CRITICAL  2.0×                          │
- * │                              │                                            │
- * │  Difficulty multiplier       │ Activity multiplier                        │
- * │    LEVEL_1           1.0×   │   ASSIGNED         0.25×                   │
- * │    LEVEL_2           1.5×   │   INVESTIGATION    1.0×                    │
- * │    LEVEL_3           2.0×   │   RESOLVED         0.5×                    │
- * │                              │   CLOSED           0.25×                   │
- * │                              │   MANUAL           1.0× (user sets value)  │
+ * │ Base (ticket_type) │ Priority multiplier │ │ INCIDENT 1.0 h │ LOW 0.5× │ │
+ * SERVICE_REQUEST 0.5 h │ MEDIUM 1.0× │ │ PROBLEM 2.0 h │ HIGH 1.5× │ │ CHANGE
+ * 3.0 h │ CRITICAL 2.0× │ │ │ │ │ Difficulty multiplier │ Activity multiplier │
+ * │ LEVEL_1 1.0× │ ASSIGNED 0.25× │ │ LEVEL_2 1.5× │ INVESTIGATION 1.0× │ │
+ * LEVEL_3 2.0× │ RESOLVED 0.5× │ │ │ CLOSED 0.25× │ │ │ MANUAL 1.0× (user sets
+ * value) │
  * └──────────────────────────────────────────────────────────────────────────┘
  */
 public class TimeLogService {
@@ -32,20 +26,20 @@ public class TimeLogService {
     // -----------------------------------------------------------------------
     // Public API
     // -----------------------------------------------------------------------
-
     /**
-     * Calculates the expected time (in hours) for the given activity based
-     * on the ticket's type, priority, and difficulty level.
+     * Calculates the expected time (in hours) for the given activity based on
+     * the ticket's type, priority, and difficulty level.
      *
-     * @param ticket       the ticket being worked on
-     * @param activityType one of ASSIGNED | INVESTIGATION | RESOLVED | CLOSED | MANUAL
+     * @param ticket the ticket being worked on
+     * @param activityType one of ASSIGNED | INVESTIGATION | RESOLVED | CLOSED |
+     * MANUAL
      * @return time in hours, rounded to 2 decimal places
      */
     public double calculateTimeSpent(Ticket ticket, String activityType) {
-        double base       = baseTime(ticket.getTicketType());
-        double priority   = priorityMultiplier(ticket.getPriority());
+        double base = baseTime(ticket.getTicketType());
+        double priority = priorityMultiplier(ticket.getPriority());
         double difficulty = difficultyMultiplier(ticket.getDifficultyLevel());
-        double activity   = activityMultiplier(activityType);
+        double activity = activityMultiplier(activityType);
 
         double result = base * priority * difficulty * activity;
         // round to 2 decimal places
@@ -55,8 +49,9 @@ public class TimeLogService {
     /**
      * Calculates time spent and persists a time_log record automatically.
      *
-     * @param ticket       the ticket (must have ticketId, ticketType, priority, difficultyLevel set)
-     * @param agentUserId  the user_id of the agent performing the action
+     * @param ticket the ticket (must have ticketId, ticketType, priority,
+     * difficultyLevel set)
+     * @param agentUserId the user_id of the agent performing the action
      * @param activityType one of ASSIGNED | INVESTIGATION | RESOLVED | CLOSED
      * @return true if the log was saved successfully
      */
@@ -69,11 +64,12 @@ public class TimeLogService {
     }
 
     /**
-     * Persists a manual time_log entry. The caller provides the exact time spent.
+     * Persists a manual time_log entry. The caller provides the exact time
+     * spent.
      *
-     * @param ticketId    the ticket being logged for
+     * @param ticketId the ticket being logged for
      * @param agentUserId the agent user_id
-     * @param timeSpent   hours (positive value, max 999.99)
+     * @param timeSpent hours (positive value, max 999.99)
      * @param description free-text description required for manual entries
      * @return true if saved
      */
@@ -88,60 +84,82 @@ public class TimeLogService {
     // -----------------------------------------------------------------------
     // Formula helpers
     // -----------------------------------------------------------------------
-
     private double baseTime(String ticketType) {
-        if (ticketType == null) return 1.0;
+        if (ticketType == null) {
+            return 1.0;
+        }
         switch (ticketType.toUpperCase()) {
-            case "SERVICE_REQUEST": return 0.5;
-            case "PROBLEM":        return 2.0;
-            case "CHANGE":         return 3.0;
+            case "SERVICE_REQUEST":
+                return 0.5;
+            case "PROBLEM":
+                return 2.0;
+            case "CHANGE":
+                return 3.0;
             case "INCIDENT":
-            default:               return 1.0;
+            default:
+                return 1.0;
         }
     }
 
     private double priorityMultiplier(String priority) {
-        if (priority == null) return 1.0;
+        if (priority == null) {
+            return 1.0;
+        }
         switch (priority.toUpperCase()) {
-            case "LOW":      return 0.5;
-            case "HIGH":     return 1.5;
-            case "CRITICAL": return 2.0;
+            case "LOW":
+                return 0.5;
+            case "HIGH":
+                return 1.5;
+            case "CRITICAL":
+                return 2.0;
             case "MEDIUM":
-            default:         return 1.0;
+            default:
+                return 1.0;
         }
     }
 
     private double difficultyMultiplier(String difficultyLevel) {
-        if (difficultyLevel == null) return 1.0;
+        if (difficultyLevel == null) {
+            return 1.0;
+        }
         switch (difficultyLevel.toUpperCase()) {
-            case "LEVEL_2": return 1.5;
-            case "LEVEL_3": return 2.0;
+            case "LEVEL_2":
+                return 1.5;
+            case "LEVEL_3":
+                return 2.0;
             case "LEVEL_1":
-            default:        return 1.0;
+            default:
+                return 1.0;
         }
     }
 
     private double activityMultiplier(String activityType) {
-        if (activityType == null) return 1.0;
+        if (activityType == null) {
+            return 1.0;
+        }
         switch (activityType.toUpperCase()) {
-            case "ASSIGNED":  return 0.25;
-            case "RESOLVED":  return 0.5;
-            case "CLOSED":    return 0.25;
+            case "ASSIGNED":
+                return 0.25;
+            case "RESOLVED":
+                return 0.5;
+            case "CLOSED":
+                return 0.25;
             case "INVESTIGATION":
             case "MANUAL":
-            default:           return 1.0;
+            default:
+                return 1.0;
         }
     }
 
     private String buildDescription(Ticket ticket, String activityType, double timeSpent) {
         return String.format(
-            "Auto-logged: [%s] on ticket %s | Type: %s | Priority: %s | Difficulty: %s | Time: %.2f h",
-            activityType,
-            ticket.getTicketNumber() != null ? ticket.getTicketNumber() : "#" + ticket.getTicketId(),
-            ticket.getTicketType(),
-            ticket.getPriority(),
-            ticket.getDifficultyLevel() != null ? ticket.getDifficultyLevel() : "N/A",
-            timeSpent
+                "Auto-logged: [%s] on ticket %s | Type: %s | Priority: %s | Difficulty: %s | Time: %.2f h",
+                activityType,
+                ticket.getTicketNumber() != null ? ticket.getTicketNumber() : "#" + ticket.getTicketId(),
+                ticket.getTicketType(),
+                ticket.getPriority(),
+                ticket.getDifficultyLevel() != null ? ticket.getDifficultyLevel() : "N/A",
+                timeSpent
         );
     }
 }

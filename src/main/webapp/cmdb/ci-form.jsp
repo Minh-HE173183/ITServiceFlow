@@ -2,7 +2,7 @@
 
 <div class="container-fluid bg-white p-4 rounded shadow-sm" style="max-width: 900px; margin: auto;">
     <h2 class="h4 text-primary mb-4 border-bottom pb-2">${not empty ci ? 'Update Configuration Item' : 'Register New
-        Configuration Item'}</h2>
+                                                          Configuration Item'}</h2>
 
     <form action="${pageContext.request.contextPath}/cmdb?action=${not empty ci ? 'update' : 'insert'}" method="post">
         <c:if test="${not empty ci}">
@@ -18,7 +18,7 @@
             <div class="col-md-6">
                 <label for="ciTypeId" class="form-label fw-bold">CI Type ID <span class="text-danger">*</span></label>
                 <input type="number" class="form-control" id="ciTypeId" name="ciTypeId"
-                    value="${ci.ciTypeId == 0 ? 3 : ci.ciTypeId}" required min="1" max="8">
+                       value="${ci.ciTypeId == 0 ? 3 : ci.ciTypeId}" required min="1" max="8">
                 <div class="form-text">(1: Desktop, 2: Laptop, 3: Server, 4: Switch, etc.)</div>
             </div>
         </div>
@@ -42,7 +42,7 @@
             <div class="col-md-6">
                 <label for="ipAddress" class="form-label fw-bold">IP Address</label>
                 <input type="text" class="form-control" id="ipAddress" name="ipAddress" value="${ci.ipAddress}"
-                    placeholder="192.168.1.xxx">
+                       placeholder="192.168.1.xxx">
             </div>
             <div class="col-md-6">
                 <label for="location" class="form-label fw-bold">Datacenter / Location</label>
@@ -54,7 +54,7 @@
             <div class="col-md-6">
                 <label for="manufacturer" class="form-label fw-bold">Manufacturer</label>
                 <input type="text" class="form-control" id="manufacturer" name="manufacturer" value="${ci.manufacturer}"
-                    placeholder="Dell, Cisco, VMware...">
+                       placeholder="Dell, Cisco, VMware...">
             </div>
             <div class="col-md-6">
                 <label for="model" class="form-label fw-bold">Model</label>
@@ -66,12 +66,12 @@
             <div class="col-md-6">
                 <label for="serialNumber" class="form-label fw-bold">Serial Number / Service Tag</label>
                 <input type="text" class="form-control" id="serialNumber" name="serialNumber"
-                    value="${ci.serialNumber}">
+                       value="${ci.serialNumber}">
             </div>
             <div class="col-md-6">
                 <label for="ownerId" class="form-label fw-bold">Owner User ID</label>
                 <input type="number" class="form-control" id="ownerId" name="ownerId" value="${ci.ownerId}"
-                    placeholder="Leave blank if unassigned">
+                       placeholder="Leave blank if unassigned">
             </div>
         </div>
 
