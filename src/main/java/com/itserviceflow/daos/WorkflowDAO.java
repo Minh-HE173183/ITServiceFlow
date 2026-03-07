@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Data Access Object for the `workflow` table.
- * Provides CRUD + enable/disable operations.
+ * Data Access Object for the `workflow` table. Provides CRUD + enable/disable
+ * operations.
  */
 public class WorkflowDAO {
 
@@ -34,6 +34,13 @@ public class WorkflowDAO {
             }
         }
         return list;
+    }
+
+    // ---------------------------------------------------------------
+    // READ: List all ACTIVE workflows (used by WorkflowService engine)
+    // ---------------------------------------------------------------
+    public List<Workflow> getActiveWorkflows() throws SQLException {
+        return getWorkflowsByStatus("ACTIVE");
     }
 
     // ---------------------------------------------------------------

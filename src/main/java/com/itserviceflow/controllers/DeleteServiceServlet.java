@@ -40,6 +40,6 @@ public class DeleteServiceServlet extends HttpServlet {
         if (failCount > 0) msg += " " + failCount + " items failed due to existing requests.";
         
         request.getSession().setAttribute("message", msg);
-        response.sendRedirect(request.getContextPath() + "/service-catalog");
+        response.sendRedirect(request.getContextPath() + "/admin/service-management?msg=success");
     }
 }

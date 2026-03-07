@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.itserviceflow.models;
+
 import java.util.Date;
 
 /**
@@ -13,6 +14,7 @@ public class Comment {
     private int commentId;
     private int ticketId;
     private int userId;
+    private String userName;
     private String commentText;
     private Date createdAt;
     private Date updatedAt;
@@ -40,6 +42,14 @@ public class Comment {
 
     public void setUserId(int userId) {
         this.userId = userId;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public String getCommentText() {

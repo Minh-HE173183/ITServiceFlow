@@ -48,7 +48,7 @@ public class AuthUtils {
     /**
      * Checks if the user has any of the specified roles. If not, redirects to an
      * error/forbidden page or login.
-     * 
+     *
      * @return true if authorized, false otherwise.
      */
     public static boolean hasRole(HttpServletRequest request, HttpServletResponse response, int... allowedRoles)

@@ -6,7 +6,6 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.*;
 import java.io.IOException;
 
-
 @WebFilter("/*")
 public class AuthFilter implements Filter {
 
@@ -42,10 +41,10 @@ public class AuthFilter implements Filter {
 
     private boolean isPublicPath(HttpServletRequest req, String path) {
         // Static resources
-        if (path.startsWith("/assets/") ||
-            path.startsWith("/css/")    ||
-            path.startsWith("/js/")     ||
-            path.startsWith("/img/")) {
+        if (path.startsWith("/assets/")
+                || path.startsWith("/css/")
+                || path.startsWith("/js/")
+                || path.startsWith("/img/")) {
             return true;
         }
 
@@ -53,9 +52,9 @@ public class AuthFilter implements Filter {
         if (path.equals("/auth")) {
             String action = req.getParameter("action");
             return action == null
-                || action.equals("login")
-                || action.equals("forgotPassword")
-                || action.equals("resetPassword");
+                    || action.equals("login")
+                    || action.equals("forgotPassword")
+                    || action.equals("resetPassword");
         }
 
         return false;

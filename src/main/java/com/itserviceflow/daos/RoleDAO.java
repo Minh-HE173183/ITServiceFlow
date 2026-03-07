@@ -17,9 +17,7 @@ public class RoleDAO {
     public List<Role> listAll() {
         List<Role> list = new ArrayList<>();
         String sql = "SELECT * FROM role WHERE status = 'ACTIVE'";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement st = conn.prepareStatement(sql);
-             ResultSet rs = st.executeQuery()) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement st = conn.prepareStatement(sql); ResultSet rs = st.executeQuery()) {
             while (rs.next()) {
                 list.add(mapRow(rs));
             }
@@ -34,8 +32,7 @@ public class RoleDAO {
      */
     public Role getRoleById(int id) {
         String sql = "SELECT role_id, role_name, description, permission, status FROM role WHERE role_id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
