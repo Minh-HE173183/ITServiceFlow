@@ -9,6 +9,7 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.mindrot.jbcrypt.BCrypt;
 
 @WebServlet(name = "AuthController", urlPatterns = {"/auth", "/profile"})
 public class AuthController extends HttpServlet {
@@ -286,7 +287,7 @@ public class AuthController extends HttpServlet {
             }
 
             User userFromDb = userDAO.findById(sessionUser.getUserId());
-            if (currentPass.equals(userFromDb.getPasswordHash())) {
+            if (BCrypt.checkpw(currentPass, userFromDb.getPasswordHash())) {
                 userDAO.updatePassword(sessionUser.getUserId(), newPass);
                 request.setAttribute("message", "Đổi mật khẩu thành công!");
             } else {

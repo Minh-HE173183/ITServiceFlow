@@ -4,6 +4,10 @@
  */
 package com.itserviceflow.controllers;
 
+/**
+ *
+ * @author ADMIN
+ */
 import com.itserviceflow.daos.ServiceDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,12 +17,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import com.itserviceflow.models.Service;
 
-/**
- *
- * @author ADMIN
- */
-@WebServlet("/service/service-detail")
-public class ServiceDetailServlet extends HttpServlet {
+@WebServlet("/admin/service-managedetail")
+public class ServiceManageDetail extends HttpServlet {
     private ServiceDAO serviceDAO = new ServiceDAO();
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
@@ -31,10 +31,10 @@ public class ServiceDetailServlet extends HttpServlet {
             
             if (service != null) {
                 request.setAttribute("service", service);
-                request.getRequestDispatcher("/service/service-detail.jsp").forward(request, response);
+                request.getRequestDispatcher("/admin/service-managedetail.jsp").forward(request, response);
                 return;
             }
         }
-        response.sendRedirect("service-catalog");
+        response.sendRedirect("service-management");
     }
 }

@@ -2,6 +2,8 @@ package com.itserviceflow.controllers;
 
 import com.itserviceflow.daos.KnownErrorDAO;
 import com.itserviceflow.models.Article;
+import com.itserviceflow.models.User;
+import com.itserviceflow.utils.AuthUtils;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -28,20 +30,39 @@ public class KnownErrorController extends HttpServlet {
             action = "list";
         }
 
+        if (!AuthUtils.isLoggedIn(request, response))
+            return;
+
+        User currentUser = AuthUtils.getCurrentUser(request);
+        request.setAttribute("currentUser", currentUser);
+
         switch (action) {
             case "list":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_TECHNICAL_EXPERT,
+                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR))
+                    return;
                 listKnownErrors(request, response);
                 break;
             case "detail":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_TECHNICAL_EXPERT,
+                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR))
+                    return;
                 viewKnownErrorDetail(request, response);
                 break;
             case "add":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                    return;
                 showKnownErrorForm(request, response);
                 break;
             case "edit":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                    return;
                 showEditForm(request, response);
                 break;
             default:
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_TECHNICAL_EXPERT,
+                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR))
+                    return;
                 listKnownErrors(request, response);
                 break;
         }
@@ -56,21 +77,32 @@ public class KnownErrorController extends HttpServlet {
             return;
         }
 
+        if (!AuthUtils.isLoggedIn(request, response))
+            return;
+
         switch (action) {
             case "insert":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                    return;
                 insertKnownError(request, response);
                 break;
             case "update":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                    return;
                 updateKnownError(request, response);
                 break;
             case "delete":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                    return;
                 deleteKnownError(request, response);
                 break;
             case "bulkDelete":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                    return;
                 bulkDeleteKnownError(request, response);
                 break;
             case "review":
-                reviewKnownError(request, response);
+                reviewKnownError(request, response); // Admin check inside or base fallback
                 break;
             case "bulkReview":
                 bulkReviewKnownError(request, response);
@@ -89,8 +121,31 @@ public class KnownErrorController extends HttpServlet {
 
     private void listKnownErrors(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<Article> errors = knownErrorDAO.getAllKnownErrors();
+        String keyword = request.getParameter("searchQuery");
+        String statusFilter = request.getParameter("statusFilter");
+
+        int page = 1;
+        int pageSize = 5;
+        String pageParam = request.getParameter("page");
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                page = Integer.parseInt(pageParam);
+            } catch (NumberFormatException e) {
+                page = 1;
+            }
+        }
+        int offset = (page - 1) * pageSize;
+
+        int totalRecords = knownErrorDAO.getTotalKnownErrors(keyword, statusFilter);
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+
+        List<Article> errors = knownErrorDAO.searchKnownErrors(keyword, statusFilter, offset, pageSize);
+
         request.setAttribute("knownErrors", errors);
+        request.setAttribute("searchQuery", keyword);
+        request.setAttribute("statusFilter", statusFilter != null ? statusFilter : "ALL");
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
         request.getRequestDispatcher("/known-error/list.jsp").forward(request, response);
     }
 
@@ -131,7 +186,8 @@ public class KnownErrorController extends HttpServlet {
         ke.setCause(cause);
         ke.setSolution(solution);
 
-        ke.setAuthorId(5);
+        User user = AuthUtils.getCurrentUser(request);
+        ke.setAuthorId(user.getUserId());
 
         knownErrorDAO.createKnownError(ke);
         response.sendRedirect(request.getContextPath() + "/known-error?action=list");
@@ -161,7 +217,11 @@ public class KnownErrorController extends HttpServlet {
 
     private void deleteKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
-        knownErrorDAO.deleteKnownError(id);
+        Article ke = knownErrorDAO.getKnownErrorById(id);
+        // UC45: Delete only if PENDING or REJECTED
+        if (ke != null && ("PENDING".equals(ke.getStatus()) || "REJECTED".equals(ke.getStatus()))) {
+            knownErrorDAO.deleteKnownError(id);
+        }
         response.sendRedirect(request.getContextPath() + "/known-error?action=list");
     }
 
@@ -171,7 +231,10 @@ public class KnownErrorController extends HttpServlet {
             for (String idStr : ids) {
                 try {
                     int id = Integer.parseInt(idStr);
-                    knownErrorDAO.deleteKnownError(id);
+                    Article ke = knownErrorDAO.getKnownErrorById(id);
+                    if (ke != null && ("PENDING".equals(ke.getStatus()) || "REJECTED".equals(ke.getStatus()))) {
+                        knownErrorDAO.deleteKnownError(id);
+                    }
                 } catch (NumberFormatException ignored) {
                 }
             }
@@ -180,23 +243,37 @@ public class KnownErrorController extends HttpServlet {
     }
 
     private void reviewKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (!AuthUtils.hasRole(request, response))
+            return; // Admin check implicit because this only needs Admin, but let's check correctly
+        if (AuthUtils.getCurrentUser(request).getRoleId() != AuthUtils.ROLE_ADMIN) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=forbid");
+            return;
+        }
+
         int id = Integer.parseInt(request.getParameter("id"));
-        String status = request.getParameter("status"); 
+        String status = request.getParameter("status");
         String rejectionReason = request.getParameter("rejectionReason");
 
-        knownErrorDAO.reviewKnownError(id, status, 10, rejectionReason);
+        User user = AuthUtils.getCurrentUser(request);
+        knownErrorDAO.reviewKnownError(id, status, user.getUserId(), rejectionReason);
         response.sendRedirect(request.getContextPath() + "/known-error?action=detail&id=" + id);
     }
 
     private void bulkReviewKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (AuthUtils.getCurrentUser(request).getRoleId() != AuthUtils.ROLE_ADMIN) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=forbid");
+            return;
+        }
+
         String[] ids = request.getParameterValues("selectedIds");
-        String status = request.getParameter("status"); 
+        String status = request.getParameter("status");
         String rejectionReason = "Bulk reviewed";
+        User user = AuthUtils.getCurrentUser(request);
         if (ids != null && status != null) {
             for (String idStr : ids) {
                 try {
                     int id = Integer.parseInt(idStr);
-                    knownErrorDAO.reviewKnownError(id, status, 10, rejectionReason);
+                    knownErrorDAO.reviewKnownError(id, status, user.getUserId(), rejectionReason);
                 } catch (NumberFormatException ignored) {
                 }
             }
@@ -205,22 +282,37 @@ public class KnownErrorController extends HttpServlet {
     }
 
     private void toggleKnownErrorStatus(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (AuthUtils.getCurrentUser(request).getRoleId() != AuthUtils.ROLE_ADMIN) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=forbid");
+            return;
+        }
         int id = Integer.parseInt(request.getParameter("id"));
         String currentStatus = request.getParameter("currentStatus");
-        knownErrorDAO.toggleKnownErrorStatus(id, currentStatus);
+        Article ke = knownErrorDAO.getKnownErrorById(id);
+        if (ke != null && ("APPROVED".equals(ke.getStatus()) || "INACTIVE".equals(ke.getStatus()))) {
+            knownErrorDAO.toggleKnownErrorStatus(id, currentStatus);
+        }
         response.sendRedirect(request.getContextPath() + "/known-error?action=list");
     }
 
     private void bulkToggleKnownErrorStatus(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+        if (AuthUtils.getCurrentUser(request).getRoleId() != AuthUtils.ROLE_ADMIN) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=forbid");
+            return;
+        }
+
         String[] ids = request.getParameterValues("selectedIds");
-        String toggleTo = request.getParameter("toggleTo"); 
+        String toggleTo = request.getParameter("toggleTo");
         if (ids != null && toggleTo != null) {
             for (String idStr : ids) {
                 try {
                     int id = Integer.parseInt(idStr);
-                    String mockCurrentStatus = toggleTo.equals("INACTIVE") ? "APPROVED" : "INACTIVE";
-                    knownErrorDAO.toggleKnownErrorStatus(id, mockCurrentStatus);
+                    Article ke = knownErrorDAO.getKnownErrorById(id);
+                    if (ke != null && ("APPROVED".equals(ke.getStatus()) || "INACTIVE".equals(ke.getStatus()))) {
+                        String mockCurrentStatus = toggleTo.equals("INACTIVE") ? "APPROVED" : "INACTIVE";
+                        knownErrorDAO.toggleKnownErrorStatus(id, mockCurrentStatus);
+                    }
                 } catch (NumberFormatException ignored) {
                 }
             }
