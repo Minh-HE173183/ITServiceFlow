@@ -1,15 +1,18 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<jsp:include page="/includes/header.jsp">
-    <jsp:param name="pageTitle" value="Article Detail" />
-</jsp:include>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap"
+      rel="stylesheet">
 
 <div class="container-fluid bg-white p-4 rounded shadow-sm">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h4 text-primary m-0">
-            <i class="bi bi-journal-text me-2"></i>Article Detail
+            <i class="bi bi-journal-text me-2"></i>Knowledge Base Detail
         </h2>
         <div class="d-flex gap-2">
             <c:if test="${article.status == 'PENDING'}">
@@ -17,10 +20,6 @@
                       method="post" class="d-inline">
                     <input type="hidden" name="articleId" value="${article.articleId}">
             </c:if>
-            <a href="${pageContext.request.contextPath}/admin/knowledge-base?action=edit&id=${article.articleId}"
-               class="btn btn-warning">
-                <i class="bi bi-pencil me-1"></i> Edit
-            </a>
             <a href="${pageContext.request.contextPath}/admin/knowledge-base?action=list"
                class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Back
@@ -80,7 +79,7 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light fw-bold">
-                    <i class="bi bi-info-circle me-2"></i>Article Info
+                    <i class="bi bi-info-circle me-2"></i>Knowledge Base Info
                 </div>
                 <div class="card-body">
                     <div class="mb-3">

@@ -2,14 +2,14 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <jsp:include page="/includes/header.jsp">
-    <jsp:param name="pageTitle" value="${empty article.articleId ? 'Create Article' : 'Edit Article'}" />
+    <jsp:param name="pageTitle" value="${empty article.articleId ? 'Create Knowledge Base' : 'Edit Knowledge Base'}" />
 </jsp:include>
 
 <div class="container-fluid bg-white p-4 rounded shadow-sm">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h4 text-primary m-0">
             <i class="bi bi-journal-plus me-2"></i>
-            ${empty article.articleId ? 'Create New Article' : 'Edit Article'}
+            ${empty article.articleId ? 'Create New Knowledge Base' : 'Edit Knowledge Base'}
         </h2>
         <a href="${pageContext.request.contextPath}/admin/knowledge-base?action=list"
            class="btn btn-outline-secondary">

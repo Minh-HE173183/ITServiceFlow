@@ -14,7 +14,7 @@
         </h2>
         <a href="${pageContext.request.contextPath}/admin/knowledge-base?action=add"
            class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i> Create Article
+            <i class="bi bi-plus-circle me-1"></i> Create Knowledge Base
         </a>
     </div>
 
