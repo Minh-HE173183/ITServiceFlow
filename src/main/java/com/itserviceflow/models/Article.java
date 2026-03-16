@@ -22,6 +22,7 @@ public class Article {
     private String tag;
     private String status;
     private Integer authorId;
+    private String authorName; // Field to display author name
     private Integer approvedBy;
     private LocalDateTime approvedAt;
     private String rejectionReason;
@@ -35,7 +36,10 @@ public class Article {
     public Article() {
     }
 
-    public Article(Integer articleId, String articleNumber, String articleType, String title, String content, String summary, Integer categoryId, String tag, String status, Integer authorId, Integer approvedBy, LocalDateTime approvedAt, String rejectionReason, LocalDateTime publishedAt, String errorCode, String symptom, String cause, String solution, Date updatedAt) {
+    public Article(Integer articleId, String articleNumber, String articleType, String title, String content,
+            String summary, Integer categoryId, String tag, String status, Integer authorId, Integer approvedBy,
+            LocalDateTime approvedAt, String rejectionReason, LocalDateTime publishedAt, String errorCode,
+            String symptom, String cause, String solution, Date updatedAt) {
         this.articleId = articleId;
         this.articleNumber = articleNumber;
         this.articleType = articleType;
@@ -137,6 +141,14 @@ public class Article {
         this.authorId = authorId;
     }
 
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
+    }
+
     public Integer getApprovedBy() {
         return approvedBy;
     }
@@ -209,6 +221,4 @@ public class Article {
         this.updatedAt = updatedAt;
     }
 
-    
-    
 }
