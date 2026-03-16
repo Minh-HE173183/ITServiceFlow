@@ -102,7 +102,7 @@ public class KnownErrorController extends HttpServlet {
                 bulkDeleteKnownError(request, response);
                 break;
             case "review":
-                reviewKnownError(request, response); // Admin check inside or base fallback
+                reviewKnownError(request, response);
                 break;
             case "bulkReview":
                 bulkReviewKnownError(request, response);
@@ -218,7 +218,6 @@ public class KnownErrorController extends HttpServlet {
     private void deleteKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         Article ke = knownErrorDAO.getKnownErrorById(id);
-        // UC45: Delete only if PENDING or REJECTED
         if (ke != null && ("PENDING".equals(ke.getStatus()) || "REJECTED".equals(ke.getStatus()))) {
             knownErrorDAO.deleteKnownError(id);
         }
@@ -243,12 +242,8 @@ public class KnownErrorController extends HttpServlet {
     }
 
     private void reviewKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if (!AuthUtils.hasRole(request, response))
-            return; // Admin check implicit because this only needs Admin, but let's check correctly
-        if (AuthUtils.getCurrentUser(request).getRoleId() != AuthUtils.ROLE_ADMIN) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=forbid");
+        if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ADMIN, AuthUtils.ROLE_MANAGER))
             return;
-        }
 
         int id = Integer.parseInt(request.getParameter("id"));
         String status = request.getParameter("status");
@@ -260,10 +255,8 @@ public class KnownErrorController extends HttpServlet {
     }
 
     private void bulkReviewKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if (AuthUtils.getCurrentUser(request).getRoleId() != AuthUtils.ROLE_ADMIN) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=forbid");
+        if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ADMIN, AuthUtils.ROLE_MANAGER))
             return;
-        }
 
         String[] ids = request.getParameterValues("selectedIds");
         String status = request.getParameter("status");

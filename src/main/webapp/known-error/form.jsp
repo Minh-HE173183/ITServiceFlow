@@ -10,13 +10,6 @@
             method="post">
             <c:if test="${not empty knownError}">
                 <input type="hidden" name="id" value="${knownError.articleId}">
-
-                <c:if test="${knownError.status eq 'REJECTED'}">
-                    <div class="alert alert-danger" role="alert">
-                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
-                        <strong>This Article has been REJECTED.</strong> Please fix the errors below.
-                    </div>
-                </c:if>
             </c:if>
 
             <div class="mb-3">
@@ -57,7 +50,7 @@
 
             <div class="d-grid gap-2 mt-4">
                 <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="bi bi-save"></i> ${not empty knownError ? 'Save Updates' : 'Submit for Review'}
+                    <i class="bi bi-save"></i> ${not empty knownError ? 'Save Updates' : 'Publish Article'}
                 </button>
                 <a href="${pageContext.request.contextPath}/known-error?action=list"
                     class="btn btn-outline-secondary">Cancel and Return</a>

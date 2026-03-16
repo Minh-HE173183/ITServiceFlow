@@ -130,8 +130,9 @@ public class KnownErrorDAO {
     public boolean createKnownError(Article error) {
         String sql = "INSERT INTO article (article_number, article_type, title, content, summary, status, author_id, symptom, cause, solution) "
                 + "VALUES (?, 'KNOWN_ERROR', ?, ?, ?, 'PENDING', ?, ?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, "KE-" + System.currentTimeMillis());
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, "KE-TEMP");
             stmt.setString(2, error.getTitle());
             stmt.setString(3, error.getContent());
             stmt.setString(4, error.getSummary());
@@ -139,7 +140,23 @@ public class KnownErrorDAO {
             stmt.setString(6, error.getSymptom());
             stmt.setString(7, error.getCause());
             stmt.setString(8, error.getSolution());
-            return stmt.executeUpdate() > 0;
+
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows > 0) {
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        int newId = rs.getInt(1);
+                        String updateSql = "UPDATE article SET article_number = ? WHERE article_id = ?";
+                        try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                            updateStmt.setString(1, "KE-" + newId);
+                            updateStmt.setInt(2, newId);
+                            updateStmt.executeUpdate();
+                        }
+                        return true;
+                    }
+                }
+            }
+            return false;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -147,7 +164,7 @@ public class KnownErrorDAO {
     }
 
     public boolean updateKnownError(Article error) {
-        String sql = "UPDATE article SET title = ?, content = ?, summary = ?, symptom = ?, cause = ?, solution = ? "
+        String sql = "UPDATE article SET title = ?, content = ?, summary = ?, symptom = ?, cause = ?, solution = ?, status = 'PENDING' "
                 + "WHERE article_id = ? AND article_type = 'KNOWN_ERROR'";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, error.getTitle());

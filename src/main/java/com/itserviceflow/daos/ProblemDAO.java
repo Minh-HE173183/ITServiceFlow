@@ -152,7 +152,7 @@ public class ProblemDAO {
 
             int newProblemId = 0;
             try (PreparedStatement stmt = conn.prepareStatement(insertProblem, Statement.RETURN_GENERATED_KEYS)) {
-                stmt.setString(1, "PRB-" + System.currentTimeMillis());
+                stmt.setString(1, "PRB-TEMP");
                 stmt.setString(2, problem.getTitle());
                 stmt.setString(3, problem.getDescription());
                 stmt.setInt(4, problem.getReportedBy());
@@ -164,6 +164,15 @@ public class ProblemDAO {
                     if (rs.next()) {
                         newProblemId = rs.getInt(1);
                     }
+                }
+            }
+
+            if (newProblemId > 0) {
+                String updateNumberSql = "UPDATE ticket SET ticket_number = ? WHERE ticket_id = ?";
+                try (PreparedStatement updateStmt = conn.prepareStatement(updateNumberSql)) {
+                    updateStmt.setString(1, "PRB-" + newProblemId);
+                    updateStmt.setInt(2, newProblemId);
+                    updateStmt.executeUpdate();
                 }
             }
 
@@ -212,6 +221,18 @@ public class ProblemDAO {
             stmt.setString(4, problem.getCause());
             stmt.setString(5, problem.getSolution());
             stmt.setInt(6, problem.getTicketId());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean assignProblemTicket(int ticketId, int assignedTo) {
+        String sql = "UPDATE ticket SET assigned_to = ?, status = 'IN_PROGRESS' WHERE ticket_id = ? AND ticket_type = 'PROBLEM'";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, assignedTo);
+            stmt.setInt(2, ticketId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -268,33 +289,57 @@ public class ProblemDAO {
     }
 
     public boolean deleteProblemTicket(int ticketId) {
-        String checkSql = "SELECT status, assigned_to, "
-                + "(SELECT COUNT(*) FROM ticket_relation WHERE target_ticket_id = ?) as rel_count "
-                + "FROM ticket WHERE ticket_id = ? AND ticket_type = 'PROBLEM'";
+        String checkSql = "SELECT status, assigned_to FROM ticket WHERE ticket_id = ? AND ticket_type = 'PROBLEM'";
+        String deleteRelSql = "DELETE FROM ticket_relation WHERE target_ticket_id = ?";
+        String deleteTicketSql = "DELETE FROM ticket WHERE ticket_id = ?";
 
-        String deleteSql = "DELETE FROM ticket WHERE ticket_id = ?";
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
 
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-            checkStmt.setInt(1, ticketId);
-            checkStmt.setInt(2, ticketId);
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                checkStmt.setInt(1, ticketId);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next()) {
+                        String status = rs.getString("status");
+                        Integer assignedTo = (Integer) rs.getObject("assigned_to");
 
-            try (ResultSet rs = checkStmt.executeQuery()) {
-                if (rs.next()) {
-                    String status = rs.getString("status");
-                    Integer assignedTo = (Integer) rs.getObject("assigned_to");
-                    int relCount = rs.getInt("rel_count");
+                        if ("OPEN".equals(status) || "NEW".equals(status)) {
+                            try (PreparedStatement delRelStmt = conn.prepareStatement(deleteRelSql)) {
+                                delRelStmt.setInt(1, ticketId);
+                                delRelStmt.executeUpdate();
+                            }
 
-                    if ("NEW".equals(status) && assignedTo == null && relCount == 0) {
-                        try (PreparedStatement delStmt = conn.prepareStatement(deleteSql)) {
-                            delStmt.setInt(1, ticketId);
-                            return delStmt.executeUpdate() > 0;
+                            try (PreparedStatement delTicketStmt = conn.prepareStatement(deleteTicketSql)) {
+                                delTicketStmt.setInt(1, ticketId);
+                                int rowsAffected = delTicketStmt.executeUpdate();
+
+                                conn.commit();
+                                return rowsAffected > 0;
+                            }
                         }
                     }
                 }
             }
         } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
             e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return false;
     }
@@ -304,19 +349,6 @@ public class ProblemDAO {
                 + "WHERE ticket_id = ? AND ticket_type = 'PROBLEM'";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, justification);
-            stmt.setInt(2, ticketId);
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean assignProblemTicket(int ticketId, int assignedToUserId) {
-        String sql = "UPDATE ticket SET assigned_to = ?, status = 'IN_PROGRESS' "
-                + "WHERE ticket_id = ? AND ticket_type = 'PROBLEM'";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, assignedToUserId);
             stmt.setInt(2, ticketId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {

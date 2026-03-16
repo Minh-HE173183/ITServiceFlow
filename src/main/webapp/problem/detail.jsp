@@ -19,6 +19,53 @@
                     <div class="col-md-6">
                         <p class="mb-2"><strong>Reported By:</strong> ${not empty problem.reportedByName ?
                             problem.reportedByName : 'User ID '.concat(problem.reportedBy)}</p>
+                        <p class="mb-2"><strong>Assigned To:</strong>
+                            <span
+                                class="${empty problem.assignedToName ? 'text-muted fst-italic' : 'text-primary fw-bold'}">
+                                ${not empty problem.assignedToName ? problem.assignedToName : 'Unassigned'}
+                            </span>
+                        </p>
+
+                        <%-- Assignment Form (Hidden for CANCELLED) --%>
+                            <c:if test="${problem.status ne 'CANCELLED'}">
+
+                                <%-- Manager: Can Assign to Anyone --%>
+                                    <c:if test="${sessionScope.user.roleId == 3}">
+                                        <form action="${pageContext.request.contextPath}/problem?action=assign"
+                                            method="post" class="mt-3 p-3 bg-light border rounded">
+                                            <input type="hidden" name="id" value="${problem.ticketId}">
+                                            <label for="assignedTo" class="form-label fw-bold fade-in text-secondary"
+                                                style="font-size: 0.9em;">Assign to Technical Expert:</label>
+                                            <div class="input-group input-group-sm">
+                                                <select name="assignedTo" id="assignedTo" class="form-select" required>
+                                                    <option value="" disabled selected>Select an Expert...</option>
+                                                    <c:forEach var="expert" items="${technicalExperts}">
+                                                        <option value="${expert.userId}"
+                                                            ${problem.assignedTo==expert.userId ? 'selected' : '' }>
+                                                            ${expert.fullName} (@${expert.username})
+                                                        </option>
+                                                    </c:forEach>
+                                                </select>
+                                                <button class="btn btn-primary" type="submit">Assign</button>
+                                            </div>
+                                        </form>
+                                    </c:if>
+
+                                    <%-- Technical Expert: Self-Assign if Unassigned --%>
+                                        <c:if test="${sessionScope.user.roleId == 4 && empty problem.assignedTo}">
+                                            <form action="${pageContext.request.contextPath}/problem?action=assign"
+                                                method="post" class="mt-3 p-3 bg-light border rounded text-center">
+                                                <input type="hidden" name="id" value="${problem.ticketId}">
+                                                <input type="hidden" name="assignedTo"
+                                                    value="${sessionScope.user.userId}">
+                                                <p class="text-secondary mb-2" style="font-size: 0.9em;">This ticket is
+                                                    currently unassigned.</p>
+                                                <button class="btn btn-primary btn-sm px-4" type="submit">
+                                                    <i class="bi bi-person-check"></i> Assign To Me
+                                                </button>
+                                            </form>
+                                        </c:if>
+                            </c:if>
                     </div>
                 </div>
 
@@ -53,8 +100,24 @@
                     </div>
                 </div>
 
+                <c:set var="canManage" value="false" />
+                <c:if test="${problem.status ne 'CANCELLED'}">
+                    <c:choose>
+                        <c:when test="${not empty problem.assignedTo}">
+                            <c:if test="${problem.assignedTo == sessionScope.user.userId}">
+                                <c:set var="canManage" value="true" />
+                            </c:if>
+                        </c:when>
+                        <c:otherwise>
+                            <c:if test="${problem.reportedBy == sessionScope.user.userId}">
+                                <c:set var="canManage" value="true" />
+                            </c:if>
+                        </c:otherwise>
+                    </c:choose>
+                </c:if>
+
                 <div class="d-flex gap-2 mt-4">
-                    <c:if test="${sessionScope.user.roleId == 3}">
+                    <c:if test="${canManage}">
                         <c:if test="${problem.status ne 'CANCELLED'}">
                             <a href="${pageContext.request.contextPath}/problem?action=edit&id=${problem.ticketId}"
                                 class="btn btn-warning">
@@ -86,7 +149,7 @@
                 </c:if>
             </div>
 
-            <div class="container-fluid bg-white p-4 rounded shadow-sm">
+            <div class="container-fluid bg-white p-4 rounded shadow-sm mb-4">
                 <h3 class="h5 mb-3 text-secondary">Investigation Comments</h3>
 
                 <c:if test="${not empty comments}">
@@ -108,12 +171,18 @@
                 </c:if>
 
                 <form action="${pageContext.request.contextPath}/problem?action=addComment" method="post">
-                    <input type="hidden" name="id" value="${problem.ticketId}">
+                    <input type="hidden" name="ticketId" value="${problem.ticketId}">
                     <div class="mb-3">
-                        <textarea class="form-control" name="commentText" rows="4"
+                        <textarea class="form-control" name="commentText" rows="3"
                             placeholder="Add a new finding, note, or update..." required></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-chat-text"></i> Post Comment</button>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-chat-dots"></i> Post Comment
+                    </button>
+                    <!-- Small instruction label -->
+                    <div class="form-text mt-2">
+                        Use this to document findings and communicate between IT Manager and Technical Expert.
+                    </div>
                 </form>
             </div>
 

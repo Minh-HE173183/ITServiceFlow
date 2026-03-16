@@ -9,13 +9,17 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="h4 text-primary m-0">Problem Tickets List</h2>
                 <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-danger" onclick="submitBulkAction('bulkDelete')">
-                        <i class="bi bi-trash"></i> Delete Selected
-                    </button>
-                    <a href="${pageContext.request.contextPath}/problem?action=add" class="btn btn-primary"
-                        style="white-space:nowrap;">
-                        <i class="bi bi-plus-circle"></i> Create Problem Ticket
-                    </a>
+                    <c:if test="${sessionScope.user.roleId == 3 || sessionScope.user.roleId == 5}">
+                        <button type="button" class="btn btn-danger" onclick="submitBulkAction('bulkDelete')">
+                            <i class="bi bi-trash"></i> Delete Selected
+                        </button>
+                    </c:if>
+                    <c:if test="${sessionScope.user.roleId == 3 || sessionScope.user.roleId == 5}">
+                        <a href="${pageContext.request.contextPath}/problem?action=add" class="btn btn-primary"
+                            style="white-space:nowrap;">
+                            <i class="bi bi-plus-circle"></i> Create Problem Ticket
+                        </a>
+                    </c:if>
                 </div>
             </div>
 
@@ -35,7 +39,7 @@
                         <option value="IN_PROGRESS" ${statusFilter=='IN_PROGRESS' ? 'selected' : '' }>In Progress
                         </option>
                         <option value="RESOLVED" ${statusFilter=='RESOLVED' ? 'selected' : '' }>Resolved</option>
-                        <option value="CLOSED" ${statusFilter=='CLOSED' ? 'selected' : '' }>Closed</option>
+                        <option value="OPEN" ${statusFilter=='OPEN' ? 'selected' : '' }>Open</option>
                         <option value="CANCELLED" ${statusFilter=='CANCELLED' ? 'selected' : '' }>Cancelled</option>
                     </select>
                 </div>
@@ -89,8 +93,8 @@
                                                     class="badge bg-primary">IN_PROGRESS</span></c:when>
                                             <c:when test="${problem.status == 'RESOLVED'}"><span
                                                     class="badge bg-success">RESOLVED</span></c:when>
-                                            <c:when test="${problem.status == 'CLOSED'}"><span
-                                                    class="badge bg-secondary">CLOSED</span></c:when>
+                                            <c:when test="${problem.status == 'OPEN'}"><span
+                                                    class="badge bg-warning text-dark">OPEN</span></c:when>
                                             <c:when test="${problem.status == 'CANCELLED'}"><span
                                                     class="badge bg-danger">CANCELLED</span></c:when>
                                             <c:otherwise><span class="badge bg-dark">${problem.status}</span>
@@ -103,10 +107,11 @@
                                             class="btn btn-info btn-sm text-white">
                                             <i class="bi bi-eye"></i> View
                                         </a>
-
-                                        <c:if test="${problem.status eq 'NEW' && problem.assignedTo == null}">
-                                            <button type="button" class="btn btn-danger btn-sm btn-delete"
-                                                data-id="${problem.ticketId}">
+                                        <c:if test="${sessionScope.user.roleId == 3 || sessionScope.user.roleId == 5}">
+                                            <button type="button" class="btn btn-danger btn-sm"
+                                                onclick="submitSingleAction('delete', '${problem.ticketId}')"
+                                                ${problem.status ne 'NEW' || problem.assignedTo !=null ? 'disabled' : ''
+                                                }>
                                                 <i class="bi bi-trash"></i> Delete
                                             </button>
                                         </c:if>
@@ -148,7 +153,6 @@
             </form>
         </div>
 
-        <!-- Forms for individual deletes -->
         <c:forEach var="problem" items="${problems}">
             <c:if test="${problem.status eq 'NEW' && problem.assignedTo == null}">
                 <form id="deleteForm_${problem.ticketId}"
@@ -179,7 +183,6 @@
                 }
             }
 
-            // Individual delete confirmation
             document.addEventListener('DOMContentLoaded', function () {
                 const deleteBtns = document.querySelectorAll('.btn-delete');
                 deleteBtns.forEach(btn => {
