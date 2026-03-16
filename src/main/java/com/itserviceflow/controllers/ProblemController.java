@@ -2,6 +2,7 @@ package com.itserviceflow.controllers;
 
 import com.itserviceflow.daos.ProblemDAO;
 import com.itserviceflow.daos.TicketDAO;
+import com.itserviceflow.daos.UserDAO;
 import com.itserviceflow.models.Comment;
 import com.itserviceflow.models.Ticket;
 import com.itserviceflow.models.User;
@@ -56,12 +57,12 @@ public class ProblemController extends HttpServlet {
                 viewProblemDetail(request, response);
                 break;
             case "add":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
                     return;
                 showProblemForm(request, response);
                 break;
             case "edit":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
                     return;
                 showEditForm(request, response);
                 break;
@@ -92,28 +93,33 @@ public class ProblemController extends HttpServlet {
 
         switch (action) {
             case "insert":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
                     return;
                 insertProblem(request, response);
                 break;
             case "update":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
                     return;
                 updateProblem(request, response);
                 break;
             case "delete":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
                     return;
                 deleteProblem(request, response);
                 break;
             case "bulkDelete":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER)) {
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT)) {
                     return;
                 }
                 bulkDeleteProblem(request, response);
                 break;
-            case "cancel":
+            case "assign":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
+                    return;
+                assignProblem(request, response);
+                break;
+            case "cancel":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
                     return;
                 cancelProblem(request, response);
                 break;
@@ -166,9 +172,13 @@ public class ProblemController extends HttpServlet {
         List<Ticket> linkedIncidents = problemDAO.getLinkedIncidents(id);
         List<Comment> comments = problemDAO.getCommentsByTicketId(id);
 
+        UserDAO userDAO = new UserDAO();
+        List<User> technicalExperts = userDAO.getUsersByRoleId(AuthUtils.ROLE_TECHNICAL_EXPERT);
+
         request.setAttribute("problem", problem);
         request.setAttribute("linkedIncidents", linkedIncidents);
         request.setAttribute("comments", comments);
+        request.setAttribute("technicalExperts", technicalExperts);
         request.getRequestDispatcher("/problem/detail.jsp").forward(request, response);
     }
 
@@ -185,6 +195,12 @@ public class ProblemController extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         Ticket problem = problemDAO.getProblemById(id);
         User currentUser = AuthUtils.getCurrentUser(request);
+
+        if (problem == null || !canManageProblem(problem, currentUser)) {
+            response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
+            return;
+        }
+
         List<Ticket> incidents = ticketDAO.getIncidentList(currentUser.getUserId(), currentUser.getRoleName());
         List<Ticket> linkedIncidents = problemDAO.getLinkedIncidents(id);
 
@@ -228,6 +244,14 @@ public class ProblemController extends HttpServlet {
 
     private void updateProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
+
+        Ticket existingProblem = problemDAO.getProblemById(id);
+        User currentUser = AuthUtils.getCurrentUser(request);
+        if (existingProblem == null || !canManageProblem(existingProblem, currentUser)) {
+            response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
+            return;
+        }
+
         String title = request.getParameter("title");
         String description = request.getParameter("description");
         String status = request.getParameter("status");
@@ -297,17 +321,25 @@ public class ProblemController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/problem?action=list");
     }
 
-    private void cancelProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        String cancelReason = request.getParameter("cancelReason");
-        problemDAO.cancelProblemTicket(id, cancelReason);
-        response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
-    }
-
     private void assignProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         int assignedTo = Integer.parseInt(request.getParameter("assignedTo"));
         problemDAO.assignProblemTicket(id, assignedTo);
+        response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
+    }
+
+    private void cancelProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        int id = Integer.parseInt(request.getParameter("id"));
+
+        Ticket existingProblem = problemDAO.getProblemById(id);
+        User currentUser = AuthUtils.getCurrentUser(request);
+        if (existingProblem == null || !canManageProblem(existingProblem, currentUser)) {
+            response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
+            return;
+        }
+
+        String cancelReason = request.getParameter("cancelReason");
+        problemDAO.cancelProblemTicket(id, cancelReason);
         response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
     }
 
@@ -324,5 +356,13 @@ public class ProblemController extends HttpServlet {
 
         problemDAO.addCommentToProblem(comment);
         response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
+    }
+
+    private boolean canManageProblem(Ticket problem, User user) {
+        if (problem.getAssignedTo() != null) {
+            return problem.getAssignedTo().equals(user.getUserId());
+        } else {
+            return user.getRoleId() == AuthUtils.ROLE_MANAGER || user.getRoleId() == AuthUtils.ROLE_TECHNICAL_EXPERT;
+        }
     }
 }

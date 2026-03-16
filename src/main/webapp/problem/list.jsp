@@ -9,13 +9,17 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="h4 text-primary m-0">Problem Tickets List</h2>
                 <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-danger" onclick="submitBulkAction('bulkDelete')">
-                        <i class="bi bi-trash"></i> Delete Selected
-                    </button>
-                    <a href="${pageContext.request.contextPath}/problem?action=add" class="btn btn-primary"
-                        style="white-space:nowrap;">
-                        <i class="bi bi-plus-circle"></i> Create Problem Ticket
-                    </a>
+                    <c:if test="${sessionScope.user.roleId == 3 || sessionScope.user.roleId == 5}">
+                        <button type="button" class="btn btn-danger" onclick="submitBulkAction('bulkDelete')">
+                            <i class="bi bi-trash"></i> Delete Selected
+                        </button>
+                    </c:if>
+                    <c:if test="${sessionScope.user.roleId == 3 || sessionScope.user.roleId == 5}">
+                        <a href="${pageContext.request.contextPath}/problem?action=add" class="btn btn-primary"
+                            style="white-space:nowrap;">
+                            <i class="bi bi-plus-circle"></i> Create Problem Ticket
+                        </a>
+                    </c:if>
                 </div>
             </div>
 
@@ -103,10 +107,11 @@
                                             class="btn btn-info btn-sm text-white">
                                             <i class="bi bi-eye"></i> View
                                         </a>
-
-                                        <c:if test="${problem.status eq 'NEW' && problem.assignedTo == null}">
-                                            <button type="button" class="btn btn-danger btn-sm btn-delete"
-                                                data-id="${problem.ticketId}">
+                                        <c:if test="${sessionScope.user.roleId == 3 || sessionScope.user.roleId == 5}">
+                                            <button type="button" class="btn btn-danger btn-sm"
+                                                onclick="submitSingleAction('delete', '${problem.ticketId}')"
+                                                ${problem.status ne 'NEW' || problem.assignedTo !=null ? 'disabled' : ''
+                                                }>
                                                 <i class="bi bi-trash"></i> Delete
                                             </button>
                                         </c:if>

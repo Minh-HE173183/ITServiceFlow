@@ -166,8 +166,6 @@
                                 class="menu-item ${pageContext.request.requestURI.endsWith('/admin/knowledge-article.jsp') ? 'active' : ''}">
                                 <i class="bi bi-newspaper"></i> Knowledge Article
                             </a>
-                            <a href="#" class="menu-item"><i class="bi bi-shield-lock"></i> Danh sách Quyền</a>
-                            <a href="#" class="menu-item"><i class="bi bi-gear"></i> Cấu hình hệ thống</a>
                         </c:if>
 
                         <li class="menu-header">Ticket Management</li>
@@ -175,13 +173,19 @@
                             class="menu-item ${pageContext.request.requestURI.contains('/problem/') ? 'active' : ''}">
                             <i class="bi bi-exclamation-octagon"></i> Problem Management
                         </a>
-                        <a href="${pageContext.request.contextPath}/known-error?action=list"
-                            class="menu-item ${pageContext.request.requestURI.contains('/known-error/') ? 'active' : ''}">
-                            <i class="bi bi-bug"></i> Known Error Database
-                        </a>
                         <a href="${pageContext.request.contextPath}/ticket-category"
                             class="menu-item ${pageContext.request.requestURI.contains('/ticket-category') ? 'active' : ''}">
                             <i class="bi bi-tags"></i> Ticket Categories
+                        </a>
+
+                        <li class="menu-header">Knowledge</li>
+                        <a href="${pageContext.request.contextPath}/knowledge-base?action=list"
+                            class="menu-item ${pageContext.request.requestURI.contains('/knowledge-base') && !pageContext.request.requestURI.contains('/admin/') ? 'active' : ''}">
+                            <i class="bi bi-book"></i> Knowledge Base
+                        </a>
+                        <a href="${pageContext.request.contextPath}/known-error?action=list"
+                            class="menu-item ${pageContext.request.requestURI.contains('/known-error/') ? 'active' : ''}">
+                            <i class="bi bi-bug"></i> Known Error Database
                         </a>
 
                         <li class="menu-header">Infrastructure</li>
@@ -226,6 +230,8 @@
                                         Error Database</c:when>
                                     <c:when test="${pageContext.request.requestURI.contains('/ticket-category')}">Ticket
                                         Categories</c:when>
+                                    <c:when test="${pageContext.request.requestURI.contains('/knowledge-base')}">
+                                        Knowledge Base</c:when>
                                     <c:when test="${pageContext.request.requestURI.contains('/cmdb/')}">CMDB</c:when>
                                     <c:when test="${pageContext.request.requestURI.contains('/dashboard')}">Executive
                                         Dashboard</c:when>
@@ -256,7 +262,8 @@
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>
-                                    <li><a class="dropdown-item text-danger" href="#"><i
+                                    <li><a class="dropdown-item text-danger"
+                                            href="${pageContext.request.contextPath}/auth?action=logout"><i
                                                 class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
                                 </ul>
                             </div>

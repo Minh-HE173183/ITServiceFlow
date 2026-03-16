@@ -50,9 +50,12 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="incidentIds" class="form-label fw-bold">Link Incident (Optional)</label>
-                    <select class="form-select" id="incidentIds" name="incidentIds">
-                        <option value="">-- Select an Incident --</option>
+                    <label class="form-label fw-bold mb-2">Link Incident(s) (Optional)</label>
+                    <div class="border rounded p-2"
+                        style="max-height: 200px; overflow-y: auto; background-color: #f8f9fa;">
+                        <c:if test="${empty incidents}">
+                            <div class="text-muted fst-italic p-2">No incidents available to link.</div>
+                        </c:if>
                         <c:forEach var="inc" items="${incidents}">
                             <c:set var="isSelected" value="false" />
                             <c:forEach var="linked" items="${linkedIncidents}">
@@ -60,11 +63,15 @@
                                     <c:set var="isSelected" value="true" />
                                 </c:if>
                             </c:forEach>
-                            <option value="${inc.ticketId}" ${isSelected ? 'selected' : '' }>${inc.ticketNumber} -
-                                ${inc.title}</option>
+                            <div class="form-check mb-2 pb-2 border-bottom">
+                                <input class="form-check-input" type="checkbox" name="incidentIds"
+                                    value="${inc.ticketId}" id="inc_${inc.ticketId}" ${isSelected ? 'checked' : '' }>
+                                <label class="form-check-label" for="inc_${inc.ticketId}" style="cursor: pointer;">
+                                    <strong>${inc.ticketNumber}</strong> - ${inc.title}
+                                </label>
+                            </div>
                         </c:forEach>
-                    </select>
-                    <div class="form-text">Choose an incident(s) related to this problem.</div>
+                    </div>
                 </div>
 
                 <div class="d-grid gap-2 mt-4">

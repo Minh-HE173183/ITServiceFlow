@@ -70,14 +70,14 @@ public class UserDAO {
         return u;
     }
 
-    public List<User> listUsers(String search, Integer roleId, Integer deptId, String sortBy, String order, int offset, int limit) {
+    public List<User> listUsers(String search, Integer roleId, Integer deptId, String sortBy, String order, int offset,
+            int limit) {
         List<User> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT u.*, r.role_name, d.department_name "
-                + "FROM `user` u "
-                + "LEFT JOIN role r ON u.role_id = r.role_id "
-                + "LEFT JOIN department d ON u.department_id = d.department_id WHERE 1=1 "
-        );
+                        + "FROM `user` u "
+                        + "LEFT JOIN role r ON u.role_id = r.role_id "
+                        + "LEFT JOIN department d ON u.department_id = d.department_id WHERE 1=1 ");
 
         if (search != null && !search.isEmpty()) {
             sql.append(" AND (u.full_name LIKE ? OR u.email LIKE ? OR u.username LIKE ?) ");
@@ -90,7 +90,8 @@ public class UserDAO {
         }
 
         // Validate sortBy to prevent SQL Injection
-        String validSort = (sortBy != null && (sortBy.equals("full_name") || sortBy.equals("username") || sortBy.equals("email") || sortBy.equals("updated_at"))) ? sortBy : "updated_at";
+        String validSort = (sortBy != null && (sortBy.equals("full_name") || sortBy.equals("username")
+                || sortBy.equals("email") || sortBy.equals("updated_at"))) ? sortBy : "updated_at";
         String validOrder = (order != null && order.equalsIgnoreCase("ASC")) ? "ASC" : "DESC";
 
         sql.append(" ORDER BY ").append(validSort).append(" ").append(validOrder);
@@ -113,6 +114,21 @@ public class UserDAO {
             stmt.setInt(paramIndex++, limit);
             stmt.setInt(paramIndex++, offset);
 
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(mapUser(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<User> getUsersByRoleId(int roleId) {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT * FROM `user` WHERE role_id = ? AND is_active = 1";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, roleId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 list.add(mapUser(rs));
@@ -180,11 +196,6 @@ public class UserDAO {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public static void main(String[] args) {
-        UserDAO userDao = new UserDAO();
-        System.out.println(userDao.login("admin@test.com", "Admin123"));
     }
 
     private void updateLastLogin(int userId) {
@@ -347,4 +358,5 @@ public class UserDAO {
         }
         return null;
     }
+
 }
