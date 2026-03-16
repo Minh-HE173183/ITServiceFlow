@@ -26,18 +26,17 @@ public class ServiceManagementServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        
-        
         String searchQuery = request.getParameter("search");
-        if (searchQuery == null) {
-            searchQuery = "";
-        }     
-        List<Service> allServices = serviceDAO.searchServices(searchQuery); 
+        if (searchQuery == null) searchQuery = "";
         
+        String statusFilter = request.getParameter("statusFilter");
+        if (statusFilter == null) statusFilter = "";
         
+        List<Service> allServices = serviceDAO.getAllServices(searchQuery, statusFilter); 
+        
+        // 4. Đẩy dữ liệu lên JSP
         request.setAttribute("allServices", allServices);
         request.setAttribute("lastSearch", searchQuery);
-        
         
         request.getRequestDispatcher("/admin/service-management.jsp").forward(request, response);
     }
@@ -45,7 +44,6 @@ public class ServiceManagementServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        // Có thể dùng doPost để xử lý xóa nhanh hoặc cập nhật trạng thái tại đây
         doGet(request, response);
     }
 }

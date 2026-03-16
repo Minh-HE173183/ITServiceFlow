@@ -38,8 +38,10 @@ public class ServiceDAO {
                 Service s = new Service();
                 s.setServiceId(rs.getInt("service_id"));
                 s.setServiceName(rs.getString("service_name"));
+                s.setServiceCode(rs.getString("service_code"));
                 s.setDescription(rs.getString("description"));
                 s.setEstimatedDeliveryDay(rs.getInt("estimated_delivery_day"));
+                s.setStatus(rs.getString("status"));
                 services.add(s);
             }
         } catch (SQLException e) {
@@ -114,34 +116,67 @@ public class ServiceDAO {
         }
     }
 
-    public void toggleServiceStatusById(int serviceId) {
-        // SQL tự động đảo ngược trạng thái ngay trong Database
-        String sql = "UPDATE service SET status = IF(status='ACTIVE', 'INACTIVE', 'ACTIVE'), "
-                + "updated_at = CURRENT_TIMESTAMP WHERE service_id = ?";
+//    public void toggleServiceStatusById(int serviceId) {
+//        // SQL tự động đảo ngược trạng thái ngay trong Database
+//        String sql = "UPDATE service SET status = IF(status='ACTIVE', 'INACTIVE', 'ACTIVE'), "
+//                + "updated_at = CURRENT_TIMESTAMP WHERE service_id = ?";
+//
+//        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+//            ps.setInt(1, serviceId);
+//            ps.executeUpdate();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
+    
+    // Hàm xử lý đổi trạng thái (ACTIVE/INACTIVE) cho nhiều dịch vụ cùng lúc
+    public int bulkToggleStatus(String[] ids, String newStatus) {
+        String sql = "UPDATE service SET status = ? WHERE service_id = ?";
+        int count = 0;
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, serviceId);
-            ps.executeUpdate();
+            for (String id : ids) {
+                ps.setString(1, newStatus);
+                ps.setInt(2, Integer.parseInt(id));
+                ps.addBatch(); // Thêm vào batch để chạy 1 lần cho tối ưu
+            }
+
+            int[] results = ps.executeBatch();
+            for (int r : results) {
+                if (r > 0) {
+                    count++;
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return count;
     }
 
-    public List<Service> getAllServices(String query) {
+    public List<Service> getAllServices(String query, String statusFilter) {
         List<Service> services = new ArrayList<>();
-        String sql = "SELECT * FROM service WHERE service_name LIKE ? OR description LIKE ? OR service_code LIKE ?";
+        String sql = "SELECT * FROM service WHERE (service_name LIKE ? OR description LIKE ?)";
+
+        if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+            sql += " AND status = ?";
+        }
 
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, "%" + query + "%");
             ps.setString(2, "%" + query + "%");
-            ResultSet rs = ps.executeQuery();
+            if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+                ps.setString(3, statusFilter);
+            }
 
+            ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Service s = new Service();
                 s.setServiceId(rs.getInt("service_id"));
                 s.setServiceName(rs.getString("service_name"));
-                s.setStatus(rs.getString("status"));
                 s.setServiceCode(rs.getString("service_code"));
+                s.setDescription(rs.getString("description"));
+                s.setEstimatedDeliveryDay(rs.getInt("estimated_delivery_day"));
+                s.setStatus(rs.getString("status"));
                 services.add(s);
             }
         } catch (SQLException e) {

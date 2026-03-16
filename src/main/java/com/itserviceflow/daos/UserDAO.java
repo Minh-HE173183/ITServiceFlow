@@ -70,6 +70,32 @@ public class UserDAO {
         return u;
     }
 
+    public void migratePasswords() {
+        String selectSql = "SELECT user_id, password_hash FROM `user`";
+        String updateSql = "UPDATE `user` SET password_hash = ? WHERE user_id = ?";
+        try (PreparedStatement select = conn.prepareStatement(selectSql); PreparedStatement update = conn.prepareStatement(updateSql)) {
+            ResultSet rs = select.executeQuery();
+            while (rs.next()) {
+                int userId = rs.getInt("user_id");
+                String plainPassword = rs.getString("password_hash");
+
+                // Chỉ hash nếu chưa phải BCrypt (BCrypt bắt đầu bằng $2a$)
+                if (!plainPassword.startsWith("$2a$")) {
+                    String hashed = BCrypt.hashpw(plainPassword, BCrypt.gensalt());
+                    update.setString(1, hashed);
+                    update.setInt(2, userId);
+                    update.executeUpdate();
+                    System.out.println("Migrated userId: " + userId);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    
+
+    
     public List<User> listUsers(String search, Integer roleId, Integer deptId, String sortBy, String order, int offset, int limit) {
         List<User> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
@@ -185,6 +211,7 @@ public class UserDAO {
     public static void main(String[] args) {
         UserDAO userDao = new UserDAO();
         System.out.println(userDao.login("admin@test.com", "Admin123"));
+        userDao.migratePasswords();
     }
 
     private void updateLastLogin(int userId) {
