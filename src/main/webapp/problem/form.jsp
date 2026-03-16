@@ -31,11 +31,23 @@
                     <div class="mb-3">
                         <label for="status" class="form-label fw-bold">Status</label>
                         <select class="form-select" id="status" name="status">
-                            <option value="NEW" ${problem.status=='NEW' ? 'selected' : '' }>New</option>
-                            <option value="IN_PROGRESS" ${problem.status=='IN_PROGRESS' ? 'selected' : '' }>In Progress
-                            </option>
-                            <option value="RESOLVED" ${problem.status=='RESOLVED' ? 'selected' : '' }>Resolved</option>
+                            <c:if test="${problem.status == 'NEW'}">
+                                <option value="NEW" selected>New</option>
+                            </c:if>
+                            <c:if test="${problem.status == 'OPEN'}">
+                                <option value="OPEN" selected>Open</option>
+                            </c:if>
+                            <c:if test="${not empty problem.assignedTo}">
+                                <option value="IN_PROGRESS" ${problem.status=='IN_PROGRESS' ? 'selected' : '' }>In
+                                    Progress</option>
+                                <option value="RESOLVED" ${problem.status=='RESOLVED' ? 'selected' : '' }>Resolved
+                                </option>
+                            </c:if>
                         </select>
+                        <c:if test="${empty problem.assignedTo}">
+                            <div class="form-text text-warning"><i class="bi bi-info-circle"></i> Status cannot be
+                                changed to In Progress/Resolved until this problem is assigned.</div>
+                        </c:if>
                     </div>
                 </c:if>
 

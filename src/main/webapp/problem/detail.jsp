@@ -26,26 +26,45 @@
                             </span>
                         </p>
 
-                        <%-- Assignment Form for Managers --%>
-                            <c:if test="${sessionScope.user.roleId == 3 && problem.status ne 'CANCELLED'}">
-                                <form action="${pageContext.request.contextPath}/problem?action=assign" method="post"
-                                    class="mt-3 p-3 bg-light border rounded">
-                                    <input type="hidden" name="id" value="${problem.ticketId}">
-                                    <label for="assignedTo" class="form-label fw-bold fade-in text-secondary"
-                                        style="font-size: 0.9em;">Assign to Technical Expert:</label>
-                                    <div class="input-group input-group-sm">
-                                        <select name="assignedTo" id="assignedTo" class="form-select" required>
-                                            <option value="" disabled selected>Select an Expert...</option>
-                                            <c:forEach var="expert" items="${technicalExperts}">
-                                                <option value="${expert.userId}" ${problem.assignedTo==expert.userId
-                                                    ? 'selected' : '' }>
-                                                    ${expert.fullName} (@${expert.username})
-                                                </option>
-                                            </c:forEach>
-                                        </select>
-                                        <button class="btn btn-primary" type="submit">Assign</button>
-                                    </div>
-                                </form>
+                        <%-- Assignment Form (Hidden for CANCELLED) --%>
+                            <c:if test="${problem.status ne 'CANCELLED'}">
+
+                                <%-- Manager: Can Assign to Anyone --%>
+                                    <c:if test="${sessionScope.user.roleId == 3}">
+                                        <form action="${pageContext.request.contextPath}/problem?action=assign"
+                                            method="post" class="mt-3 p-3 bg-light border rounded">
+                                            <input type="hidden" name="id" value="${problem.ticketId}">
+                                            <label for="assignedTo" class="form-label fw-bold fade-in text-secondary"
+                                                style="font-size: 0.9em;">Assign to Technical Expert:</label>
+                                            <div class="input-group input-group-sm">
+                                                <select name="assignedTo" id="assignedTo" class="form-select" required>
+                                                    <option value="" disabled selected>Select an Expert...</option>
+                                                    <c:forEach var="expert" items="${technicalExperts}">
+                                                        <option value="${expert.userId}"
+                                                            ${problem.assignedTo==expert.userId ? 'selected' : '' }>
+                                                            ${expert.fullName} (@${expert.username})
+                                                        </option>
+                                                    </c:forEach>
+                                                </select>
+                                                <button class="btn btn-primary" type="submit">Assign</button>
+                                            </div>
+                                        </form>
+                                    </c:if>
+
+                                    <%-- Technical Expert: Self-Assign if Unassigned --%>
+                                        <c:if test="${sessionScope.user.roleId == 4 && empty problem.assignedTo}">
+                                            <form action="${pageContext.request.contextPath}/problem?action=assign"
+                                                method="post" class="mt-3 p-3 bg-light border rounded text-center">
+                                                <input type="hidden" name="id" value="${problem.ticketId}">
+                                                <input type="hidden" name="assignedTo"
+                                                    value="${sessionScope.user.userId}">
+                                                <p class="text-secondary mb-2" style="font-size: 0.9em;">This ticket is
+                                                    currently unassigned.</p>
+                                                <button class="btn btn-primary btn-sm px-4" type="submit">
+                                                    <i class="bi bi-person-check"></i> Assign To Me
+                                                </button>
+                                            </form>
+                                        </c:if>
                             </c:if>
                     </div>
                 </div>
@@ -82,18 +101,20 @@
                 </div>
 
                 <c:set var="canManage" value="false" />
-                <c:choose>
-                    <c:when test="${not empty problem.assignedTo}">
-                        <c:if test="${problem.assignedTo == sessionScope.user.userId}">
-                            <c:set var="canManage" value="true" />
-                        </c:if>
-                    </c:when>
-                    <c:otherwise>
-                        <c:if test="${sessionScope.user.roleId == 3 || sessionScope.user.roleId == 5}">
-                            <c:set var="canManage" value="true" />
-                        </c:if>
-                    </c:otherwise>
-                </c:choose>
+                <c:if test="${problem.status ne 'CANCELLED'}">
+                    <c:choose>
+                        <c:when test="${not empty problem.assignedTo}">
+                            <c:if test="${problem.assignedTo == sessionScope.user.userId}">
+                                <c:set var="canManage" value="true" />
+                            </c:if>
+                        </c:when>
+                        <c:otherwise>
+                            <c:if test="${problem.reportedBy == sessionScope.user.userId}">
+                                <c:set var="canManage" value="true" />
+                            </c:if>
+                        </c:otherwise>
+                    </c:choose>
+                </c:if>
 
                 <div class="d-flex gap-2 mt-4">
                     <c:if test="${canManage}">

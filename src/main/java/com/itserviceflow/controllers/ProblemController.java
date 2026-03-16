@@ -247,7 +247,8 @@ public class ProblemController extends HttpServlet {
 
         Ticket existingProblem = problemDAO.getProblemById(id);
         User currentUser = AuthUtils.getCurrentUser(request);
-        if (existingProblem == null || !canManageProblem(existingProblem, currentUser)) {
+        if (existingProblem == null || "CANCELLED".equals(existingProblem.getStatus())
+                || !canManageProblem(existingProblem, currentUser)) {
             response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
             return;
         }
@@ -323,6 +324,13 @@ public class ProblemController extends HttpServlet {
 
     private void assignProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
+        Ticket existingProblem = problemDAO.getProblemById(id);
+        if (existingProblem == null || "CANCELLED".equals(existingProblem.getStatus())
+                || "RESOLVED".equals(existingProblem.getStatus())) {
+            response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
+            return;
+        }
+
         int assignedTo = Integer.parseInt(request.getParameter("assignedTo"));
         problemDAO.assignProblemTicket(id, assignedTo);
         response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
@@ -333,7 +341,8 @@ public class ProblemController extends HttpServlet {
 
         Ticket existingProblem = problemDAO.getProblemById(id);
         User currentUser = AuthUtils.getCurrentUser(request);
-        if (existingProblem == null || !canManageProblem(existingProblem, currentUser)) {
+        if (existingProblem == null || "CANCELLED".equals(existingProblem.getStatus())
+                || !canManageProblem(existingProblem, currentUser)) {
             response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
             return;
         }
@@ -359,10 +368,13 @@ public class ProblemController extends HttpServlet {
     }
 
     private boolean canManageProblem(Ticket problem, User user) {
+        if ("CANCELLED".equals(problem.getStatus())) {
+            return false;
+        }
         if (problem.getAssignedTo() != null) {
             return problem.getAssignedTo().equals(user.getUserId());
         } else {
-            return user.getRoleId() == AuthUtils.ROLE_MANAGER || user.getRoleId() == AuthUtils.ROLE_TECHNICAL_EXPERT;
+            return problem.getReportedBy() == user.getUserId();
         }
     }
 }

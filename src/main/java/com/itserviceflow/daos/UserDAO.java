@@ -73,7 +73,8 @@ public class UserDAO {
     public void migratePasswords() {
         String selectSql = "SELECT user_id, password_hash FROM `user`";
         String updateSql = "UPDATE `user` SET password_hash = ? WHERE user_id = ?";
-        try (PreparedStatement select = conn.prepareStatement(selectSql); PreparedStatement update = conn.prepareStatement(updateSql)) {
+        try (PreparedStatement select = conn.prepareStatement(selectSql);
+                PreparedStatement update = conn.prepareStatement(updateSql)) {
             ResultSet rs = select.executeQuery();
             while (rs.next()) {
                 int userId = rs.getInt("user_id");
@@ -93,17 +94,33 @@ public class UserDAO {
         }
     }
 
-    
+    public List<User> getUsersByRoleId(int roleId) {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT u.*, r.role_name, d.department_name "
+                + "FROM `user` u "
+                + "LEFT JOIN role r ON u.role_id = r.role_id "
+                + "LEFT JOIN department d ON u.department_id = d.department_id "
+                + "WHERE u.role_id = ? AND u.is_active = 1";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, roleId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(mapUser(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 
-    
-    public List<User> listUsers(String search, Integer roleId, Integer deptId, String sortBy, String order, int offset, int limit) {
+    public List<User> listUsers(String search, Integer roleId, Integer deptId, String sortBy, String order, int offset,
+            int limit) {
         List<User> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT u.*, r.role_name, d.department_name "
-                + "FROM `user` u "
-                + "LEFT JOIN role r ON u.role_id = r.role_id "
-                + "LEFT JOIN department d ON u.department_id = d.department_id WHERE 1=1 "
-        );
+                        + "FROM `user` u "
+                        + "LEFT JOIN role r ON u.role_id = r.role_id "
+                        + "LEFT JOIN department d ON u.department_id = d.department_id WHERE 1=1 ");
 
         if (search != null && !search.isEmpty()) {
             sql.append(" AND (u.full_name LIKE ? OR u.email LIKE ? OR u.username LIKE ?) ");
@@ -116,7 +133,8 @@ public class UserDAO {
         }
 
         // Validate sortBy to prevent SQL Injection
-        String validSort = (sortBy != null && (sortBy.equals("full_name") || sortBy.equals("username") || sortBy.equals("email") || sortBy.equals("updated_at"))) ? sortBy : "updated_at";
+        String validSort = (sortBy != null && (sortBy.equals("full_name") || sortBy.equals("username")
+                || sortBy.equals("email") || sortBy.equals("updated_at"))) ? sortBy : "updated_at";
         String validOrder = (order != null && order.equalsIgnoreCase("ASC")) ? "ASC" : "DESC";
 
         sql.append(" ORDER BY ").append(validSort).append(" ").append(validOrder);

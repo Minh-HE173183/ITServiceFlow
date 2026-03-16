@@ -39,7 +39,7 @@
                         <option value="IN_PROGRESS" ${statusFilter=='IN_PROGRESS' ? 'selected' : '' }>In Progress
                         </option>
                         <option value="RESOLVED" ${statusFilter=='RESOLVED' ? 'selected' : '' }>Resolved</option>
-                        <option value="CLOSED" ${statusFilter=='CLOSED' ? 'selected' : '' }>Closed</option>
+                        <option value="OPEN" ${statusFilter=='OPEN' ? 'selected' : '' }>Open</option>
                         <option value="CANCELLED" ${statusFilter=='CANCELLED' ? 'selected' : '' }>Cancelled</option>
                     </select>
                 </div>
@@ -93,8 +93,8 @@
                                                     class="badge bg-primary">IN_PROGRESS</span></c:when>
                                             <c:when test="${problem.status == 'RESOLVED'}"><span
                                                     class="badge bg-success">RESOLVED</span></c:when>
-                                            <c:when test="${problem.status == 'CLOSED'}"><span
-                                                    class="badge bg-secondary">CLOSED</span></c:when>
+                                            <c:when test="${problem.status == 'OPEN'}"><span
+                                                    class="badge bg-warning text-dark">OPEN</span></c:when>
                                             <c:when test="${problem.status == 'CANCELLED'}"><span
                                                     class="badge bg-danger">CANCELLED</span></c:when>
                                             <c:otherwise><span class="badge bg-dark">${problem.status}</span>
@@ -153,7 +153,6 @@
             </form>
         </div>
 
-        <!-- Forms for individual deletes -->
         <c:forEach var="problem" items="${problems}">
             <c:if test="${problem.status eq 'NEW' && problem.assignedTo == null}">
                 <form id="deleteForm_${problem.ticketId}"
@@ -184,7 +183,6 @@
                 }
             }
 
-            // Individual delete confirmation
             document.addEventListener('DOMContentLoaded', function () {
                 const deleteBtns = document.querySelectorAll('.btn-delete');
                 deleteBtns.forEach(btn => {
