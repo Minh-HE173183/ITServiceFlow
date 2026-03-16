@@ -132,15 +132,15 @@
         <ul class="sidebar-menu">
             <li class="menu-header">Hệ thống</li>
             <a href="${pageContext.request.contextPath}/admin/users"
-                class="menu-item ${pageContext.request.requestURI.endsWith('/admin/users.jsp') ? 'active' : ''}">
+               class="menu-item ${pageContext.request.requestURI.endsWith('/admin/users.jsp') ? 'active' : ''}">
                 <i class="bi bi-person-gear"></i> Quản lý người dùng
             </a>
             <a href="${pageContext.request.contextPath}/admin/knowledge-base"
-                class="menu-item ${pageContext.request.requestURI.endsWith('/admin/knowledge-base.jsp') ? 'active' : ''}">
+               class="menu-item ${pageContext.request.requestURI.endsWith('/admin/knowledge-base.jsp') ? 'active' : ''}">
                 <i class="bi bi-journal-text"></i> Knowledge Base
             </a>
             <a href="${pageContext.request.contextPath}/admin/knowledge-article"
-                class="menu-item ${pageContext.request.requestURI.endsWith('/admin/knowledge-article.jsp') ? 'active' : ''}">
+               class="menu-item ${pageContext.request.requestURI.endsWith('/admin/knowledge-article.jsp') ? 'active' : ''}">
                 <i class="bi bi-newspaper"></i> Knowledge Article
             </a>
             <a href="#" class="menu-item"><i class="bi bi-shield-lock"></i> Danh sách Quyền</a>
@@ -148,81 +148,79 @@
 
             <li class="menu-header">Ticket Management</li>
             <a href="${pageContext.request.contextPath}/problem?action=list"
-                class="menu-item ${pageContext.request.requestURI.contains('/problem/') ? 'active' : ''}">
+               class="menu-item ${pageContext.request.requestURI.contains('/problem/') ? 'active' : ''}">
                 <i class="bi bi-exclamation-octagon"></i> Problem Management
             </a>
             <a href="${pageContext.request.contextPath}/known-error?action=list"
-                class="menu-item ${pageContext.request.requestURI.contains('/known-error/') ? 'active' : ''}">
+               class="menu-item ${pageContext.request.requestURI.contains('/known-error/') ? 'active' : ''}">
                 <i class="bi bi-bug"></i> Known Error Database
             </a>
 
             <li class="menu-header">Infrastructure</li>
             <a href="${pageContext.request.contextPath}/cmdb?action=list"
-                class="menu-item ${pageContext.request.requestURI.contains('/cmdb/') ? 'active' : ''}">
+               class="menu-item ${pageContext.request.requestURI.contains('/cmdb/') ? 'active' : ''}">
                 <i class="bi bi-server"></i> CMDB
             </a>
 
             <li class="menu-header">Workflow & Service</li>
             <a href="${pageContext.request.contextPath}/workflows"
-                class="menu-item ${pageContext.request.requestURI.contains('/workflows') ? 'active' : ''}">
+               class="menu-item ${pageContext.request.requestURI.contains('/workflows') ? 'active' : ''}">
                 <i class="bi bi-diagram-3"></i> Workflow Management
             </a>
             <a href="${pageContext.request.contextPath}/admin/service-management"
-                class="menu-item ${pageContext.request.requestURI.contains('/admin/service-management') ? 'active' : ''}">
+               class="menu-item ${pageContext.request.requestURI.contains('/admin/service-management') ? 'active' : ''}">
                 <i class="bi bi-hdd-network"></i> Service Management
             </a>
-<li class="menu-header">Ticket Management</li>
-                        <a href="${pageContext.request.contextPath}/ticket-category"
-                            class="menu-item ${pageContext.request.requestURI.contains('/ticket-category') ? 'active' : ''}">
-                            <i class="bi bi-tags"></i> Ticket Categories
-                        </a>
+            <li class="menu-header">Ticket Management</li>
+            <a href="${pageContext.request.contextPath}/ticket-category"
+               class="menu-item ${pageContext.request.requestURI.contains('/ticket-category') ? 'active' : ''}">
+                <i class="bi bi-tags"></i> Ticket Categories
+            </a>
 
-                        <li class="menu-header">Reports &amp; Analytics</li>
-                        <a href="${pageContext.request.contextPath}/time-tracking"
-                            class="menu-item ${pageContext.request.requestURI.contains('/time-tracking') ? 'active' : ''}">
-                            <i class="bi bi-clock-history"></i> Quản lý Time Log
-                        </a>        </ul>
+            <li class="menu-header">Reports &amp; Analytics</li>
+            <a href="${pageContext.request.contextPath}/time-tracking"
+               class="menu-item ${pageContext.request.requestURI.contains('/time-tracking') ? 'active' : ''}">
+                <i class="bi bi-clock-history"></i> Quản lý Time Log
+            </a>        </ul>
     </div>
 
-                <div class="admin-main">
-                    <!-- Topbar -->
-                    <div class="topbar">
-                        <div class="topbar-left">
-                            <i class="bi bi-list fs-4 cursor-pointer"></i>
-                            <span class="fw-bold">
-                                <c:choose>
-                                    <c:when test="${pageContext.request.requestURI.contains('/admin/users')}">Quản lý người dùng</c:when>
-                                    <c:when test="${pageContext.request.requestURI.contains('/workflows')}">Quản lý Workflow</c:when>
-                                    <c:when test="${pageContext.request.requestURI.contains('/ticket-category')}">Ticket Categories</c:when>
-                                    <c:when test="${pageContext.request.requestURI.contains('/time-tracking')}">Quản lý Time Log</c:when>
-                                    <c:otherwise>IT Service Management</c:otherwise>
-                                </c:choose>
-                            </span>
-                        </div>
-                        <div class="topbar-right">
-                            <i class="bi bi-bell badge-notification"></i>
-                            <div class="user-info dropdown">
-                                <a class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
-                                    href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
-                                    <img src="https://ui-avatars.com/api/?name=${sessionScope.user.fullName}&background=random"
-                                        alt="User">
-                                    <span class="ms-2 d-none d-md-inline">${sessionScope.user.fullName}</span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile"><i
-                                                class="bi bi-person me-2"></i> Hồ sơ</a></li>
-                                    <li><a class="dropdown-item"
-                                            href="${pageContext.request.contextPath}/profile#change-pass"><i
-                                                class="bi bi-shield-lock me-2"></i> Đổi mật khẩu</a></li>
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
-                                    <li><a class="dropdown-item text-danger"
-                                            href="${pageContext.request.contextPath}/logout"><i
-                                                class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+    <div class="admin-main">
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <i class="bi bi-list fs-4 cursor-pointer"></i>
+                <span class="fw-bold">
+                    <c:choose>
+                        <c:when test="${pageContext.request.requestURI.contains('/admin/users')}">Quản lý người dùng</c:when>
+                        <c:when test="${pageContext.request.requestURI.contains('/workflows')}">Quản lý Workflow</c:when>
+                        <c:when test="${pageContext.request.requestURI.contains('/ticket-category')}">Ticket Categories</c:when>
+                        <c:when test="${pageContext.request.requestURI.contains('/time-tracking')}">Quản lý Time Log</c:when>
+                        <c:otherwise>IT Service Management</c:otherwise>
+                    </c:choose>
+                </span>
+            </div>
+            <div class="topbar-right">
+                <i class="bi bi-bell badge-notification"></i>
+                <div class="user-info dropdown">
+                    <a class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+                       href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                        <img src="https://ui-avatars.com/api/?name=${sessionScope.user.fullName}&background=random"
+                             alt="User">
+                        <span class="ms-2 d-none d-md-inline">${sessionScope.user.fullName}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
+                                <i class="bi bi-person me-2"></i> Hồ sơ</a></li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile#change-pass">
+                                <i class="bi bi-shield-lock me-2"></i> Đổi mật khẩu</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/auth?action=logout">
+                                <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-                    <div class="content-area">
+        <div class="content-area">
