@@ -5,20 +5,19 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h4 text-primary m-0">Known Error Database (KEDB)</h2>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-warning" onclick="submitBulkAction('bulkReview', 'APPROVED')">
-                    <i class="bi bi-check-circle"></i> Bulk Approve
-                </button>
-                <button type="button" class="btn btn-danger" onclick="submitBulkAction('bulkDelete')">
-                    <i class="bi bi-trash"></i> Bulk Delete
-                </button>
-                <button type="button" class="btn btn-secondary"
-                    onclick="submitBulkAction('bulkToggleStatus', 'INACTIVE')">
-                    <i class="bi bi-pause-circle"></i> Bulk Disable
-                </button>
-                <button type="button" class="btn btn-success"
-                    onclick="submitBulkAction('bulkToggleStatus', 'APPROVED')">
-                    <i class="bi bi-play-circle"></i> Bulk Enable
-                </button>
+                <c:if test="${sessionScope.user.roleId == 2 || sessionScope.user.roleId == 3}">
+                    <button type="button" class="btn btn-warning" onclick="submitBulkAction('bulkReview', 'APPROVED')">
+                        <i class="bi bi-check-circle"></i> Bulk Approve
+                    </button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="submitBulkAction('bulkToggleStatus', 'INACTIVE')">
+                        <i class="bi bi-pause-circle"></i> Bulk Disable
+                    </button>
+                    <button type="button" class="btn btn-success"
+                        onclick="submitBulkAction('bulkToggleStatus', 'APPROVED')">
+                        <i class="bi bi-play-circle"></i> Bulk Enable
+                    </button>
+                </c:if>
                 <a href="${pageContext.request.contextPath}/known-error?action=add" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Create Known Error
                 </a>
@@ -64,7 +63,7 @@
                             <th>Article Number</th>
                             <th>Title</th>
                             <th>Status</th>
-                            <th>Author ID</th>
+                            <th>Author</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -73,8 +72,8 @@
                             <tr>
                                 <td>
                                     <input type="checkbox" name="selectedIds" value="${error.articleId}"
-                                        class="rowCheckbox form-check-input" ${error.status eq 'PENDING' or error.status
-                                        eq 'REJECTED' ? 'disabled' : '' }>
+                                        class="rowCheckbox form-check-input" ${ (sessionScope.user.roleId !=2 and
+                                        sessionScope.user.roleId !=3) ? 'disabled' : '' }>
                                 </td>
                                 <td>${error.articleId}</td>
                                 <td>${error.articleNumber}</td>
@@ -100,29 +99,33 @@
                                     </a>
 
                                     <c:if test="${error.status eq 'PENDING' || error.status eq 'REJECTED'}">
-                                        <form action="${pageContext.request.contextPath}/known-error?action=delete"
-                                            method="post" class="m-0">
-                                            <input type="hidden" name="id" value="${error.articleId}">
-                                            <button type="submit" class="btn btn-danger btn-sm"
-                                                onclick="return confirm('Are you sure you want to delete this known error?');">
-                                                <i class="bi bi-trash"></i> Delete
-                                            </button>
-                                        </form>
+                                        <c:if test="${error.authorId == sessionScope.user.userId}">
+                                            <form action="${pageContext.request.contextPath}/known-error?action=delete"
+                                                method="post" class="m-0">
+                                                <input type="hidden" name="id" value="${error.articleId}">
+                                                <button type="submit" class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('Are you sure you want to delete this known error?');">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        </c:if>
                                     </c:if>
 
                                     <c:if test="${error.status eq 'APPROVED' || error.status eq 'INACTIVE'}">
-                                        <form
-                                            action="${pageContext.request.contextPath}/known-error?action=toggleStatus"
-                                            method="post" class="m-0">
-                                            <input type="hidden" name="id" value="${error.articleId}">
-                                            <input type="hidden" name="currentStatus" value="${error.status}">
-                                            <button type="submit"
-                                                class="btn ${error.status eq 'APPROVED' ? 'btn-secondary' : 'btn-success'} btn-sm">
-                                                <i
-                                                    class="bi ${error.status eq 'APPROVED' ? 'bi-pause-circle' : 'bi-play-circle'}"></i>
-                                                ${error.status eq 'APPROVED' ? 'Disable' : 'Enable'}
-                                            </button>
-                                        </form>
+                                        <c:if test="${sessionScope.user.roleId == 2 || sessionScope.user.roleId == 3}">
+                                            <form
+                                                action="${pageContext.request.contextPath}/known-error?action=toggleStatus"
+                                                method="post" class="m-0">
+                                                <input type="hidden" name="id" value="${error.articleId}">
+                                                <input type="hidden" name="currentStatus" value="${error.status}">
+                                                <button type="submit"
+                                                    class="btn ${error.status eq 'APPROVED' ? 'btn-secondary' : 'btn-success'} btn-sm">
+                                                    <i
+                                                        class="bi ${error.status eq 'APPROVED' ? 'bi-pause-circle' : 'bi-play-circle'}"></i>
+                                                    ${error.status eq 'APPROVED' ? 'Disable' : 'Enable'}
+                                                </button>
+                                            </form>
+                                        </c:if>
                                     </c:if>
                                 </td>
                             </tr>

@@ -9,53 +9,38 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Access Denied</title>
+    <title>403 - Forbidden</title>
     <style>
-        .access-denied {
-            min-height: 60vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
+        body{
+            font-family: Arial, sans-serif;
+            background-color:#f8f9fa;
+            text-align:center;
+            margin-top:100px;
         }
-
-        .access-denied h1 {
-            font-size: 60px;
-            color: #e74c3c;
-            margin-bottom: 10px;
+        h1{
+            font-size:60px;
+            color:#dc3545;
         }
-
-        .access-denied h2 {
-            margin-bottom: 15px;
+        p{
+            font-size:20px;
+            color:#555;
         }
-
-        .access-denied p {
-            color: #555;
-            margin-bottom: 20px;
+        a{
+            text-decoration:none;
+            color:white;
+            background:#007bff;
+            padding:10px 20px;
+            border-radius:5px;
         }
-
-        .access-denied a {
-            text-decoration: none;
-            padding: 10px 20px;
-            background-color: #2ecc71;
-            color: white;
-            border-radius: 5px;
-        }
-
-        .access-denied a:hover {
-            background-color: #27ae60;
+        a:hover{
+            background:#0056b3;
         }
     </style>
 </head>
-
 <body>
-    <section class="access-denied">
-        <h1>403</h1>
-        <h2>Access Denied</h2>
-        <p>Bạn không có quyền truy cập trang này</p>
 
-        <a href="../home">Quay về trang chủ</a>
-    </section>
+    <h1>403</h1>
+    <p>Forbidden - Bạn không có quyền truy cập trang này.</p>
+
 </body>
 </html>

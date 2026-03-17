@@ -50,12 +50,14 @@ public class KnownErrorController extends HttpServlet {
                 viewKnownErrorDetail(request, response);
                 break;
             case "add":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT, AuthUtils.ROLE_MANAGER,
+                        AuthUtils.ROLE_ADMIN))
                     return;
                 showKnownErrorForm(request, response);
                 break;
             case "edit":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT, AuthUtils.ROLE_MANAGER,
+                        AuthUtils.ROLE_ADMIN))
                     return;
                 showEditForm(request, response);
                 break;
@@ -82,27 +84,31 @@ public class KnownErrorController extends HttpServlet {
 
         switch (action) {
             case "insert":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT, AuthUtils.ROLE_MANAGER,
+                        AuthUtils.ROLE_ADMIN))
                     return;
                 insertKnownError(request, response);
                 break;
             case "update":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT, AuthUtils.ROLE_MANAGER,
+                        AuthUtils.ROLE_ADMIN))
                     return;
                 updateKnownError(request, response);
                 break;
             case "delete":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT, AuthUtils.ROLE_MANAGER,
+                        AuthUtils.ROLE_ADMIN))
                     return;
                 deleteKnownError(request, response);
                 break;
             case "bulkDelete":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT, AuthUtils.ROLE_MANAGER,
+                        AuthUtils.ROLE_ADMIN))
                     return;
                 bulkDeleteKnownError(request, response);
                 break;
             case "review":
-                reviewKnownError(request, response); // Admin check inside or base fallback
+                reviewKnownError(request, response);
                 break;
             case "bulkReview":
                 bulkReviewKnownError(request, response);
@@ -218,22 +224,27 @@ public class KnownErrorController extends HttpServlet {
     private void deleteKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         Article ke = knownErrorDAO.getKnownErrorById(id);
-        // UC45: Delete only if PENDING or REJECTED
+        User user = AuthUtils.getCurrentUser(request);
         if (ke != null && ("PENDING".equals(ke.getStatus()) || "REJECTED".equals(ke.getStatus()))) {
-            knownErrorDAO.deleteKnownError(id);
+            if (ke.getAuthorId() == user.getUserId()) {
+                knownErrorDAO.deleteKnownError(id);
+            }
         }
         response.sendRedirect(request.getContextPath() + "/known-error?action=list");
     }
 
     private void bulkDeleteKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String[] ids = request.getParameterValues("selectedIds");
+        User user = AuthUtils.getCurrentUser(request);
         if (ids != null) {
             for (String idStr : ids) {
                 try {
                     int id = Integer.parseInt(idStr);
                     Article ke = knownErrorDAO.getKnownErrorById(id);
                     if (ke != null && ("PENDING".equals(ke.getStatus()) || "REJECTED".equals(ke.getStatus()))) {
-                        knownErrorDAO.deleteKnownError(id);
+                        if (ke.getAuthorId() == user.getUserId()) {
+                            knownErrorDAO.deleteKnownError(id);
+                        }
                     }
                 } catch (NumberFormatException ignored) {
                 }
@@ -243,12 +254,8 @@ public class KnownErrorController extends HttpServlet {
     }
 
     private void reviewKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if (!AuthUtils.hasRole(request, response))
-            return; // Admin check implicit because this only needs Admin, but let's check correctly
-        if (AuthUtils.getCurrentUser(request).getRoleId() != AuthUtils.ROLE_ADMIN) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=forbid");
+        if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ADMIN, AuthUtils.ROLE_MANAGER))
             return;
-        }
 
         int id = Integer.parseInt(request.getParameter("id"));
         String status = request.getParameter("status");
@@ -260,10 +267,8 @@ public class KnownErrorController extends HttpServlet {
     }
 
     private void bulkReviewKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if (AuthUtils.getCurrentUser(request).getRoleId() != AuthUtils.ROLE_ADMIN) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=forbid");
+        if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ADMIN, AuthUtils.ROLE_MANAGER))
             return;
-        }
 
         String[] ids = request.getParameterValues("selectedIds");
         String status = request.getParameter("status");
@@ -282,8 +287,7 @@ public class KnownErrorController extends HttpServlet {
     }
 
     private void toggleKnownErrorStatus(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if (AuthUtils.getCurrentUser(request).getRoleId() != AuthUtils.ROLE_ADMIN) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=forbid");
+        if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ADMIN, AuthUtils.ROLE_MANAGER)) {
             return;
         }
         int id = Integer.parseInt(request.getParameter("id"));
@@ -297,8 +301,7 @@ public class KnownErrorController extends HttpServlet {
 
     private void bulkToggleKnownErrorStatus(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        if (AuthUtils.getCurrentUser(request).getRoleId() != AuthUtils.ROLE_ADMIN) {
-            response.sendRedirect(request.getContextPath() + "/auth?action=forbid");
+        if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ADMIN, AuthUtils.ROLE_MANAGER)) {
             return;
         }
 

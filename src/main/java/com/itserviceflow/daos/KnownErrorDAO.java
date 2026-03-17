@@ -19,7 +19,7 @@ public class KnownErrorDAO {
 
     public List<Article> getAllKnownErrors() {
         List<Article> errors = new ArrayList<>();
-        String sql = "SELECT * FROM article WHERE article_type = 'KNOWN_ERROR'";
+        String sql = "SELECT a.*, u.full_name AS author_name FROM article a LEFT JOIN user u ON a.author_id = u.user_id WHERE a.article_type = 'KNOWN_ERROR'";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql);
                 ResultSet rs = stmt.executeQuery()) {
@@ -35,18 +35,19 @@ public class KnownErrorDAO {
 
     public List<Article> searchKnownErrors(String keyword, String statusFilter, int offset, int limit) {
         List<Article> errors = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT * FROM article WHERE article_type = 'KNOWN_ERROR'");
+        StringBuilder sql = new StringBuilder(
+                "SELECT a.*, u.full_name AS author_name FROM article a LEFT JOIN user u ON a.author_id = u.user_id WHERE a.article_type = 'KNOWN_ERROR'");
 
         boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
         boolean hasStatus = statusFilter != null && !statusFilter.trim().isEmpty() && !statusFilter.equals("ALL");
 
         if (hasKeyword) {
-            sql.append(" AND (title LIKE ? OR article_number LIKE ?)");
+            sql.append(" AND (a.title LIKE ? OR a.article_number LIKE ?)");
         }
         if (hasStatus) {
-            sql.append(" AND status = ?");
+            sql.append(" AND a.status = ?");
         }
-        sql.append(" ORDER BY updated_at DESC LIMIT ? OFFSET ?");
+        sql.append(" ORDER BY a.updated_at DESC LIMIT ? OFFSET ?");
 
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
@@ -76,16 +77,16 @@ public class KnownErrorDAO {
 
     public int getTotalKnownErrors(String keyword, String statusFilter) {
         int count = 0;
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM article WHERE article_type = 'KNOWN_ERROR'");
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM article a WHERE a.article_type = 'KNOWN_ERROR'");
 
         boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
         boolean hasStatus = statusFilter != null && !statusFilter.trim().isEmpty() && !statusFilter.equals("ALL");
 
         if (hasKeyword) {
-            sql.append(" AND (title LIKE ? OR article_number LIKE ?)");
+            sql.append(" AND (a.title LIKE ? OR a.article_number LIKE ?)");
         }
         if (hasStatus) {
-            sql.append(" AND status = ?");
+            sql.append(" AND a.status = ?");
         }
 
         try (Connection conn = DBConnection.getConnection();
@@ -113,7 +114,7 @@ public class KnownErrorDAO {
     }
 
     public Article getKnownErrorById(int articleId) {
-        String sql = "SELECT * FROM article WHERE article_id = ? AND article_type = 'KNOWN_ERROR'";
+        String sql = "SELECT a.*, u.full_name AS author_name FROM article a LEFT JOIN user u ON a.author_id = u.user_id WHERE a.article_id = ? AND a.article_type = 'KNOWN_ERROR'";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, articleId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -130,8 +131,9 @@ public class KnownErrorDAO {
     public boolean createKnownError(Article error) {
         String sql = "INSERT INTO article (article_number, article_type, title, content, summary, status, author_id, symptom, cause, solution) "
                 + "VALUES (?, 'KNOWN_ERROR', ?, ?, ?, 'PENDING', ?, ?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, "KE-" + System.currentTimeMillis());
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, "KE-TEMP");
             stmt.setString(2, error.getTitle());
             stmt.setString(3, error.getContent());
             stmt.setString(4, error.getSummary());
@@ -139,7 +141,23 @@ public class KnownErrorDAO {
             stmt.setString(6, error.getSymptom());
             stmt.setString(7, error.getCause());
             stmt.setString(8, error.getSolution());
-            return stmt.executeUpdate() > 0;
+
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows > 0) {
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        int newId = rs.getInt(1);
+                        String updateSql = "UPDATE article SET article_number = ? WHERE article_id = ?";
+                        try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                            updateStmt.setString(1, "KE-" + newId);
+                            updateStmt.setInt(2, newId);
+                            updateStmt.executeUpdate();
+                        }
+                        return true;
+                    }
+                }
+            }
+            return false;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -147,7 +165,7 @@ public class KnownErrorDAO {
     }
 
     public boolean updateKnownError(Article error) {
-        String sql = "UPDATE article SET title = ?, content = ?, summary = ?, symptom = ?, cause = ?, solution = ? "
+        String sql = "UPDATE article SET title = ?, content = ?, summary = ?, symptom = ?, cause = ?, solution = ?, status = 'PENDING' "
                 + "WHERE article_id = ? AND article_type = 'KNOWN_ERROR'";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, error.getTitle());
@@ -224,6 +242,11 @@ public class KnownErrorDAO {
         a.setSolution(rs.getString("solution"));
         a.setUpdatedAt(rs.getTimestamp("updated_at"));
         a.setRejectionReason(rs.getString("rejection_reason"));
+        try {
+            a.setAuthorName(rs.getString("author_name"));
+        } catch (SQLException e) {
+            // Column might not exist in some basic queries, ignore
+        }
         return a;
     }
 }
