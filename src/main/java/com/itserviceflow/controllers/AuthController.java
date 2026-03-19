@@ -163,10 +163,8 @@ public class AuthController extends HttpServlet {
 
                 if (user.getRoleId() != null && user.getRoleId() == 10) {
                     response.sendRedirect(request.getContextPath() + "/admin/users");
-                } else if (user.getRoleId() != null && user.getRoleId() != 1) {
-                    response.sendRedirect(request.getContextPath() + "/problem?action=list");
                 } else {
-                    response.sendRedirect(request.getContextPath() + "/profile");
+                    response.sendRedirect(request.getContextPath() + "/home");
                 }
             } else {
                 request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng!");

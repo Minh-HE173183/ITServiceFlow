@@ -5,7 +5,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h4 text-primary m-0">Known Error Database (KEDB)</h2>
             <div class="d-flex gap-2">
-                <c:if test="${sessionScope.user.roleId == 2 || sessionScope.user.roleId == 3}">
+                <c:if test="${sessionScope.user.roleId == 10 || sessionScope.user.roleId == 3}">
                     <button type="button" class="btn btn-warning" onclick="submitBulkAction('bulkReview', 'APPROVED')">
                         <i class="bi bi-check-circle"></i> Bulk Approve
                     </button>
@@ -72,7 +72,7 @@
                             <tr>
                                 <td>
                                     <input type="checkbox" name="selectedIds" value="${error.articleId}"
-                                        class="rowCheckbox form-check-input" ${ (sessionScope.user.roleId !=2 and
+                                        class="rowCheckbox form-check-input" ${ (sessionScope.user.roleId !=10 and
                                         sessionScope.user.roleId !=3) ? 'disabled' : '' }>
                                 </td>
                                 <td>${error.articleId}</td>
@@ -91,7 +91,7 @@
                                         <c:otherwise><span class="badge bg-primary">${error.status}</span></c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td>${error.authorId}</td>
+                                <td>${not empty error.authorName ? error.authorName : error.authorId}</td>
                                 <td class="d-flex gap-1">
                                     <a href="${pageContext.request.contextPath}/known-error?action=detail&id=${error.articleId}"
                                         class="btn btn-info btn-sm text-white">
@@ -112,7 +112,7 @@
                                     </c:if>
 
                                     <c:if test="${error.status eq 'APPROVED' || error.status eq 'INACTIVE'}">
-                                        <c:if test="${sessionScope.user.roleId == 2 || sessionScope.user.roleId == 3}">
+                                        <c:if test="${sessionScope.user.roleId == 10 || sessionScope.user.roleId == 3}">
                                             <form
                                                 action="${pageContext.request.contextPath}/known-error?action=toggleStatus"
                                                 method="post" class="m-0">
@@ -139,7 +139,6 @@
                     </tbody>
                 </table>
 
-                <!-- Pagination -->
                 <c:if test="${totalPages > 1}">
                     <nav aria-label="Page navigation" class="mt-3">
                         <ul class="pagination justify-content-center">
