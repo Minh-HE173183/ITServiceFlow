@@ -39,13 +39,13 @@ public class KnownErrorController extends HttpServlet {
         switch (action) {
             case "list":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_TECHNICAL_EXPERT,
-                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR))
+                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR, AuthUtils.ROLE_ADMIN))
                     return;
                 listKnownErrors(request, response);
                 break;
             case "detail":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_TECHNICAL_EXPERT,
-                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR))
+                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR, AuthUtils.ROLE_ADMIN))
                     return;
                 viewKnownErrorDetail(request, response);
                 break;
@@ -63,7 +63,7 @@ public class KnownErrorController extends HttpServlet {
                 break;
             default:
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_TECHNICAL_EXPERT,
-                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR))
+                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR, AuthUtils.ROLE_ADMIN))
                     return;
                 listKnownErrors(request, response);
                 break;
@@ -172,6 +172,13 @@ public class KnownErrorController extends HttpServlet {
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         Article ke = knownErrorDAO.getKnownErrorById(id);
+        User currentUser = AuthUtils.getCurrentUser(request);
+
+        if (currentUser.getRoleId() == AuthUtils.ROLE_TECHNICAL_EXPERT && ke.getAuthorId() != currentUser.getUserId()) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=forbid");
+            return;
+        }
+
         request.setAttribute("knownError", ke);
         request.getRequestDispatcher("/known-error/form.jsp").forward(request, response);
     }
@@ -216,6 +223,14 @@ public class KnownErrorController extends HttpServlet {
         ke.setSymptom(symptom);
         ke.setCause(cause);
         ke.setSolution(solution);
+
+        User currentUser = AuthUtils.getCurrentUser(request);
+        Article original = knownErrorDAO.getKnownErrorById(id);
+
+        if (currentUser.getRoleId() == AuthUtils.ROLE_TECHNICAL_EXPERT && original.getAuthorId() != currentUser.getUserId()) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=forbid");
+            return;
+        }
 
         knownErrorDAO.updateKnownError(ke);
         response.sendRedirect(request.getContextPath() + "/known-error?action=detail&id=" + id);

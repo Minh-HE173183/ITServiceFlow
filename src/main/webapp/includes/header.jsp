@@ -152,6 +152,10 @@
                         ITSM
                     </div>
                     <ul class="sidebar-menu">
+                        <a href="${pageContext.request.contextPath}/home"
+                            class="menu-item ${pageContext.request.requestURI.contains('/home/') ? 'active' : ''}">
+                            <i class="bi bi-house-door-fill"></i> Trang chủ
+                        </a>
                         <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 10}">
                             <li class="menu-header">Hệ thống</li>
                             <a href="${pageContext.request.contextPath}/admin/users"
@@ -237,6 +241,7 @@
                                         Dashboard</c:when>
                                     <c:when test="${pageContext.request.requestURI.contains('/time-tracking')}">Time
                                         Tracking</c:when>
+                                    <c:when test="${pageContext.request.requestURI.contains('/home/')}">Trang chủ</c:when>
                                     <c:otherwise>IT Service Management</c:otherwise>
                                 </c:choose>
                             </span>
@@ -270,5 +275,4 @@
                         </div>
                     </div>
 
-                    <!-- Content Area start -->
                     <div class="content-area">
