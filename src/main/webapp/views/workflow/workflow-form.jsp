@@ -399,10 +399,13 @@ out.print(gson.toJson(_pr));
                                             });
                                         }
                                         if (Array.isArray(cfg.steps)) {
-                                            cfg.steps.forEach(s => {
-                                                steps.push({ id: ++stepIdCounter, name: s.name || '', role: s.role || ROLES[0], action: s.action || 'APPROVE_REJECT', sla_hours: s.sla_hours || 24 });
-                                            });
-                                        }
+                                                cfg.steps.forEach(s => {
+                                                    // If action is NOTIFY, SLA should always be 0 and not editable
+                                                    const actionVal = s.action || 'APPROVE_REJECT';
+                                                    const slaVal = (actionVal === 'NOTIFY') ? 0 : (s.sla_hours || 24);
+                                                    steps.push({ id: ++stepIdCounter, name: s.name || '', role: s.role || ROLES[0], action: actionVal, sla_hours: slaVal });
+                                                });
+                                            }
                                     } catch (e) {
                                     }
                                 }
@@ -563,32 +566,58 @@ out.print(gson.toJson(_pr));
                                 }
                                 _addStepBtn.classList.remove('d-none');
                                 let html = '';
-                                steps.forEach((s, i) => {
-                                    let roleOptions = ROLES.map(r => `<option value="\${r}" \${s.role === r ? 'selected' : ''}>\${r}</option>`).join('');
-                                    let actionOptions = ACTIONS.map(a => `<option value="\${a.value}" \${a.value === s.action ? 'selected' : ''}>\${a.label}</option>`).join('');
-                                    let upBtn = i > 0 ? `<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Up" onclick="moveStep(\${s.id}, -1)"><i class="fa fa-chevron-up"></i></button>` : `<span style="display:inline-block;width:22px;"></span>`;
-                                    let downBtn = i < steps.length - 1 ? `<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Down" onclick="moveStep(\${s.id}, 1)"><i class="fa fa-chevron-down"></i></button>` : `<span style="display:inline-block;width:22px;"></span>`;
-                                    html += `<div class="step-card p-3 mb-2 d-flex align-items-start gap-3">
-<div class="d-flex flex-column align-items-center gap-1">
-<div class="step-number">\${i + 1}</div>
-\${upBtn} \${downBtn}
-</div>
-<div class="flex-grow-1 row g-3">
-<div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Step Name" value="\${escHtml(s.name)}" oninput="updateStepField(\${s.id}, 'name', this.value)" /></div>
-<div class="col-md-3"><select class="form-select form-select-sm" onchange="updateStepField(\${s.id}, 'role', this.value)">\${roleOptions}</select></div>
-<div class="col-md-3"><select class="form-select form-select-sm" onchange="updateStepField(\${s.id}, 'action', this.value)">\${actionOptions}</select></div>
-<div class="col-md-2"><input type="number" class="form-control form-control-sm" value="\${s.sla_hours}" oninput="updateStepField(\${s.id}, 'sla_hours', this.value)" /></div>
-</div>
-<button type="button" class="btn btn-sm text-danger" onclick="removeStep(\${s.id})"><i class="fa fa-trash"></i></button>
-</div>`;
+                                steps.forEach(function(s, i) {
+                                    var roleOptions = ROLES.map(function(r) { return '<option value="' + r + '"' + (s.role === r ? ' selected' : '') + '>' + r + '</option>'; }).join('');
+                                    var actionOptions = ACTIONS.map(function(a) { return '<option value="' + a.value + '"' + (a.value === s.action ? ' selected' : '') + '>' + a.label + '</option>'; }).join('');
+                                    var upBtn = i > 0 ? '<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Up" onclick="moveStep(' + s.id + ', -1)"><i class="fa fa-chevron-up"></i></button>' : '<span style="display:inline-block;width:22px;"></span>';
+                                    var downBtn = i < steps.length - 1 ? '<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Down" onclick="moveStep(' + s.id + ', 1)"><i class="fa fa-chevron-down"></i></button>' : '<span style="display:inline-block;width:22px;"></span>';
+                                    // SLA input is not editable for NOTIFY-only steps; show disabled 0
+                                    var slaHtml = '';
+                                    if (String(s.action).toUpperCase() === 'NOTIFY') {
+                                        slaHtml = '<div class="col-md-2"><input type="number" class="form-control form-control-sm" value="0" disabled /></div>';
+                                    } else {
+                                        slaHtml = '<div class="col-md-2"><input type="number" class="form-control form-control-sm" value="' + s.sla_hours + '" oninput="updateStepField(' + s.id + ', \'sla_hours\', this.value)" /></div>';
+                                    }
+                                    html += '<div class="step-card p-3 mb-2 d-flex align-items-start gap-3">'
+                                        + '<div class="d-flex flex-column align-items-center gap-1">'
+                                        + '<div class="step-number">' + (i + 1) + '</div>'
+                                        + upBtn + ' ' + downBtn
+                                        + '</div>'
+                                        + '<div class="flex-grow-1 row g-3">'
+                                        + '<div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Step Name" value="' + escHtml(s.name) + '" oninput="updateStepField(' + s.id + ', \'name\', this.value)" /></div>'
+                                        + '<div class="col-md-3"><select class="form-select form-select-sm" onchange="updateStepField(' + s.id + ', \'role\', this.value)">' + roleOptions + '</select></div>'
+                                        + '<div class="col-md-3"><select class="form-select form-select-sm" onchange="updateStepField(' + s.id + ', \'action\', this.value)">' + actionOptions + '</select></div>'
+                                        + slaHtml
+                                        + '</div>'
+                                        + '<button type="button" class="btn btn-sm text-danger" onclick="removeStep(' + s.id + ')"><i class="fa fa-trash"></i></button>'
+                                        + '</div>';
                                 });
                                 container.innerHTML = html;
                             }
 
                             function updateStepField(id, field, value) {
                                 var s = steps.find(s => s.id === id);
-                                if (s)
-                                    s[field] = (field === 'sla_hours') ? (parseInt(value, 10) || 0) : value;
+                                if (s) {
+                                    if (field === 'action') {
+                                        s[field] = value;
+                                        // If switched to NOTIFY, SLA must be 0 and not editable
+                                        if (String(value).toUpperCase() === 'NOTIFY') {
+                                            s.sla_hours = 0;
+                                        } else {
+                                            // If previously 0 due to NOTIFY, reset to reasonable default
+                                            if (!s.sla_hours || s.sla_hours === 0) s.sla_hours = 24;
+                                        }
+                                        // Re-render steps so SLA input shows/hides correctly
+                                        renderSteps();
+                                        updateJsonPreview();
+                                        return;
+                                    }
+                                    if (field === 'sla_hours') {
+                                        s[field] = parseInt(value, 10) || 0;
+                                    } else {
+                                        s[field] = value;
+                                    }
+                                }
                                 updateJsonPreview();
                             }
                             function removeStep(id) {
