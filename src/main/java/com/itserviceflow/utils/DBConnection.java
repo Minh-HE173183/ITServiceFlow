@@ -18,7 +18,11 @@ import java.sql.SQLException;
 public class DBConnection {
     private static final String URL = "jdbc:mysql://localhost:3306/itserviceflow_db";
     private static final String USER = "root";
+<<<<<<< HEAD
+    private static final String PASSWORD = "123";
+=======
     private static final String PASSWORD = "1234";
+>>>>>>> e25dfffd712284988e9c8e81f2ee99c2ad70d7ef
 
     static {
         try {
