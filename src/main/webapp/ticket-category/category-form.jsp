@@ -211,14 +211,12 @@
                 <input class="f-input" type="text" id="categoryName" name="categoryName"
                        value="${fn:escapeXml(cat.categoryName)}" placeholder="Hardware Issue"
                        required maxlength="120">
-                <div class="f-help">Human-readable display name shown in ticket forms.</div>
             </div>
             <div class="f-group">
                 <label class="f-label" for="categoryCode">Category Code</label>
                 <input class="f-input" type="text" id="categoryCode" name="categoryCode"
                        value="${fn:escapeXml(cat.categoryCode)}" placeholder="HW-001"
                        maxlength="30">
-                <div class="f-help">Short unique code for routing and reporting purposes.</div>
             </div>
         </div>
 
@@ -237,7 +235,6 @@
                     <option value="PROBLEM" ${cat.categoryType=='PROBLEM' ? 'selected' : '' }>
                         Problem</option>
                 </select>
-                <div class="f-help">Controls which ticket type this category appears in.</div>
             </div>
             <div class="f-group">
                 <label class="f-label" for="parentCategoryId">Parent Category</label>
@@ -252,7 +249,6 @@
                             </option>
                     </c:forEach>
                 </select>
-                <div class="f-help">Optional parent for hierarchical structure.</div>
             </div>
         </div>
 
@@ -261,35 +257,30 @@
             <textarea class="f-input" id="description" name="description" rows="3"
                       placeholder="Mô tả danh mục này bao gồm những gì…" maxlength="500"
                       style="resize:vertical;">${fn:escapeXml(cat.description)}</textarea>
-            <div class="f-help">Tùy chọn. Hiển thị dưới dạng gợi ý cho agent và người dùng chọn
-                danh mục này.
-            </div>
+    
         </div>
 
         <%-- Section: Routing / Difficulty --%>
-        <div class="form-section-title mt-2">
-            Routing & Effort</div>
 
         <div class="f-group">
-            <label class="f-label">Difficulty Level <span class="req">*</span></label>
+            <label class="f-label">Độ khó <span class="req">*</span></label>
             <input type="hidden" id="difficultyLevel" name="difficultyLevel"
                    value="${cat.difficultyLevel}" required>
             <div class="diff-hints">
                 <div class="diff-btn ${cat.difficultyLevel == 'EASY'   ? 'sel-EASY'   : ''}"
                      onclick="selectDiff('EASY')">
-                    <div class="d-title" style="color:#27ae60;">Easy</div>
-                    <div class="d-sub">Standard task, low impact. Time multiplier ×1.</div>
+                    <div class="d-title" style="color:#27ae60;">Dễ</div>
+                    <div class="d-sub">Nhiệm vụ tiêu chuẩn, tác động thấp.</div>
                 </div>
                 <div class="diff-btn ${cat.difficultyLevel == 'MEDIUM' ? 'sel-MEDIUM' : ''}"
                      onclick="selectDiff('MEDIUM')">
-                    <div class="d-title" style="color:#dd6b20;">Medium</div>
-                    <div class="d-sub">Moderate effort required. Time multiplier ×1.5.</div>
+                    <div class="d-title" style="color:#dd6b20;">Trung bình</div>
+                    <div class="d-sub">Cần nhiều nỗ lực hơn.</div>
                 </div>
                 <div class="diff-btn ${cat.difficultyLevel == 'HARD'   ? 'sel-HARD'   : ''}"
                      onclick="selectDiff('HARD')">
-                    <div class="d-title" style="color:#c53030;">Hard</div>
-                    <div class="d-sub">High complexity or critical impact. Time multiplier
-                        ×2.</div>
+                    <div class="d-title" style="color:#c53030;">Khó</div>
+                    <div class="d-sub">Độ phức tạp cao hoặc tác động quan trọng.</div>
                 </div>
             </div>
         </div>
