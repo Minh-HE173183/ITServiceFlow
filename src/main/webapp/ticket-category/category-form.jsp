@@ -194,6 +194,12 @@
     ${isEdit ? 'Chỉnh sửa Danh mục' : 'Tạo Danh mục Mới'}
 </h4>
 
+<c:if test="${not empty error}">
+    <div class="alert alert-danger" role="alert">
+        <strong>Error:</strong> <c:out value="${error}" />
+    </div>
+</c:if>
+
 <div class="form-card">
     <form method="post" action="${pageContext.request.contextPath}/ticket-category" id="catForm"
           novalidate>
