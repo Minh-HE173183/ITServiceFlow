@@ -174,6 +174,22 @@ public class TicketCategoryController extends HttpServlet {
 
     private void handleCreate(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         TicketCategory cat = buildFromRequest(req);
+        // Duplicate code check
+        TicketCategory exists = dao.findByCode(cat.getCategoryCode());
+        if (exists != null) {
+            // Re-display form with error
+            req.setAttribute("cat", cat);
+            req.setAttribute("isEdit", false);
+            req.setAttribute("allCats", dao.getAllCategories());
+            req.setAttribute("error", "Category code already in use.");
+            try {
+                req.getRequestDispatcher("/ticket-category/category-form.jsp").forward(req, resp);
+            } catch (ServletException e) {
+                resp.sendRedirect(req.getContextPath() + "/ticket-category?action=form&error=create_failed");
+            }
+            return;
+        }
+
         int id = dao.insert(cat);
         if (id > 0) {
             resp.sendRedirect(req.getContextPath() + "/ticket-category?createSuccess=1");
@@ -185,6 +201,22 @@ public class TicketCategoryController extends HttpServlet {
     private void handleUpdate(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         TicketCategory cat = buildFromRequest(req);
         cat.setCategoryId(parseId(req.getParameter("id")));
+
+        // Duplicate code check: allow same code for the same record
+        TicketCategory exists = dao.findByCode(cat.getCategoryCode());
+        if (exists != null && exists.getCategoryId() != cat.getCategoryId()) {
+            // Re-display form with error
+            req.setAttribute("cat", cat);
+            req.setAttribute("isEdit", true);
+            req.setAttribute("allCats", dao.getAllCategories());
+            req.setAttribute("error", "Category code already in use.");
+            try {
+                req.getRequestDispatcher("/ticket-category/category-form.jsp").forward(req, resp);
+            } catch (ServletException e) {
+                resp.sendRedirect(req.getContextPath() + "/ticket-category?action=form&id=" + cat.getCategoryId() + "&error=update_failed");
+            }
+            return;
+        }
 
         if (dao.update(cat)) {
             resp.sendRedirect(req.getContextPath() + "/ticket-category?updateSuccess=1");

@@ -279,6 +279,23 @@ public class TicketCategoryDAO {
     }
 
     /**
+     * Find category by code (case-insensitive). Returns null if not found.
+     */
+    public TicketCategory findByCode(String code) {
+        if (code == null || code.isBlank()) return null;
+        String sql = "SELECT tc.* FROM ticket_category tc WHERE LOWER(tc.category_code) = LOWER(?) LIMIT 1";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, code.trim());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return mapRow(rs);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
      * Returns all sub-categories of a given parent ID.
      */
     public List<TicketCategory> getChildren(int parentId) {
