@@ -26,7 +26,7 @@ public class ServiceDAO {
 //    }
     public List<Service> searchServices(String query) {
         List<Service> services = new ArrayList<>();
-        // Truy vấn tìm kiếm theo tên hoặc mô tả
+        
         String sql = "SELECT * FROM service WHERE status = 'ACTIVE' AND (service_name LIKE ? OR description LIKE ?)";
 
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -90,17 +90,15 @@ public class ServiceDAO {
     }
 
     public String deleteService(int serviceId) {
-        // Kiểm tra xem đã có ticket nào sử dụng dịch vụ này chưa
         String checkSql = "SELECT COUNT(*) FROM ticket WHERE service_id = ?";
         String deleteSql = "DELETE FROM service WHERE service_id = ?";
 
         try (Connection conn = getConnection()) {
-            // Kiểm tra ràng buộc
             try (PreparedStatement psCheck = conn.prepareStatement(checkSql)) {
                 psCheck.setInt(1, serviceId);
                 ResultSet rs = psCheck.executeQuery();
                 if (rs.next() && rs.getInt(1) > 0) {
-                    return "cannot_delete"; // Đã có request sử dụng
+                    return "cannot_delete"; 
                 }
             }
 
@@ -138,7 +136,7 @@ public class ServiceDAO {
             for (String id : ids) {
                 ps.setString(1, newStatus);
                 ps.setInt(2, Integer.parseInt(id));
-                ps.addBatch(); // Thêm vào batch để chạy 1 lần cho tối ưu
+                ps.addBatch(); 
             }
 
             int[] results = ps.executeBatch();
