@@ -619,8 +619,16 @@ out.print(gson.toJson(_pr));
                             }
                             function updateJsonPreview() {
                                 var json = JSON.stringify(buildConfig(), null, 2);
-                                document.getElementById('jsonPreview').textContent = json;
-                                document.getElementById('workflowConfigHidden').value = json;
+                                // Update preview if present (the preview panel may be commented out)
+                                var previewEl = document.getElementById('jsonPreview');
+                                if (previewEl) {
+                                    previewEl.textContent = json;
+                                }
+                                // Always update the hidden input so server receives the config
+                                var hidden = document.getElementById('workflowConfigHidden');
+                                if (hidden) {
+                                    hidden.value = json;
+                                }
                             }
 
                             var statusSelect = document.getElementById('status');
