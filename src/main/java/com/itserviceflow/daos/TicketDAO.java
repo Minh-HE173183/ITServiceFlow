@@ -21,14 +21,14 @@ import java.util.List;
 public class TicketDAO {
 
     public boolean createServiceRequest(Ticket ticket) {
-        // ticket_type mặc định là 'SERVICE_REQUEST' theo US06
+        // mặc định là 'SERVICE_REQUEST' theo US06
         String sql = "INSERT INTO ticket (ticket_number, ticket_type, title, description, justification, "
                 + "status, priority, service_id, reported_by, department_id, created_at) "
                 + "VALUES (?, 'SERVICE_REQUEST', ?, ?, ?, 'New', ?, ?, ?, ?, CURRENT_TIMESTAMP)";
 
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            // Tạo mã ticket tự động (Ví dụ: SR-20260302-001)
+            // Tạo mã ticket tự động 
             String ticketNum = "SR-" + System.currentTimeMillis() / 1000;
 
             ps.setString(1, ticketNum);
@@ -47,6 +47,70 @@ public class TicketDAO {
         }
     }
 
+    public List<Ticket> getRequestsByRole(int userId, String role, String search, String statusFilter) {
+        List<Ticket> list = new ArrayList<>();
+        
+        // Nối bảng ticket với bảng service để lấy tên hiển thị
+        StringBuilder sql = new StringBuilder(
+            "SELECT t.*, s.service_name FROM ticket t " +
+            "LEFT JOIN service s ON t.service_id = s.service_id " +
+            "WHERE t.ticket_type = 'SERVICE_REQUEST' " // Chỉ lấy các ticket là Service Request
+        );
+
+        // 1. Phân quyền dữ liệu (Role-based Filtering)
+        if ("END_USER".equals(role)) {
+            sql.append(" AND t.reported_by = ").append(userId);
+        } else if ("SUPPORT".equals(role)) {
+            sql.append(" AND (t.assigned_to = ").append(userId).append(" OR t.assigned_to IS NULL) ");
+        } 
+        // ADMIN, MANAGER xem tất cả
+
+        // 2. Tìm kiếm (Search)
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (t.title LIKE ? OR s.service_name LIKE ? OR t.ticket_number LIKE ?) ");
+        }
+
+        // 3. Lọc theo trạng thái (Status)
+        if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+            sql.append(" AND t.status = ? ");
+        }
+
+       sql.append(" ORDER BY t.ticket_id ASC");
+
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            
+            int paramIndex = 1;
+            if (search != null && !search.trim().isEmpty()) {
+                String searchStr = "%" + search + "%";
+                ps.setString(paramIndex++, searchStr);
+                ps.setString(paramIndex++, searchStr);
+                ps.setString(paramIndex++, searchStr);
+            }
+            if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+                ps.setString(paramIndex++, statusFilter);
+            }
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Ticket t = new Ticket();
+                t.setTicketId(rs.getInt("ticket_id"));
+                t.setTicketNumber(rs.getString("ticket_number"));
+                t.setTitle(rs.getString("title"));
+                t.setStatus(rs.getString("status"));
+                t.setPriority(rs.getString("priority"));
+                t.setCreatedAt(rs.getTimestamp("created_at"));
+                if (rs.getString("service_name") != null) {
+                    t.setTitle(t.getTitle() + " (" + rs.getString("service_name") + ")");
+                }
+                
+                list.add(t);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 
     public Ticket getTicketById(int ticketId) {
         String sql = "SELECT * FROM ticket WHERE ticket_id = ?";
