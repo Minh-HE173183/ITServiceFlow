@@ -702,9 +702,9 @@ out.print(gson.toJson(_pr));
                                         + '<div class="flex-grow-1 row g-3">'
                                         + '<div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Step Name" value="' + escHtml(s.name) + '" oninput="updateStepField(' + s.id + ', \'name\', this.value)" /></div>'
                                         + '<div class="col-md-3">'
-                                        + '<div class="form-control form-control-sm d-flex flex-wrap align-items-center gap-1" style="min-height:31px; height:auto; cursor:text; padding:3px 6px;" onclick="openUserPicker(event, ' + s.id + ')">'
+                                        + '<div class="form-control form-control-sm btn-user-add d-flex flex-wrap align-items-center gap-1" style="min-height:31px; height:auto; cursor:text; padding:3px 6px;" onclick="openUserPicker(event, ' + s.id + ')">'
                                         + usersHtml
-                                        + '<input type="text" style="border:none; outline:none; box-shadow:none; flex-grow:1; min-width:60px; background:transparent; font-size:13px;" placeholder="' + (selectedUsers.length > 0 ? '' : 'Search users...') + '" onfocus="openUserPicker(event, ' + s.id + ')" readonly />'
+                                        + '<input type="text" style="border:none; outline:none; box-shadow:none; flex-grow:1; min-width:60px; background:transparent; font-size:13px;" placeholder="' + (selectedUsers.length > 0 ? '' : 'Search users...') + '" readonly />'
                                         + '</div>'
                                         + '</div>'
                                         + '<div class="col-md-3"><select class="form-select form-select-sm" onchange="updateStepField(' + s.id + ', \'action\', this.value)">' + actionOptions + '</select></div>'
@@ -768,22 +768,13 @@ out.print(gson.toJson(_pr));
                                 container.style.zIndex = 1080;
                                 container.style.display = 'none';
                                 container.innerHTML = `
-    <div class="dropdown-header p-2 border-bottom">
-        <div class="form-control form-control-sm d-flex flex-wrap align-items-center px-2 py-1 gap-1" style="height: auto; min-height: 36px; cursor: text;" onclick="document.getElementById('userPickerSearch').focus()">
-            <div id="userPickerSelectedSummary" class="d-flex align-items-center flex-wrap gap-1"></div>
-            <input type="text" id="userPickerSearch" style="border:none; outline:none; box-shadow:none; flex-grow:1; min-width:100px; background:transparent; padding:0;" placeholder="Search by name, email or role..." oninput="fetchUsersForPicker(this.value)" />
-        </div>
-        <div class="w-100 mt-2 d-flex justify-content-end" style="display:none;">
-            <select id="userPickerRole" class="form-select form-select-sm" style="max-width:160px" onchange="fetchUsersForPicker(document.getElementById('userPickerSearch').value)">
-                <option value="">All Roles</option>
-            </select>
-        </div>
+    <div class="dropdown-header p-2 border-bottom bg-light">
+        <input type="text" id="userPickerSearch" class="form-control form-control-sm w-100" placeholder="Search by name, email or role..." oninput="fetchUsersForPicker(this.value)" autofocus />
+        <select id="userPickerRole" class="form-select form-select-sm mt-2" style="display:none;" onchange="fetchUsersForPicker(document.getElementById('userPickerSearch').value)">
+            <option value="">All Roles</option>
+        </select>
     </div>
-    <div id="userPickerResults" style="max-height:240px; overflow:auto;"></div>
-    <div class="dropdown-footer p-2 border-top text-end">
-        <button type="button" class="btn btn-sm btn-secondary me-2" onclick="hideUserPickerDropdown()">Cancel</button>
-        <button type="button" class="btn btn-sm btn-primary" onclick="confirmUserPickerSelection()">Add Selected</button>
-    </div>`;
+    <div id="userPickerResults" style="max-height:240px; overflow:auto;"></div>`;
                                 document.body.appendChild(container);
                                 // populate role select from client-side ROLES array
                                 try {
@@ -802,15 +793,19 @@ out.print(gson.toJson(_pr));
                             function positionUserPickerDropdown(e) {
                                 var dropdown = document.getElementById('userPickerDropdown');
                                 if (!dropdown) return;
-                                var btnRect = e.currentTarget.getBoundingClientRect();
+                                var target = e.currentTarget || e.target;
+                                if (target && !target.classList.contains('btn-user-add') && target.closest) {
+                                    target = target.closest('.btn-user-add') || target;
+                                }
+                                var btnRect = target.getBoundingClientRect();
                                 var top = window.scrollY + btnRect.bottom + 6;
                                 var left = window.scrollX + btnRect.left;
                                 dropdown.style.top = top + 'px';
                                 dropdown.style.left = left + 'px';
                                 dropdown.style.minWidth = Math.max(300, btnRect.width * 1.2) + 'px';
                                 dropdown.style.display = 'block';
-                                renderUserPickerSelectedSummary();
                                 // close when clicking outside
+                                window.removeEventListener('click', outsideClickHandler);
                                 setTimeout(function () {
                                     window.addEventListener('click', outsideClickHandler);
                                 }, 10);
@@ -863,74 +858,56 @@ out.print(gson.toJson(_pr));
                                         });
                                         html += '</div>';
                                         out.innerHTML = html;
-                                        renderUserPickerSelectedSummary();
                                     }).catch(err => {
                                         console.error('User search error', err);
                                     });
                             }
 
                             function toggleUserSelectionInPicker(userId, checkbox) {
+                                var stepId = _userPickerState.stepId;
+                                var s = steps.find(x => x.id === stepId);
+                                if (!s) return;
+
                                 if (checkbox.checked) {
                                     // optimistic placeholder so UI updates immediately
                                     _userPickerState.selected[userId] = { userId: userId, fullName: '...', role: '', departmentName: '' };
-                                    renderUserPickerSelectedSummary();
+                                    s.users = Object.values(_userPickerState.selected);
+                                    s.legacyRole = null;
+                                    renderSteps();
+
                                     // fetch user info and fill
                                     var ctxMeta = document.querySelector('meta[name="ctx-path"]');
                                     var ctx = ctxMeta ? ctxMeta.getAttribute('content') : '';
                                     fetch(ctx + '/admin/users?action=getInfo&id=' + userId)
                                         .then(res => res.ok ? res.json() : null)
-                                        .then(u => { if (u) { _userPickerState.selected[u.userId] = { userId: u.userId, fullName: u.fullName, role: u.roleName, departmentName: u.departmentName }; renderUserPickerSelectedSummary(); } })
+                                        .then(u => {
+                                            if (u) {
+                                                _userPickerState.selected[u.userId] = { userId: u.userId, fullName: u.fullName, role: u.roleName, departmentName: u.departmentName };
+                                                s.users = Object.values(_userPickerState.selected);
+                                                renderSteps();
+                                                updateJsonPreview();
+                                            }
+                                        })
                                         .catch(() => { /* ignore */ });
                                 } else {
                                     delete _userPickerState.selected[userId];
-                                    renderUserPickerSelectedSummary();
+                                    s.users = Object.values(_userPickerState.selected);
+                                    renderSteps();
+                                    updateJsonPreview();
                                 }
-                            }
-
-                            function removeSelectedInPicker(userId) {
-                                delete _userPickerState.selected[userId];
-                                // uncheck any checkbox in results
-                                var cb = document.querySelector('#userPickerResults input.user-picker-checkbox[data-id="' + userId + '"]');
-                                if (cb) cb.checked = false;
-                                renderUserPickerSelectedSummary();
-                            }
-
-                            function renderUserPickerSelectedSummary() {
-                                var container = document.getElementById('userPickerSelectedSummary');
-                                if (!container) return;
-                                var vals = Object.values(_userPickerState.selected || {});
-                                if (vals.length === 0) {
-                                    container.innerHTML = '';
-                                    return;
-                                }
-                                // show up to 3 pills, then a "n more" pill
-                                var html = '';
-                                var show = 3;
-                                vals.slice(0, show).forEach(function (u) {
-                                    html += '<div class="user-picker-selected-pill m-0 py-1">' + escHtml(u.fullName) + '<span class="pill-remove" onclick="removeSelectedInPicker(' + u.userId + ')">×</span></div>';
-                                });
-                                if (vals.length > show) {
-                                    html += '<div class="user-picker-selected-pill m-0 py-1">' + (vals.length - show) + ' more...</div>';
-                                }
-                                container.innerHTML = html;
-                            }
-
-                            function confirmUserPickerSelection() {
-                                var stepId = _userPickerState.stepId;
-                                var s = steps.find(x => x.id === stepId);
-                                if (!s) return;
-                                s.users = Object.values(_userPickerState.selected || {});
-                                // clear legacyRole now that explicit users exist
-                                s.legacyRole = null;
-                                renderSteps();
-                                updateJsonPreview();
-                                hideUserPickerDropdown();
                             }
 
                             function removeSelectedUserFromStep(stepId, userId) {
                                 var s = steps.find(x => x.id === stepId);
                                 if (!s || !Array.isArray(s.users)) return;
                                 s.users = s.users.filter(u => (u.userId || null) !== (userId || null));
+
+                                if (_userPickerState.stepId === stepId) {
+                                    delete _userPickerState.selected[userId];
+                                    var cb = document.querySelector('#userPickerResults input.user-picker-checkbox[data-id="' + userId + '"]');
+                                    if (cb) cb.checked = false;
+                                }
+
                                 renderSteps();
                                 updateJsonPreview();
                             }
