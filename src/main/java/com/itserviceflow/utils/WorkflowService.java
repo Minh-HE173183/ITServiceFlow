@@ -5,8 +5,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.itserviceflow.daos.TicketDAO;
+import com.itserviceflow.daos.UserDAO;
 import com.itserviceflow.daos.WorkflowDAO;
 import com.itserviceflow.models.Ticket;
+import com.itserviceflow.models.User;
 import com.itserviceflow.models.Workflow;
 
 import java.sql.SQLException;
@@ -53,6 +55,8 @@ public class WorkflowService {
 
     private final WorkflowDAO workflowDAO = new WorkflowDAO();
     private final TicketDAO   ticketDAO   = new TicketDAO();
+    private final UserDAO     userDAO     = new UserDAO();
+    private final EmailService emailService = new EmailService();
     private final Gson        gson        = new Gson();
 
     // -----------------------------------------------------------------------
@@ -292,7 +296,34 @@ public class WorkflowService {
         LOGGER.info(String.format(
                 "WorkflowService [NOTIFY/REVIEW] ticket=%d, notify users=%s",
                 ticket.getTicketId(), targetUsers));
-        // TODO: mở rộng gọi EmailService để gửi email thông báo
+        
+        if (step.has("users") && step.get("users").isJsonArray()) {
+            JsonArray usersArr = step.getAsJsonArray("users");
+            String subject = "ITServiceFlow - Ticket Notification: #" + ticket.getTicketId();
+            String body = "Hello,\n\n" +
+                          "You have been notified regarding Ticket #" + ticket.getTicketId() + " (" + ticket.getTicketType() + ").\n" +
+                          "Current Status: " + ticket.getStatus() + "\n" +
+                          "Priority: " + ticket.getPriority() + "\n\n" +
+                          "Please review this ticket in the IT Service Flow system.\n\n" +
+                          "Best regards,\nIT Service Flow Team";
+
+            for (JsonElement el : usersArr) {
+                if (!el.isJsonObject()) continue;
+                JsonObject u = el.getAsJsonObject();
+                if (u.has("userId") && !u.get("userId").isJsonNull()) {
+                    int userId = u.get("userId").getAsInt();
+                    User user = userDAO.findById(userId);
+                    if (user != null && user.getEmail() != null && !user.getEmail().isBlank()) {
+                        try {
+                            emailService.sendEmail(user.getEmail(), subject, body);
+                            LOGGER.info("WorkflowService: Notification email sent to " + user.getEmail());
+                        } catch (Exception e) {
+                            LOGGER.log(Level.WARNING, "WorkflowService: Failed to send email to " + user.getEmail(), e);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // -----------------------------------------------------------------------
