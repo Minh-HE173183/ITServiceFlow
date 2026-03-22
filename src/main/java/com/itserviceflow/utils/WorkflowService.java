@@ -206,11 +206,11 @@ public class WorkflowService {
 
             try {
                 switch (action.toUpperCase()) {
-                    case "ASSIGN_AGENT"  -> executeAssignAgent(step, ticket);
+                    case "ASSIGN_AGENT", "EXECUTE" -> executeAssignAgent(step, ticket);
                     case "SET_PRIORITY"  -> executeSetPriority(step, ticket);
                     case "SET_STATUS"    -> executeSetStatus(step, ticket);
-                    case "NOTIFY"        -> executeNotify(step, ticket);
-                    case "APPROVE_REJECT"-> LOGGER.info("WorkflowService: APPROVE_REJECT step logged for ticket " + ticket.getTicketId());
+                    case "NOTIFY", "REVIEW" -> executeNotify(step, ticket);
+                    case "APPROVE_REJECT"-> LOGGER.info("WorkflowService: APPROVE_REJECT step logged for ticket " + ticket.getTicketId() + ", target users=" + extractTargetUsers(step));
                     default              -> LOGGER.warning("WorkflowService: unknown action: " + action);
                 }
             } catch (Exception e) {
@@ -219,21 +219,40 @@ public class WorkflowService {
         }
     }
 
+    private String extractTargetUsers(JsonObject step) {
+        if (step.has("users") && step.get("users").isJsonArray()) {
+            JsonArray usersArr = step.getAsJsonArray("users");
+            StringBuilder sb = new StringBuilder();
+            for (JsonElement el : usersArr) {
+                if (!el.isJsonObject()) continue;
+                JsonObject u = el.getAsJsonObject();
+                if (u.has("fullName") && !u.get("fullName").isJsonNull()) {
+                    if (sb.length() > 0) sb.append(", ");
+                    sb.append(u.get("fullName").getAsString());
+                }
+            }
+            if (sb.length() > 0) return sb.toString();
+        }
+        String fallback = getStringOrNull(step, "legacyRole");
+        if (fallback != null) return fallback;
+        return getStringOrNull(step, "role");
+    }
+
     /**
      * ASSIGN_AGENT: nếu ticket chưa được assign, chuyển trạng thái sang IN_PROGRESS.
      * (Auto-assign theo role sẽ cần bảng user; hiện tại ghi log + đổi status)
      */
     private void executeAssignAgent(JsonObject step, Ticket ticket) {
-        String role = getStringOrNull(step, "role");
+        String targetUsers = extractTargetUsers(step);
         LOGGER.info(String.format(
-                "WorkflowService [ASSIGN_AGENT] ticket=%d, target role=%s",
-                ticket.getTicketId(), role));
+                "WorkflowService [ASSIGN/EXECUTE] ticket=%d, target users=%s",
+                ticket.getTicketId(), targetUsers));
 
         // Nếu ticket chưa có người assign → cập nhật status sang IN_PROGRESS
         if (ticket.getAssignedTo() == null || ticket.getAssignedTo() == 0) {
             ticketDAO.updateTicketStatus(ticket.getTicketId(), "IN_PROGRESS");
             ticket.setStatus("IN_PROGRESS");
-            LOGGER.info("WorkflowService [ASSIGN_AGENT] ticket " + ticket.getTicketId() + " → IN_PROGRESS");
+            LOGGER.info("WorkflowService [ASSIGN/EXECUTE] ticket " + ticket.getTicketId() + " → IN_PROGRESS");
         }
     }
 
@@ -269,10 +288,10 @@ public class WorkflowService {
      * NOTIFY: ghi log thông báo (có thể mở rộng gửi email qua EmailService).
      */
     private void executeNotify(JsonObject step, Ticket ticket) {
-        String role = getStringOrNull(step, "role");
+        String targetUsers = extractTargetUsers(step);
         LOGGER.info(String.format(
-                "WorkflowService [NOTIFY] ticket=%d, notify role=%s",
-                ticket.getTicketId(), role));
+                "WorkflowService [NOTIFY/REVIEW] ticket=%d, notify users=%s",
+                ticket.getTicketId(), targetUsers));
         // TODO: mở rộng gọi EmailService để gửi email thông báo
     }
 
