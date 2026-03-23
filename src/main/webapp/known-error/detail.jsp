@@ -33,7 +33,7 @@
                 </div>
             </div>
             <div class="d-flex gap-2">
-                <c:if test="${knownError.authorId == sessionScope.user.userId || sessionScope.user.roleId == 3}">
+                <c:if test="${knownError.authorId == sessionScope.user.userId || sessionScope.user.roleId == 3 || sessionScope.user.roleId == 10}">
                     <a href="${pageContext.request.contextPath}/known-error?action=edit&id=${knownError.articleId}"
                         class="btn btn-outline-warning btn-sm">
                         <i class="bi bi-pencil"></i> Edit
@@ -58,7 +58,6 @@
             ${knownError.summary}
         </div>
 
-        <!-- Body Section -->
         <h4 class="h5 fw-bold text-primary mb-3 border-bottom pb-2">Technical Details</h4>
 
         <div class="row g-4 mb-5">
@@ -99,7 +98,7 @@
         </c:if>
 
         <c:if test="${knownError.status eq 'PENDING'}">
-            <c:if test="${sessionScope.user.roleId == 2 || sessionScope.user.roleId == 3}">
+            <c:if test="${sessionScope.user.roleId == 10 || sessionScope.user.roleId == 3}">
                 <div class="mt-5 p-4 rounded shadow-sm border border-warning bg-white">
                     <h3 class="h5 text-warning mb-3 fw-bold"><i class="bi bi-shield-check"></i> Admin Review Panel</h3>
                     <p class="text-muted mb-4">Please review the details above to approve or reject this article.

@@ -27,7 +27,6 @@ public class User {
     private LocalDateTime updatedAt;
     private LocalDateTime lastLogin;
 
-    // Join fields (for UI convenience)
     private String roleName;
     private String departmentName;
 

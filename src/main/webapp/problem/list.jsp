@@ -93,8 +93,6 @@
                                                     class="badge bg-primary">IN_PROGRESS</span></c:when>
                                             <c:when test="${problem.status == 'RESOLVED'}"><span
                                                     class="badge bg-success">RESOLVED</span></c:when>
-                                            <c:when test="${problem.status == 'OPEN'}"><span
-                                                    class="badge bg-warning text-dark">OPEN</span></c:when>
                                             <c:when test="${problem.status == 'CANCELLED'}"><span
                                                     class="badge bg-danger">CANCELLED</span></c:when>
                                             <c:otherwise><span class="badge bg-dark">${problem.status}</span>
