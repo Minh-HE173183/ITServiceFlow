@@ -6,15 +6,15 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class KnowledgeBaseDAO {
+public class KnowledgeArticleDAO {
 
     private Connection conn;
 
-    public KnowledgeBaseDAO() {
+    public KnowledgeArticleDAO() {
         try {
             conn = DBConnection.getConnection();
         } catch (Exception e) {
-            System.err.println("KnowledgeBaseDAO error: " + e.getMessage());
+            System.err.println("KnowledgeArticleDAO error: " + e.getMessage());
         }
     }
 
@@ -53,7 +53,7 @@ public class KnowledgeBaseDAO {
 
     public List<Article> listArticles(String keyword, String status, String type, int offset, int limit) {
         List<Article> list = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT * FROM article WHERE article_type = 'KNOWLEDGE_BASE'");
+        StringBuilder sql = new StringBuilder("SELECT * FROM article WHERE article_type = 'KNOWLEDGE_ARTICLE'");
 
         if (keyword != null && !keyword.isEmpty()) {
             sql.append(" AND (title LIKE ? OR article_number LIKE ?)");
@@ -94,7 +94,7 @@ public class KnowledgeBaseDAO {
     }
 
     public int countArticles(String keyword, String status, String type) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM article WHERE article_type = 'KNOWLEDGE_BASE'");
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM article WHERE article_type = 'KNOWLEDGE_ARTICLE'");
 
         if (keyword != null && !keyword.isEmpty()) {
             sql.append(" AND (title LIKE ? OR article_number LIKE ?)");
@@ -153,7 +153,7 @@ public class KnowledgeBaseDAO {
             st.setString(1, a.getTitle());
             st.setString(2, a.getSummary());
             st.setString(3, a.getContent());
-            st.setString(4, "KNOWLEDGE_BASE");
+            st.setString(4, "KNOWLEDGE_ARTICLE");
             st.setString(5, a.getTag());
             st.setString(6, a.getStatus());
             if (a.getAuthorId() != null) {
@@ -161,7 +161,7 @@ public class KnowledgeBaseDAO {
             } else {
                 st.setNull(7, Types.INTEGER);
             }
-            st.setString(8, "No Error");
+            st.setString(8, a.getErrorCode());
             st.setString(9, a.getSymptom());
             st.setString(10, a.getCause());
             st.setString(11, a.getSolution());
@@ -174,7 +174,7 @@ public class KnowledgeBaseDAO {
 
     public boolean updateArticle(Article a) {
         String sql
-                = "UPDATE article SET title=?, summary=?, content=?, tag=?, "
+                = "UPDATE article SET title=?, summary=?, content=?, tag=?, error_code=?, "
                 + "symptom=?, cause=?, solution=?, updated_at=NOW() "
                 + "WHERE article_id=?";
         try (PreparedStatement st = conn.prepareStatement(sql)) {
@@ -182,10 +182,11 @@ public class KnowledgeBaseDAO {
             st.setString(2, a.getSummary());
             st.setString(3, a.getContent());
             st.setString(4, a.getTag());
-            st.setString(5, a.getSymptom());
-            st.setString(6, a.getCause());
-            st.setString(7, a.getSolution());
-            st.setInt(8, a.getArticleId());  // ← WHERE article_id=?
+            st.setString(5, a.getErrorCode());
+            st.setString(6, a.getSymptom());
+            st.setString(7, a.getCause());
+            st.setString(8, a.getSolution());
+            st.setInt(9, a.getArticleId());  // ← WHERE article_id=?
             return st.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
