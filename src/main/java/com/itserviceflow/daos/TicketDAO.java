@@ -309,6 +309,23 @@ public class TicketDAO {
     // ---------- workflow-driven operations ----------
 
     /**
+     * Lấy các ticket đang mở (chưa đóng/huỷ/hoàn tất) để kiểm tra SLA
+     */
+    public List<Ticket> getOpenTicketsForSLA() {
+        List<Ticket> list = new ArrayList<>();
+        String sql = "SELECT * FROM ticket WHERE status NOT IN ('CLOSED', 'RESOLVED', 'CANCELLED', 'Closed', 'Resolved', 'Cancelled')";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapRowToTicket(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
      * Cập nhật status của ticket bất kỳ (dùng bởi WorkflowService).
      */
     public boolean updateTicketStatus(int ticketId, String newStatus) {
