@@ -191,7 +191,19 @@ public class UserDAO {
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {
                     User u = mapUser(rs);
-                    if (BCrypt.checkpw(password, u.getPasswordHash())) {
+                    String stored = u.getPasswordHash();
+                    boolean valid;
+                    if (stored.startsWith("$2a$")) {
+                        valid = BCrypt.checkpw(password, stored);
+                    } else {
+                        // Plain text password, compare directly
+                        valid = password.equals(stored);
+                        // If valid, hash it for future logins
+                        if (valid) {
+                            updatePassword(u.getUserId(), password);
+                        }
+                    }
+                    if (valid) {
                         updateLastLogin(u.getUserId());
                         return u;
                     }

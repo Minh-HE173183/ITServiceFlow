@@ -289,10 +289,10 @@
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <h4 class="fw-bold mb-0" style="color:#222d32;">
-            <i class="bi bi-speedometer2 me-2 text-primary"></i>Executive Dashboard
+            <i class="bi bi-speedometer2 me-2 text-primary"></i>Bảng điều hành
         </h4>
         <small class="text-muted">
-            Real-time KPIs, SLA compliance indicators, and workload distribution overview.
+            Các chỉ số KPI, tuân thủ SLA và tổng quan phân bổ khối lượng công việc.
         </small>
     </div>
     <a href="${pageContext.request.contextPath}/time-tracking"
@@ -318,35 +318,35 @@
 <%-- ── KPI Hero Cards ─────────────────────────────────────────── --%>
 <div class="hero-kpi-row">
     <div class="hero-card hc-blue">
-        <div class="hc-label">Total Tickets</div>
+        <div class="hc-label">Tổng phiếu</div>
         <div class="hc-value">${kpiTotalTickets}</div>
-        <div class="hc-sub">All types combined</div>
+        <div class="hc-sub">Tổng hợp tất cả loại</div>
         <i class="bi bi-ticket-perforated hc-icon"></i>
     </div>
     <div class="hero-card hc-orange">
-        <div class="hc-label">Open Tickets</div>
+        <div class="hc-label">Phiếu đang mở</div>
         <div class="hc-value">${kpiOpenTickets}</div>
-        <div class="hc-sub">Requires attention</div>
+        <div class="hc-sub">Cần chú ý</div>
         <i class="bi bi-hourglass-split hc-icon"></i>
     </div>
     <div class="hero-card hc-green">
-        <div class="hc-label">Resolved / Closed</div>
+        <div class="hc-label">Đã giải quyết / Đóng</div>
         <div class="hc-value">${kpiResolvedTickets}</div>
-        <div class="hc-sub">Successfully completed</div>
+        <div class="hc-sub">Hoàn tất</div>
         <i class="bi bi-check2-circle hc-icon"></i>
     </div>
     <div class="hero-card hc-purple">
-        <div class="hc-label">Total Hours Logged</div>
+        <div class="hc-label">Tổng giờ đã ghi</div>
         <div class="hc-value">
             <fmt:formatNumber value="${kpiTotalHours}" maxFractionDigits="1" />h
         </div>
-        <div class="hc-sub">Across all tickets</div>
+        <div class="hc-sub">Tổng giờ cho tất cả phiếu</div>
         <i class="bi bi-clock-fill hc-icon"></i>
     </div>
     <div class="hero-card hc-teal">
-        <div class="hc-label">Log Entries</div>
+        <div class="hc-label">Bản ghi Log</div>
         <div class="hc-value">${kpiLogEntries}</div>
-        <div class="hc-sub">Time log records</div>
+        <div class="hc-sub">Số bản ghi Log</div>
         <i class="bi bi-journal-check hc-icon"></i>
     </div>
 </div>
@@ -355,8 +355,7 @@
 <c:set var="slaRate"
        value="${kpiTotalTickets > 0 ? (kpiResolvedTickets * 100 / kpiTotalTickets) : 0}" />
 <div class="chart-card mb-4">
-    <div class="chart-title"><i class="bi bi-shield-check text-success"></i> SLA
-        Compliance Rate</div>
+    <div class="chart-title"><i class="bi bi-shield-check text-success"></i> Tỷ lệ tuân thủ SLA</div>
     <div class="d-flex align-items-center gap-4 flex-wrap">
         <div
             style="font-size:48px; font-weight:900; color: ${slaRate >= 80 ? '#27ae60' : slaRate >= 50 ? '#f39c12' : '#c0392b'};">
@@ -371,17 +370,16 @@
                 </div>
             </div>
             <div class="mt-2 text-muted" style="font-size:13px;">
-                <strong>${kpiResolvedTickets}</strong> resolved out of
-                <strong>${kpiTotalTickets}</strong> total tickets.
-                <c:choose>
-                    <c:when test="${slaRate >= 80}"><span
-                            class="text-success fw-semibold"> ✓ On track</span></c:when>
-                    <c:when test="${slaRate >= 50}"><span
-                            class="text-warning fw-semibold"> ⚠ Needs attention</span>
-                    </c:when>
-                    <c:otherwise><span class="text-danger fw-semibold"> ✗ Below
-                            target</span></c:otherwise>
-                    </c:choose>
+                <strong>${kpiResolvedTickets}</strong> đã giải quyết trong tổng
+                <strong>${kpiTotalTickets}</strong> phiếu.
+        <c:choose>
+            <c:when test="${slaRate >= 80}"><span
+                class="text-success fw-semibold"> ✓ Đạt mục tiêu</span></c:when>
+            <c:when test="${slaRate >= 50}"><span
+                class="text-warning fw-semibold"> ⚠ Cần chú ý</span>
+            </c:when>
+            <c:otherwise><span class="text-danger fw-semibold"> ✗ Chưa đạt mục tiêu</span></c:otherwise>
+            </c:choose>
             </div>
         </div>
     </div>
@@ -392,9 +390,9 @@
 
     <%-- Ticket count by Status --%>
     <div class="chart-card">
-        <div class="chart-title"><i
-                class="bi bi-bar-chart-fill text-primary"></i> Tickets by Status
-        </div>
+    <div class="chart-title"><i
+        class="bi bi-bar-chart-fill text-primary"></i> Phiếu theo trạng thái
+    </div>
         <c:set var="maxStatus" value="1" />
         <c:forEach var="e" items="${byStatus}">
             <c:if test="${e.value > maxStatus}">
@@ -418,16 +416,16 @@
                 </div>
             </c:forEach>
             <c:if test="${empty byStatus}">
-                <p class="text-muted text-center py-3">No ticket data yet.</p>
+                <p class="text-muted text-center py-3">Chưa có dữ liệu phiếu.</p>
             </c:if>
         </div>
     </div>
 
     <%-- Ticket count by Type --%>
     <div class="chart-card">
-        <div class="chart-title"><i
-                class="bi bi-layers-fill text-warning"></i> Tickets by Type
-        </div>
+    <div class="chart-title"><i
+        class="bi bi-layers-fill text-warning"></i> Phiếu theo loại
+    </div>
         <c:set var="maxType" value="1" />
         <c:forEach var="e" items="${byType}">
             <c:if test="${e.value > maxType}">
@@ -451,7 +449,7 @@
                 </div>
             </c:forEach>
             <c:if test="${empty byType}">
-                <p class="text-muted text-center py-3">No ticket data yet.
+                <p class="text-muted text-center py-3">Chưa có dữ liệu phiếu.
                 </p>
             </c:if>
         </div>
@@ -459,9 +457,8 @@
 
     <%-- Ticket count by Priority --%>
     <div class="chart-card">
-        <div class="chart-title"><i
-                class="bi bi-flag-fill text-danger"></i> Tickets by
-            Priority</div>
+    <div class="chart-title"><i
+        class="bi bi-flag-fill text-danger"></i> Phiếu theo mức độ ưu tiên</div>
             <c:set var="totalPri" value="0" />
             <c:forEach var="e" items="${byPriority}">
                 <c:set var="totalPri" value="${totalPri + e.value}" />
@@ -488,8 +485,7 @@
                     </div>
                 </c:forEach>
                 <c:if test="${empty byPriority}">
-                    <p class="text-muted text-center py-3">No ticket
-                        data yet.</p>
+                    <p class="text-muted text-center py-3">Chưa có dữ liệu phiếu.</p>
                     </c:if>
             </div>
         </div>
@@ -498,8 +494,7 @@
     <%-- Agent Workload (hours logged) --%>
     <div class="chart-card">
         <div class="chart-title"><i
-                class="bi bi-people-fill text-info"></i> Agent
-            Workload (Hours Logged)</div>
+                class="bi bi-people-fill text-info"></i> Khối lượng công việc (Giờ đã ghi)</div>
             <c:set var="maxHours" value="1" />
             <c:forEach var="e" items="${byAgent}">
                 <c:if test="${e.value > maxHours}">
@@ -511,9 +506,9 @@
                 <table class="workload-table">
                     <thead>
                         <tr>
-                            <th>Agent</th>
-                            <th>Progress</th>
-                            <th style="text-align:right;">Hours</th>
+                            <th>Nhân viên</th>
+                            <th>Tiến độ</th>
+                            <th style="text-align:right;">Giờ</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -554,8 +549,7 @@
                 </table>
             </c:when>
             <c:otherwise>
-                <p class="text-muted text-center py-3">No time log
-                    data yet.</p>
+                <p class="text-muted text-center py-3">Chưa có dữ liệu nhật ký thời gian.</p>
                 </c:otherwise>
             </c:choose>
     </div>
@@ -566,8 +560,7 @@
 <div class="text-muted text-end"
      style="font-size:12px; margin-top:8px; margin-bottom: 20px;">
     <i class="bi bi-info-circle me-1"></i>
-    Data reflects real-time database counts. Refresh the page for latest
-    values.
+    Dữ liệu phản ánh số liệu thời gian thực. Vui lòng làm mới trang để nhận các giá trị mới nhất.
 </div>
 
 <jsp:include page="/common/admin-layout-bottom.jsp" />

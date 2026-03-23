@@ -162,7 +162,7 @@ public class AuthController extends HttpServlet {
                 session.setAttribute("dalogin", user);
 
                 if (user.getRoleId() != null && user.getRoleId() == 10) {
-                    response.sendRedirect(request.getContextPath() + "/admin/users");
+                    response.sendRedirect(request.getContextPath() + "/dashboard");
                 } else {
                     response.sendRedirect(request.getContextPath() + "/home");
                 }

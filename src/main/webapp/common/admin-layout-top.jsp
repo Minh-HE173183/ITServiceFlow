@@ -130,6 +130,11 @@
             ITSM
         </div>
         <ul class="sidebar-menu">
+            <!-- Dashboard placed at top for quick access -->
+            <a href="${pageContext.request.contextPath}/dashboard"
+               class="menu-item ${pageContext.request.requestURI.contains('/dashboard') ? 'active' : ''}">
+                <i class="bi bi-speedometer2"></i> Bảng điều khiển
+            </a>
             <li class="menu-header">Hệ thống</li>
             <a href="${pageContext.request.contextPath}/admin/users"
                class="menu-item ${pageContext.request.requestURI.endsWith('/admin/users.jsp') ? 'active' : ''}">
@@ -147,6 +152,10 @@
             <a href="#" class="menu-item"><i class="bi bi-gear"></i> Cấu hình hệ thống</a>
 
             <li class="menu-header">Ticket Management</li>
+            <a href="${pageContext.request.contextPath}/incident?action=list"
+               class="menu-item ${pageContext.request.requestURI.contains('/incident/') ? 'active' : ''}">
+                <i class="bi bi-exclamation-circle"></i> Incident Management
+            </a>
             <a href="${pageContext.request.contextPath}/problem?action=list"
                class="menu-item ${pageContext.request.requestURI.contains('/problem/') ? 'active' : ''}">
                 <i class="bi bi-exclamation-octagon"></i> Problem Management
@@ -191,6 +200,7 @@
                 <i class="bi bi-list fs-4 cursor-pointer"></i>
                 <span class="fw-bold">
                     <c:choose>
+                        <c:when test="${pageContext.request.requestURI.contains('/dashboard')}">Bảng điều khiển</c:when>
                         <c:when test="${pageContext.request.requestURI.contains('/admin/users')}">Quản lý người dùng</c:when>
                         <c:when test="${pageContext.request.requestURI.contains('/workflows')}">Quản lý Workflow</c:when>
                         <c:when test="${pageContext.request.requestURI.contains('/ticket-category')}">Ticket Categories</c:when>

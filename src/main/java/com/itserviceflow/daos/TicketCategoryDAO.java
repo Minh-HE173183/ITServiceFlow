@@ -66,7 +66,8 @@ public class TicketCategoryDAO {
             sql.append("AND tc.is_active = ? ");
             params.add(activeOnly ? 1 : 0);
         }
-        sql.append("ORDER BY tc.category_name ");
+    // Sort by newest first using updated_at (created_at not present in schema).
+    sql.append("ORDER BY tc.updated_at DESC ");
         if (limit < Integer.MAX_VALUE) {
             sql.append("LIMIT ? OFFSET ?");
             params.add(limit);
@@ -279,19 +280,36 @@ public class TicketCategoryDAO {
     }
 
     /**
+     * Find category by code (case-insensitive). Returns null if not found.
+     */
+    public TicketCategory findByCode(String code) {
+        if (code == null || code.isBlank()) return null;
+        String sql = "SELECT tc.* FROM ticket_category tc WHERE LOWER(tc.category_code) = LOWER(?) LIMIT 1";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, code.trim());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return mapRow(rs);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
      * Returns all sub-categories of a given parent ID.
      */
     public List<TicketCategory> getChildren(int parentId) {
         List<TicketCategory> list = new ArrayList<>();
-        String sql
-                = "SELECT tc.*, "
-                + "  p.category_name AS parent_category_name, "
-                + "  (SELECT COUNT(*) FROM ticket_category c2 WHERE c2.parent_category_id = tc.category_id) AS child_count, "
-                + "  (SELECT COUNT(*) FROM ticket t WHERE t.category_id = tc.category_id) AS ticket_count "
-                + "FROM ticket_category tc "
-                + "LEFT JOIN ticket_category p ON tc.parent_category_id = p.category_id "
-                + "WHERE tc.parent_category_id = ? "
-                + "ORDER BY tc.category_name";
+    String sql
+        = "SELECT tc.*, "
+        + "  p.category_name AS parent_category_name, "
+        + "  (SELECT COUNT(*) FROM ticket_category c2 WHERE c2.parent_category_id = tc.category_id) AS child_count, "
+        + "  (SELECT COUNT(*) FROM ticket t WHERE t.category_id = tc.category_id) AS ticket_count "
+        + "FROM ticket_category tc "
+        + "LEFT JOIN ticket_category p ON tc.parent_category_id = p.category_id "
+        + "WHERE tc.parent_category_id = ? "
+        + "ORDER BY tc.updated_at DESC";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, parentId);
             try (ResultSet rs = stmt.executeQuery()) {

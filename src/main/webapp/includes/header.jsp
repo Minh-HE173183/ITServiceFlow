@@ -173,6 +173,10 @@
                         </c:if>
 
                         <li class="menu-header">Ticket Management</li>
+                        <a href="${pageContext.request.contextPath}/incident?action=list"
+                            class="menu-item ${pageContext.request.requestURI.contains('/incident/') ? 'active' : ''}">
+                            <i class="bi bi-exclamation-circle"></i> Incident Management
+                        </a>
                         <a href="${pageContext.request.contextPath}/problem?action=list"
                             class="menu-item ${pageContext.request.requestURI.contains('/problem/') ? 'active' : ''}">
                             <i class="bi bi-exclamation-octagon"></i> Problem Management

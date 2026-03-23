@@ -5,8 +5,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.itserviceflow.daos.TicketDAO;
+import com.itserviceflow.daos.UserDAO;
 import com.itserviceflow.daos.WorkflowDAO;
 import com.itserviceflow.models.Ticket;
+import com.itserviceflow.models.User;
 import com.itserviceflow.models.Workflow;
 
 import java.sql.SQLException;
@@ -53,6 +55,8 @@ public class WorkflowService {
 
     private final WorkflowDAO workflowDAO = new WorkflowDAO();
     private final TicketDAO   ticketDAO   = new TicketDAO();
+    private final UserDAO     userDAO     = new UserDAO();
+    private final EmailService emailService = new EmailService();
     private final Gson        gson        = new Gson();
 
     // -----------------------------------------------------------------------
@@ -206,11 +210,11 @@ public class WorkflowService {
 
             try {
                 switch (action.toUpperCase()) {
-                    case "ASSIGN_AGENT"  -> executeAssignAgent(step, ticket);
+                    case "ASSIGN_AGENT", "EXECUTE" -> executeAssignAgent(step, ticket);
                     case "SET_PRIORITY"  -> executeSetPriority(step, ticket);
                     case "SET_STATUS"    -> executeSetStatus(step, ticket);
-                    case "NOTIFY"        -> executeNotify(step, ticket);
-                    case "APPROVE_REJECT"-> LOGGER.info("WorkflowService: APPROVE_REJECT step logged for ticket " + ticket.getTicketId());
+                    case "NOTIFY", "REVIEW" -> executeNotify(step, ticket);
+                    case "APPROVE_REJECT"-> LOGGER.info("WorkflowService: APPROVE_REJECT step logged for ticket " + ticket.getTicketId() + ", target users=" + extractTargetUsers(step));
                     default              -> LOGGER.warning("WorkflowService: unknown action: " + action);
                 }
             } catch (Exception e) {
@@ -219,21 +223,40 @@ public class WorkflowService {
         }
     }
 
+    private String extractTargetUsers(JsonObject step) {
+        if (step.has("users") && step.get("users").isJsonArray()) {
+            JsonArray usersArr = step.getAsJsonArray("users");
+            StringBuilder sb = new StringBuilder();
+            for (JsonElement el : usersArr) {
+                if (!el.isJsonObject()) continue;
+                JsonObject u = el.getAsJsonObject();
+                if (u.has("fullName") && !u.get("fullName").isJsonNull()) {
+                    if (sb.length() > 0) sb.append(", ");
+                    sb.append(u.get("fullName").getAsString());
+                }
+            }
+            if (sb.length() > 0) return sb.toString();
+        }
+        String fallback = getStringOrNull(step, "legacyRole");
+        if (fallback != null) return fallback;
+        return getStringOrNull(step, "role");
+    }
+
     /**
      * ASSIGN_AGENT: nếu ticket chưa được assign, chuyển trạng thái sang IN_PROGRESS.
      * (Auto-assign theo role sẽ cần bảng user; hiện tại ghi log + đổi status)
      */
     private void executeAssignAgent(JsonObject step, Ticket ticket) {
-        String role = getStringOrNull(step, "role");
+        String targetUsers = extractTargetUsers(step);
         LOGGER.info(String.format(
-                "WorkflowService [ASSIGN_AGENT] ticket=%d, target role=%s",
-                ticket.getTicketId(), role));
+                "WorkflowService [ASSIGN/EXECUTE] ticket=%d, target users=%s",
+                ticket.getTicketId(), targetUsers));
 
         // Nếu ticket chưa có người assign → cập nhật status sang IN_PROGRESS
         if (ticket.getAssignedTo() == null || ticket.getAssignedTo() == 0) {
             ticketDAO.updateTicketStatus(ticket.getTicketId(), "IN_PROGRESS");
             ticket.setStatus("IN_PROGRESS");
-            LOGGER.info("WorkflowService [ASSIGN_AGENT] ticket " + ticket.getTicketId() + " → IN_PROGRESS");
+            LOGGER.info("WorkflowService [ASSIGN/EXECUTE] ticket " + ticket.getTicketId() + " → IN_PROGRESS");
         }
     }
 
@@ -269,11 +292,38 @@ public class WorkflowService {
      * NOTIFY: ghi log thông báo (có thể mở rộng gửi email qua EmailService).
      */
     private void executeNotify(JsonObject step, Ticket ticket) {
-        String role = getStringOrNull(step, "role");
+        String targetUsers = extractTargetUsers(step);
         LOGGER.info(String.format(
-                "WorkflowService [NOTIFY] ticket=%d, notify role=%s",
-                ticket.getTicketId(), role));
-        // TODO: mở rộng gọi EmailService để gửi email thông báo
+                "WorkflowService [NOTIFY/REVIEW] ticket=%d, notify users=%s",
+                ticket.getTicketId(), targetUsers));
+        
+        if (step.has("users") && step.get("users").isJsonArray()) {
+            JsonArray usersArr = step.getAsJsonArray("users");
+            String subject = "ITServiceFlow - Ticket Notification: #" + ticket.getTicketId();
+            String body = "Hello,\n\n" +
+                          "You have been notified regarding Ticket #" + ticket.getTicketId() + " (" + ticket.getTicketType() + ").\n" +
+                          "Current Status: " + ticket.getStatus() + "\n" +
+                          "Priority: " + ticket.getPriority() + "\n\n" +
+                          "Please review this ticket in the IT Service Flow system.\n\n" +
+                          "Best regards,\nIT Service Flow Team";
+
+            for (JsonElement el : usersArr) {
+                if (!el.isJsonObject()) continue;
+                JsonObject u = el.getAsJsonObject();
+                if (u.has("userId") && !u.get("userId").isJsonNull()) {
+                    int userId = u.get("userId").getAsInt();
+                    User user = userDAO.findById(userId);
+                    if (user != null && user.getEmail() != null && !user.getEmail().isBlank()) {
+                        try {
+                            emailService.sendEmail(user.getEmail(), subject, body);
+                            LOGGER.info("WorkflowService: Notification email sent to " + user.getEmail());
+                        } catch (Exception e) {
+                            LOGGER.log(Level.WARNING, "WorkflowService: Failed to send email to " + user.getEmail(), e);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // -----------------------------------------------------------------------
