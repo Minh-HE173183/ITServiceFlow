@@ -14,6 +14,10 @@
         <h2 class="h4 text-primary m-0">
             <i class="bi bi-journal-text me-2"></i>Knowledge Base
         </h2>
+        <a href="${pageContext.request.contextPath}/home/dashboard.jsp"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
     </div>
 
     <c:if test="${not empty param.error}">
@@ -60,6 +64,7 @@
             </div>
         </c:if>
     </div>
+
 
     <%-- Pagination --%>
     <c:if test="${totalPages > 1}">
