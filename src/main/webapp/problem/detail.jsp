@@ -19,11 +19,25 @@
                     <div class="col-md-6">
                         <p class="mb-2"><strong>Reported By:</strong> ${not empty problem.reportedByName ?
                             problem.reportedByName : 'User ID '.concat(problem.reportedBy)}</p>
-                        <p class="mb-2"><strong>Assigned To:</strong>
+                        <p class="mb-2 d-flex align-items-center gap-2">
+                            <strong>Assigned To:</strong>
                             <span
                                 class="${empty problem.assignedToName ? 'text-muted fst-italic' : 'text-primary fw-bold'}">
                                 ${not empty problem.assignedToName ? problem.assignedToName : 'Unassigned'}
                             </span>
+                            
+                            <%-- Technical Expert: Self-Assign if Unassigned & NOT reported by them --%>
+                            <c:if test="${problem.status ne 'CANCELLED'}">
+                                <c:if test="${sessionScope.user.roleId == 5 && (empty problem.assignedTo || problem.assignedTo == 0) && sessionScope.user.userId ne problem.reportedBy}">
+                                    <form action="${pageContext.request.contextPath}/problem?action=assign" method="post" class="m-0 p-0">
+                                        <input type="hidden" name="id" value="${problem.ticketId}">
+                                        <input type="hidden" name="assignedTo" value="${sessionScope.user.userId}">
+                                        <button class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size: 0.8rem;" type="submit">
+                                            <i class="bi bi-person-check-fill"></i> Assign To Me
+                                        </button>
+                                    </form>
+                                </c:if>
+                            </c:if>
                         </p>
 
                         <%-- Assignment Form (Hidden for CANCELLED) --%>
@@ -50,21 +64,6 @@
                                             </div>
                                         </form>
                                     </c:if>
-
-                                    <%-- Technical Expert: Self-Assign if Unassigned --%>
-                                        <c:if test="${sessionScope.user.roleId == 4 && empty problem.assignedTo}">
-                                            <form action="${pageContext.request.contextPath}/problem?action=assign"
-                                                method="post" class="mt-3 p-3 bg-light border rounded text-center">
-                                                <input type="hidden" name="id" value="${problem.ticketId}">
-                                                <input type="hidden" name="assignedTo"
-                                                    value="${sessionScope.user.userId}">
-                                                <p class="text-secondary mb-2" style="font-size: 0.9em;">This ticket is
-                                                    currently unassigned.</p>
-                                                <button class="btn btn-primary btn-sm px-4" type="submit">
-                                                    <i class="bi bi-person-check"></i> Assign To Me
-                                                </button>
-                                            </form>
-                                        </c:if>
                             </c:if>
                     </div>
                 </div>
@@ -171,7 +170,7 @@
                 </c:if>
 
                 <form action="${pageContext.request.contextPath}/problem?action=addComment" method="post">
-                    <input type="hidden" name="ticketId" value="${problem.ticketId}">
+                    <input type="hidden" name="id" value="${problem.ticketId}">
                     <div class="mb-3">
                         <textarea class="form-control" name="commentText" rows="3"
                             placeholder="Add a new finding, note, or update..." required></textarea>

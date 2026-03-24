@@ -1,5 +1,15 @@
 <jsp:include page="/includes/header.jsp" />
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<style type="text/css">
+    #relationshipMap {
+        width: 100%;
+        height: 400px;
+        border: 1px solid lightgray;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+    }
+</style>
 
     <div class="container-fluid bg-white p-4 rounded shadow-sm mb-4">
         <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
@@ -24,9 +34,9 @@
         <div class="row mb-4">
             <div class="col-md-6 border-end">
                 <h3 class="h5 text-secondary mb-3"><i class="bi bi-info-circle"></i> General Info</h3>
-                <p class="mb-2"><strong>Type ID:</strong> ${ci.ciTypeId}</p>
-                <p class="mb-2"><strong>Owner ID:</strong> ${ci.ownerId == null ? '<span
-                        class="text-muted fst-italic">Unassigned</span>' : ci.ownerId}</p>
+                <p class="mb-2"><strong>Type:</strong> ${ci.ciTypeName}</p>
+                <p class="mb-2"><strong>Owner:</strong> ${ci.ownerName == null ? '<span
+                        class="text-muted fst-italic">Unassigned</span>' : ci.ownerName}</p>
                 <p class="mb-2"><strong>Location:</strong> ${ci.location == null ? '<span
                         class="text-muted fst-italic">N/A</span>' : ci.location}</p>
                 <p class="mb-2"><strong>Last Updated:</strong> ${ci.updatedAt}</p>
@@ -89,16 +99,22 @@
     <div class="container-fluid bg-white p-4 rounded shadow-sm">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="h5 m-0 text-secondary"><i class="bi bi-diagram-2"></i> CI Relationship Map</h3>
+            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addRelationModal">
+                <i class="bi bi-link-45deg"></i> Connect CI
+            </button>
         </div>
 
         <c:if test="${not empty relationships}">
+            <!-- Visual Map Container -->
+            <div id="relationshipMap" class="mb-4"></div>
+            
             <div class="table-responsive">
                 <table class="table table-hover table-bordered align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>Parent CI ID</th>
+                            <th>Parent CI</th>
                             <th>Relationship Type</th>
-                            <th>Child CI ID</th>
+                            <th>Child CI</th>
                             <th>Description</th>
                         </tr>
                     </thead>
@@ -107,15 +123,15 @@
                             <tr>
                                 <td>
                                     <c:if test="${rel.parentCiId eq ci.ciId}"><strong class="text-primary">[This CI]
-                                            (${rel.parentCiId})</strong></c:if>
-                                    <c:if test="${rel.parentCiId ne ci.ciId}">${rel.parentCiId}</c:if>
+                                            (${rel.parentCiCode})</strong></c:if>
+                                    <c:if test="${rel.parentCiId ne ci.ciId}"><a href="${pageContext.request.contextPath}/cmdb?action=detail&id=${rel.parentCiId}">${rel.parentCiName} (${rel.parentCiCode})</a></c:if>
                                 </td>
                                 <td class="text-info fw-bold"><i class="bi bi-arrow-right"></i> ${rel.relationshipType}
                                 </td>
                                 <td>
                                     <c:if test="${rel.childCiId eq ci.ciId}"><strong class="text-primary">[This CI]
-                                            (${rel.childCiId})</strong></c:if>
-                                    <c:if test="${rel.childCiId ne ci.ciId}">${rel.childCiId}</c:if>
+                                            (${rel.childCiCode})</strong></c:if>
+                                    <c:if test="${rel.childCiId ne ci.ciId}"><a href="${pageContext.request.contextPath}/cmdb?action=detail&id=${rel.childCiId}">${rel.childCiName} (${rel.childCiCode})</a></c:if>
                                 </td>
                                 <td class="text-muted">${rel.description}</td>
                             </tr>
@@ -123,6 +139,83 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Vis.js script rendering -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var nodeSet = {};
+                    // Root CI node
+                    nodeSet[${ci.ciId}] = { 
+                        id: ${ci.ciId}, 
+                        label: '${ci.ciName}\\n(${ci.ciCode})', 
+                        shape: 'box', 
+                        color: { background: '#0d6efd', border: '#0a58ca' }, 
+                        font: {color: 'white'} 
+                    };
+                    
+                    <c:forEach var="rel" items="${relationships}">
+                        nodeSet[${rel.parentCiId}] = nodeSet[${rel.parentCiId}] || { 
+                            id: ${rel.parentCiId}, 
+                            label: '${rel.parentCiName}\\n(${rel.parentCiCode})', 
+                            shape: 'box',
+                            color: { background: '#ffffff', border: '#6c757d' }
+                        };
+                        nodeSet[${rel.childCiId}] = nodeSet[${rel.childCiId}] || { 
+                            id: ${rel.childCiId}, 
+                            label: '${rel.childCiName}\\n(${rel.childCiCode})', 
+                            shape: 'box',
+                            color: { background: '#ffffff', border: '#6c757d' }
+                        };
+                    </c:forEach>
+                    
+                    var nodesArray = [];
+                    for (var key in nodeSet) {
+                        nodesArray.push(nodeSet[key]);
+                    }
+                    var nodes = new vis.DataSet(nodesArray);
+
+                    var edges = new vis.DataSet([
+                        <c:forEach var="rel" items="${relationships}" varStatus="status">
+                            { 
+                                from: ${rel.parentCiId}, 
+                                to: ${rel.childCiId}, 
+                                label: '${rel.relationshipType}', 
+                                font: {align: 'horizontal', size: 12, color: '#0dcaf0'}, 
+                                arrows: 'to' 
+                            }${not status.last ? ',' : ''}
+                        </c:forEach>
+                    ]);
+
+                    var container = document.getElementById('relationshipMap');
+                    var data = {
+                        nodes: nodes,
+                        edges: edges
+                    };
+                    var options = {
+                        edges: {
+                            color: '#adb5bd',
+                            smooth: {
+                                type: 'cubicBezier'
+                            }
+                        },
+                        layout: {
+                            hierarchical: {
+                                direction: 'UD',
+                                sortMethod: 'directed',
+                                nodeSpacing: 150
+                            }
+                        },
+                        physics: false,
+                        interaction: {
+                            hover: true,
+                            navigationButtons: true,
+                            keyboard: true
+                        }
+                    };
+
+                    var network = new vis.Network(container, data, options);
+                });
+            </script>
         </c:if>
         <c:if test="${empty relationships}">
             <div class="alert alert-secondary m-0" role="alert">
@@ -130,6 +223,60 @@
                 components.
             </div>
         </c:if>
+    </div>
+    </div>
+
+    <!-- Add Relationship Modal -->
+    <div class="modal fade" id="addRelationModal" tabindex="-1" aria-labelledby="addRelationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="${pageContext.request.contextPath}/cmdb" method="POST">
+                <input type="hidden" name="action" value="addRelationship">
+                <input type="hidden" name="parentCiId" value="${ci.ciId}">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="addRelationModalLabel"><i class="bi bi-link"></i> Connect to another CI</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3 border-bottom pb-2">
+                            <span class="text-muted small">Current CI (Parent):</span><br>
+                            <strong>${ci.ciName} (${ci.ciCode})</strong>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="relationshipType" class="form-label fw-bold">Relationship Type *</label>
+                            <select class="form-select" id="relationshipType" name="relationshipType" required>
+                                <option value="">Select relationship type...</option>
+                                <option value="DEPENDS_ON">Depends On (Tùy thuộc vào)</option>
+                                <option value="CONNECTED_TO">Connected To (Kết nối với)</option>
+                                <option value="RUNS_ON">Runs On (Chạy trên)</option>
+                                <option value="HOSTED_BY">Hosted By (Được chứa bởi)</option>
+                                <option value="PART_OF">Part Of (Là 1 phần của)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="childCiId" class="form-label fw-bold">Connect To (Child CI) *</label>
+                            <select class="form-select" id="childCiId" name="childCiId" required>
+                                <option value="">Search and select CI...</option>
+                                <c:forEach var="otherCi" items="${allCis}">
+                                    <option value="${otherCi.ciId}">${otherCi.ciCode} - ${otherCi.ciName}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label fw-bold">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="2" placeholder="Briefly describe the relationship..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-diagram-2"></i> Create Relationship</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
     <jsp:include page="/includes/footer.jsp" />
