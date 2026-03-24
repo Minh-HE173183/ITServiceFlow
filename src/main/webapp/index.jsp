@@ -121,6 +121,14 @@
         </div>
 
         <div class="cards-container">
+            <!-- Incident Management -->
+            <div class="card">
+                <div class="card-icon">🚨</div>
+                <div class="card-title">Incident Management</div>
+                <div class="card-desc">Report and track IT incidents from creation through resolution. End-users see only their own tickets.</div>
+                <a href="${pageContext.request.contextPath}/incident?action=list" class="btn btn-purple">Go to Incident Tickets</a>
+            </div>
+
             <!-- Problem Management -->
             <div class="card">
                 <div class="card-icon">🧠</div>

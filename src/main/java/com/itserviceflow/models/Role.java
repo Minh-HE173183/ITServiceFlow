@@ -1,10 +1,13 @@
 package com.itserviceflow.models;
 
+/**
+ * Simple representation of the `role` table.
+ */
 public class Role {
     private int roleId;
     private String roleName;
     private String description;
-    private String permission;
+    private String permission; // stored as JSON string in DB
     private String status;
 
     public Role() {}

@@ -10,7 +10,7 @@ import java.sql.SQLException;
  * Configuration:
  *   - URL:      jdbc:mysql://localhost:3306/itserviceflow_db
  *   - Username: root
- *   - Password: Admin123
+ *   - Password: (configured below)
  *
  * NOTE: For production, externalize credentials via JNDI DataSource or
  *       environment variables instead of hardcoding here.
@@ -18,14 +18,21 @@ import java.sql.SQLException;
 public class DBConnection {
     private static final String URL = "jdbc:mysql://localhost:3306/itserviceflow_db?useSSL=false&serverTimezone=UTC";
     private static final String USER = "root"; 
-    private static final String PASSWORD = "123456"; 
+<<<<<<< Updated upstream
+    private static final String PASSWORD = "root"; 
+=======
+    private static final String PASSWORD = "123"; 
+>>>>>>> Stashed changes
 
-    private static final String URL =
-            "jdbc:mysql://localhost:3306/itserviceflow_db" +
-            "?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8&useUnicode=true";
-
-    private static final String USER     = "root";
-    private static final String PASSWORD = "1234";
+//    private static final String URL =
+//            "jdbc:mysql://localhost:3306/itserviceflow_db" +
+//            "?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8&useUnicode=true";
+//
+//    private static final String USER     = "root";
+//    private static final String PASSWORD = "1234";
+//    private static final String URL = "jdbc:mysql://localhost:3306/itserviceflow_db";
+//    private static final String USER = "root";
+//    private static final String PASSWORD = "root";
 
     static {
         try {
@@ -47,8 +54,15 @@ public class DBConnection {
         try {
             return DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (SQLException e) {
-            System.err.println("[DBConnection] Failed to connect to database: " + e.getMessage());
-            throw new RuntimeException("Database connection failed", e);
+            e.printStackTrace();
+            System.out.println("Database connection failed!");
+            return null;
         }
     }
+    
+    public static void main(String[] args) {
+        System.out.println(DBConnection.getConnection());   
+    }
+
 }
+
