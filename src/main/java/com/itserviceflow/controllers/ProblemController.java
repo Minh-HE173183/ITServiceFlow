@@ -114,7 +114,7 @@ public class ProblemController extends HttpServlet {
                 bulkDeleteProblem(request, response);
                 break;
             case "assign":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
                     return;
                 assignProblem(request, response);
                 break;
@@ -292,7 +292,6 @@ public class ProblemController extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         Ticket ticket = problemDAO.getProblemById(id);
 
-        // UC37: Delete only if NEW, unlinked, unassigned
         if (ticket != null && "NEW".equals(ticket.getStatus()) && ticket.getAssignedTo() == null) {
             List<Ticket> links = problemDAO.getLinkedIncidents(id);
             if (links == null || links.isEmpty()) {
@@ -332,6 +331,18 @@ public class ProblemController extends HttpServlet {
         }
 
         int assignedTo = Integer.parseInt(request.getParameter("assignedTo"));
+        
+        User currentUser = AuthUtils.getCurrentUser(request);
+        if (currentUser.getRoleId() == AuthUtils.ROLE_TECHNICAL_EXPERT) {
+            // Tech Experts can only self-assign, only if unassigned, and only if they didn't report it
+            if (assignedTo != currentUser.getUserId() 
+                || (existingProblem.getAssignedTo() != null && existingProblem.getAssignedTo() != 0)
+                || existingProblem.getReportedBy() == currentUser.getUserId()) {
+                response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
+                return;
+            }
+        }
+
         problemDAO.assignProblemTicket(id, assignedTo);
         response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
     }

@@ -20,6 +20,7 @@ public class DBConnection {
     private static final String USER = "root"; 
     private static final String PASSWORD = "12345";
 
+
 //    private static final String URL =
 //            "jdbc:mysql://localhost:8080/itserviceflow_db" +
 //            "?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8&useUnicode=true";
