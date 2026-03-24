@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <jsp:include page="/includes/header.jsp">
     <jsp:param name="pageTitle" value="${empty article.articleId ? 'Create Knowledge Article' : 'Edit Knowledge Article'}" />
 </jsp:include>
@@ -68,9 +70,15 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Error Code</label>
-                            <input type="text" name="errorCode" class="form-control"
-                                   placeholder="e.g. ERR-404..."
-                                   value="${article.errorCode}">
+                            <select name="errorCode" id="errorCode" class="form-select" style="width:100%">
+                                <option value="">-- Select Known Error --</option>
+                                <c:forEach var="ke" items="${knownErrors}">
+                                    <option value="${ke.articleNumber}"
+                                            ${article.errorCode == ke.articleNumber ? 'selected' : ''}>
+                                        ${ke.articleNumber} - ${ke.title}
+                                    </option>
+                                </c:forEach>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Symptom</label>
@@ -124,9 +132,19 @@
                         </a>
                     </div>
                 </div>
+
             </div>
         </div>
     </form>
 </div>
 
 <jsp:include page="/includes/footer.jsp" />
+<script>
+    $(document).ready(function () {
+        $('#errorCode').select2({
+            placeholder: '-- Select Known Error --',
+            allowClear: true,
+            width: '100%'
+        });
+    });
+</script>
