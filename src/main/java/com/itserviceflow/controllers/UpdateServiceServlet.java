@@ -29,22 +29,52 @@ public class UpdateServiceServlet extends HttpServlet {
         request.getRequestDispatcher("/admin/update-service.jsp").forward(request, response);
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
-            throws ServletException, IOException {
+    @Override
+protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+        throws ServletException, IOException {
+    try {
         Service service = new Service();
-        service.setServiceId(Integer.parseInt(request.getParameter("serviceId")));
+        
+        String idParam = request.getParameter("serviceId");
+        if (idParam == null || idParam.trim().isEmpty()) {
+            idParam = request.getParameter("id");
+        }
+        service.setServiceId(Integer.parseInt(idParam));
+        
         service.setServiceName(request.getParameter("serviceName"));
         service.setServiceCode(request.getParameter("serviceCode"));
         service.setDescription(request.getParameter("description"));
-        service.setEstimatedDeliveryDay(Integer.parseInt(request.getParameter("estimatedDeliveryDay")));
+        
+        String deliveryParam = request.getParameter("estimatedDeliveryDay");
+        service.setEstimatedDeliveryDay(Integer.parseInt(deliveryParam));
         service.setStatus(request.getParameter("status"));
 
+        // --- BƯỚC KIỂM TRA TRÙNG MÃ DỊCH VỤ Ở ĐÂY ---
+        if (serviceDAO.checkDuplicateServiceCode(service.getServiceCode(), service.getServiceId())) {
+            // Ném thông báo lỗi ra màn hình
+            request.setAttribute("error", "Lỗi: Mã dịch vụ '" + service.getServiceCode() + "' đã tồn tại. Vui lòng nhập mã khác!");
+            
+            // Giữ lại các dữ liệu người dùng vừa nhập để họ không phải gõ lại từ đầu
+            request.setAttribute("service", service); 
+            request.getRequestDispatcher("/admin/update-service.jsp").forward(request, response);
+            return; // DỪNG LẠI, KHÔNG CHẠY LỆNH UPDATE BÊN DƯỚI NỮA
+        }
+        // -------------------------------------------
+
+        // Nếu qua được vòng kiểm tra trên thì mới Update
         if (serviceDAO.updateService(service)) {
             request.getSession().setAttribute("message", "Update service success!");
             response.sendRedirect(request.getContextPath() + "/admin/service-management");
         } else {
-            request.setAttribute("error", "Error update service.");
-            doGet(request, response);
+            request.setAttribute("error", "Database Error: Không thể cập nhật dịch vụ này.");
+            request.setAttribute("service", service); 
+            request.getRequestDispatcher("/admin/update-service.jsp").forward(request, response);
         }
+        
+    } catch (NumberFormatException e) {
+        e.printStackTrace();
+        request.setAttribute("error", "Data Error: Thiếu thông tin bắt buộc hoặc định dạng số không hợp lệ.");
+        request.getRequestDispatcher("/admin/update-service.jsp").forward(request, response);
     }
+}
 }
