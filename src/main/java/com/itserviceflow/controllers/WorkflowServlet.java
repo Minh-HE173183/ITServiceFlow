@@ -266,6 +266,17 @@ public class WorkflowServlet extends HttpServlet {
             return;
         }
 
+        // Check duplicate name
+        Workflow exists = dao.getWorkflowByName(w.getWorkflowName());
+        if (exists != null) {
+            req.setAttribute("error", "A workflow with this name already exists.");
+            req.setAttribute("workflow", w);
+            req.setAttribute("formAction", "create");
+            addReferenceData(req);
+            req.getRequestDispatcher("/views/workflow/workflow-form.jsp").forward(req, resp);
+            return;
+        }
+
         boolean ok = dao.createWorkflow(w);
         if (ok) {
             req.getSession().setAttribute("flashSuccess", "Workflow created successfully.");
@@ -287,6 +298,17 @@ public class WorkflowServlet extends HttpServlet {
             req.setAttribute("formAction", "update");
             req.getRequestDispatcher("/views/workflow/workflow-form.jsp")
                     .forward(req, resp);
+            return;
+        }
+
+        // Check duplicate name (allow same name for the same workflow id)
+        Workflow exists = dao.getWorkflowByName(w.getWorkflowName());
+        if (exists != null && exists.getWorkflowId() != w.getWorkflowId()) {
+            req.setAttribute("error", "A workflow with this name already exists.");
+            req.setAttribute("workflow", w);
+            req.setAttribute("formAction", "update");
+            addReferenceData(req);
+            req.getRequestDispatcher("/views/workflow/workflow-form.jsp").forward(req, resp);
             return;
         }
 

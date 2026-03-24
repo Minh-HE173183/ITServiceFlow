@@ -12,7 +12,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h4 text-primary m-0">
-            <i class="bi bi-journal-text me-2"></i>Knowledge Base
+            <i class="bi bi-journal-text me-2"></i>Knowledge Article
         </h2>
         <a href="${pageContext.request.contextPath}/home/dashboard.jsp"
            class="btn btn-outline-secondary">
@@ -28,7 +28,7 @@
     </c:if>
 
     <%-- Search --%>
-    <form action="${pageContext.request.contextPath}/knowledge-base" method="get"
+    <form action="${pageContext.request.contextPath}/knowledge-article" method="get"
           class="bg-light p-3 rounded mb-4 border d-flex gap-3 align-items-center">
         <input type="text" class="form-control" name="keyword"
                placeholder="Search articles..."
@@ -36,14 +36,14 @@
         <button type="submit" class="btn btn-primary">
             <i class="bi bi-search"></i> Search
         </button>
-        <a href="${pageContext.request.contextPath}/knowledge-base"
+        <a href="${pageContext.request.contextPath}/knowledge-article"
            class="btn btn-outline-secondary">Clear</a>
     </form>
 
     <%-- List --%>
     <div class="list-group shadow-sm">
         <c:forEach var="a" items="${articles}">
-            <a href="${pageContext.request.contextPath}/knowledge-base?action=detail&id=${a.articleId}"
+            <a href="${pageContext.request.contextPath}/knowledge-article?action=detail&id=${a.articleId}"
                class="list-group-item list-group-item-action py-3">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>

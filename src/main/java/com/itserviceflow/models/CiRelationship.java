@@ -15,6 +15,12 @@ public class CiRelationship {
     private String relationshipType; 
     private String description;
 
+    // Joined fields
+    private String parentCiName;
+    private String parentCiCode;
+    private String childCiName;
+    private String childCiCode;
+
     // Getters and Setters
     public int getRelationshipId() {
         return relationshipId;
@@ -54,5 +60,37 @@ public class CiRelationship {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getParentCiName() {
+        return parentCiName;
+    }
+
+    public void setParentCiName(String parentCiName) {
+        this.parentCiName = parentCiName;
+    }
+
+    public String getParentCiCode() {
+        return parentCiCode;
+    }
+
+    public void setParentCiCode(String parentCiCode) {
+        this.parentCiCode = parentCiCode;
+    }
+
+    public String getChildCiName() {
+        return childCiName;
+    }
+
+    public void setChildCiName(String childCiName) {
+        this.childCiName = childCiName;
+    }
+
+    public String getChildCiCode() {
+        return childCiCode;
+    }
+
+    public void setChildCiCode(String childCiCode) {
+        this.childCiCode = childCiCode;
     }
 }

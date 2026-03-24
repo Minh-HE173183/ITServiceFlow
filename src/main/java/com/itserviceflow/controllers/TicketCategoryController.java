@@ -30,6 +30,8 @@ public class TicketCategoryController extends HttpServlet {
                 showDetail(req, resp);
             case "form" ->
                 showForm(req, resp);
+            case "api" ->
+                sendCategoriesApi(req, resp);
             default ->
                 showList(req, resp);
         }
@@ -172,6 +174,22 @@ public class TicketCategoryController extends HttpServlet {
 
     private void handleCreate(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         TicketCategory cat = buildFromRequest(req);
+        // Duplicate code check
+        TicketCategory exists = dao.findByCode(cat.getCategoryCode());
+        if (exists != null) {
+            // Re-display form with error
+            req.setAttribute("cat", cat);
+            req.setAttribute("isEdit", false);
+            req.setAttribute("allCats", dao.getAllCategories());
+            req.setAttribute("error", "Category code already in use.");
+            try {
+                req.getRequestDispatcher("/ticket-category/category-form.jsp").forward(req, resp);
+            } catch (ServletException e) {
+                resp.sendRedirect(req.getContextPath() + "/ticket-category?action=form&error=create_failed");
+            }
+            return;
+        }
+
         int id = dao.insert(cat);
         if (id > 0) {
             resp.sendRedirect(req.getContextPath() + "/ticket-category?createSuccess=1");
@@ -183,6 +201,22 @@ public class TicketCategoryController extends HttpServlet {
     private void handleUpdate(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         TicketCategory cat = buildFromRequest(req);
         cat.setCategoryId(parseId(req.getParameter("id")));
+
+        // Duplicate code check: allow same code for the same record
+        TicketCategory exists = dao.findByCode(cat.getCategoryCode());
+        if (exists != null && exists.getCategoryId() != cat.getCategoryId()) {
+            // Re-display form with error
+            req.setAttribute("cat", cat);
+            req.setAttribute("isEdit", true);
+            req.setAttribute("allCats", dao.getAllCategories());
+            req.setAttribute("error", "Category code already in use.");
+            try {
+                req.getRequestDispatcher("/ticket-category/category-form.jsp").forward(req, resp);
+            } catch (ServletException e) {
+                resp.sendRedirect(req.getContextPath() + "/ticket-category?action=form&id=" + cat.getCategoryId() + "&error=update_failed");
+            }
+            return;
+        }
 
         if (dao.update(cat)) {
             resp.sendRedirect(req.getContextPath() + "/ticket-category?updateSuccess=1");
@@ -255,5 +289,47 @@ public class TicketCategoryController extends HttpServlet {
                 .map(this::parseId)
                 .filter(id -> id > 0)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * GET /ticket-category?action=api
+     * Returns all categories (active + inactive) as JSON for frontend consumption.
+     * Format: [{"id":1,"name":"Network","type":"INCIDENT","status":"active"},
+     *          {"id":2,"name":"Access","type":"SERVICE_REQUEST","status":"inactive"}]
+     */
+    private void sendCategoriesApi(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        resp.setContentType("application/json;charset=UTF-8");
+        resp.setHeader("Cache-Control", "max-age=300"); // cache 5 min
+        
+        // Get all categories (both active and inactive)
+        List<TicketCategory> allCategories = dao.getAllCategories();
+        
+        // Build simple JSON array manually to avoid dependency on Gson
+        StringBuilder json = new StringBuilder("[");
+        for (int i = 0; i < allCategories.size(); i++) {
+            TicketCategory cat = allCategories.get(i);
+            json.append("{");
+            json.append("\"id\":").append(cat.getCategoryId()).append(",");
+            json.append("\"name\":\"").append(escapeJson(cat.getCategoryName())).append("\",");
+            json.append("\"type\":\"").append(escapeJson(cat.getCategoryType())).append("\",");
+            json.append("\"status\":\"").append(cat.isActive() ? "active" : "inactive").append("\"");
+            json.append("}");
+            if (i < allCategories.size() - 1) {
+                json.append(",");
+            }
+        }
+        json.append("]");
+        
+        resp.getWriter().print(json.toString());
+    }
+
+    private String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 }

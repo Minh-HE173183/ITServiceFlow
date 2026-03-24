@@ -28,6 +28,9 @@ public class UserManagementController extends HttpServlet {
             case "list":
                 listUsers(req, resp);
                 break;
+            case "searchJson":
+                searchUsersJson(req, resp);
+                break;
             case "getInfo":
                 getUserInfo(req, resp);
                 break;
@@ -40,6 +43,23 @@ public class UserManagementController extends HttpServlet {
             default:
                 resp.sendRedirect(req.getContextPath() + "/admin/users");
         }
+    }
+
+    private void searchUsersJson(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String q = req.getParameter("q");
+        String roleIdStr = req.getParameter("roleId");
+        String roleName = req.getParameter("roleName");
+        Integer roleId = parseIntOrNull(roleIdStr);
+
+        // reuse listUsers with a reasonable limit and no pagination
+        List<com.itserviceflow.models.User> users = userDAO.listUsers(q, roleId, null, "full_name", "ASC", 0, 50);
+        // if caller provided roleName (client-side), apply simple post-filter by role name
+        if (roleName != null && !roleName.isEmpty()) {
+            String rn = roleName.trim().toLowerCase();
+            users.removeIf(u -> u.getRoleName() == null || !u.getRoleName().toLowerCase().contains(rn));
+        }
+        resp.setContentType("application/json");
+        resp.getWriter().write(gson.toJson(users));
     }
 
     @Override
