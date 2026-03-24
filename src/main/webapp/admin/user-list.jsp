@@ -96,7 +96,7 @@
         width: 34px;
         height: 20px;
     }
-    .switch input { 
+    .switch input {
         opacity: 0;
         width: 0;
         height: 0;
@@ -159,7 +159,7 @@
         </select>
         <button type="submit" class="btn btn-primary px-4"><i class="bi bi-search"></i></button>
         <a href="${pageContext.request.contextPath}/admin/users" class="btn btn-outline-secondary">Reset</a>
-        
+
         <input type="hidden" name="sortBy" id="sortBy" value="${sortBy}">
         <input type="hidden" name="order" id="order" value="${order}">
     </div>
@@ -201,17 +201,17 @@
                     <td>
                         <div class="d-flex gap-2">
                             <button class="btn-action-edit" onclick="editUser(${u.userId})"><i class="bi bi-pencil"></i></button>
-                             <button class="btn-action-delete" onclick="handleDelete('${u.userId}')"><i class="bi bi-trash"></i></button>
+                            <button class="btn-action-delete" onclick="handleDelete('${u.userId}')"><i class="bi bi-trash"></i></button>
                         </div>
                     </td>
                 </tr>
             </c:forEach>
         </tbody>
     </table>
-    
+
     <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center">
         <span class="text-muted small">Trang ${currentPage} / ${totalPages}</span>
-        
+
         <nav>
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
@@ -238,7 +238,7 @@
                 <h5 class="modal-title">Thêm nhân viên mới</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form action="${pageContext.request.contextPath}/admin/add-user" method="post">
+            <form action="${pageContext.request.contextPath}/admin/users?action=add" method="post">
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Họ và tên</label>
@@ -291,7 +291,7 @@
                 <h5 class="modal-title">Chỉnh sửa nhân viên</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="${pageContext.request.contextPath}/admin/update-user" method="post">
+            <form action="${pageContext.request.contextPath}/admin/users?action=update" method="post">
                 <input type="hidden" name="userId" id="editUserId">
                 <div class="modal-body p-4">
                     <div class="mb-3">
@@ -332,54 +332,57 @@
 <script>
     function editUser(userId) {
         fetch('${pageContext.request.contextPath}/admin/users?action=getInfo&id=' + userId)
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
-            .then(data => {
-                document.getElementById('editUserId').value = data.userId;
-                document.getElementById('editFullName').value = data.fullName;
-                document.getElementById('editEmail').value = data.email;
-                document.getElementById('editRoleId').value = data.roleId;
-                document.getElementById('editDeptId').value = data.departmentId || "";
-                
-                // Use existing modal instance if possible or create new
-                let modalEl = document.getElementById('editUserModal');
-                let modal = bootstrap.Modal.getInstance(modalEl);
-                if (!modal) modal = new bootstrap.Modal(modalEl);
-                modal.show();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Không thể tải thông tin người dùng. Vui lòng thử lại!');
-            });
+                .then(response => {
+                    if (!response.ok)
+                        throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('editUserId').value = data.userId;
+                    document.getElementById('editFullName').value = data.fullName;
+                    document.getElementById('editEmail').value = data.email;
+                    document.getElementById('editRoleId').value = data.roleId;
+                    document.getElementById('editDeptId').value = data.departmentId || "";
+
+                    // Use existing modal instance if possible or create new
+                    let modalEl = document.getElementById('editUserModal');
+                    let modal = bootstrap.Modal.getInstance(modalEl);
+                    if (!modal)
+                        modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Không thể tải thông tin người dùng. Vui lòng thử lại!');
+                });
     }
     function handleStatusToggle(userId, currentStatus) {
         toggleUserStatus(userId, !currentStatus);
     }
-    
+
     function handleDelete(userId) {
         deleteUser(userId);
     }
-    
+
     function handlePageChange(page) {
         setPage(page);
     }
 
     function toggleUserStatus(userId, status) {
-        window.location.href = '${pageContext.request.contextPath}/admin/user-actions?action=toggle&id=' + userId + '&status=' + status;
+        window.location.href = '${pageContext.request.contextPath}/admin/users?action=toggle&id=' + userId + '&status=' + status;
     }
 
+// deleteUser
     function deleteUser(userId) {
         if (confirm('Xóa người dùng này?')) {
-            window.location.href = '${pageContext.request.contextPath}/admin/user-actions?action=delete&id=' + userId;
+            window.location.href = '${pageContext.request.contextPath}/admin/users?action=delete&id=' + userId;
         }
     }
 
     function setSort(field) {
         let currentSort = document.getElementById('sortBy').value;
         let currentOrder = document.getElementById('order').value;
-        
+
         if (currentSort === field) {
             document.getElementById('order').value = (currentOrder === 'ASC') ? 'DESC' : 'ASC';
         } else {

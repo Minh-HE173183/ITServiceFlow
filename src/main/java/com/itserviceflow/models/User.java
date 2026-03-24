@@ -27,7 +27,6 @@ public class User {
     private LocalDateTime updatedAt;
     private LocalDateTime lastLogin;
 
-    // Join fields (for UI convenience)
     private String roleName;
     private String departmentName;
 
@@ -66,9 +65,4 @@ public class User {
     public void setRoleName(String roleName) { this.roleName = roleName; }
     public String getDepartmentName() { return departmentName; }
     public void setDepartmentName(String departmentName) { this.departmentName = departmentName; }
-
-    
-    
-
 }
-

@@ -3,33 +3,69 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.itserviceflow.models;
-import java.util.Date;
 
+import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  *
  * @author Admin
  */
 public class Article {
-    private int articleId;
+    private Integer articleId;
     private String articleNumber;
-    private String articleType; 
+    private String articleType;
     private String title;
     private String content;
     private String summary;
     private Integer categoryId;
+    private String tag;
     private String status;
-    private int authorId;
+    private Integer authorId;
+    private String authorName; // Field to display author name
+    private Integer approvedBy;
+    private LocalDateTime approvedAt;
+    private String rejectionReason;
+    private LocalDateTime publishedAt;
+    private String errorCode;
     private String symptom;
     private String cause;
     private String solution;
     private Date updatedAt;
 
-    public int getArticleId() {
+    public Article() {
+    }
+
+    public Article(Integer articleId, String articleNumber, String articleType, String title, String content,
+            String summary, Integer categoryId, String tag, String status, Integer authorId, Integer approvedBy,
+            LocalDateTime approvedAt, String rejectionReason, LocalDateTime publishedAt, String errorCode,
+            String symptom, String cause, String solution, Date updatedAt) {
+        this.articleId = articleId;
+        this.articleNumber = articleNumber;
+        this.articleType = articleType;
+        this.title = title;
+        this.content = content;
+        this.summary = summary;
+        this.categoryId = categoryId;
+        this.tag = tag;
+        this.status = status;
+        this.authorId = authorId;
+        this.approvedBy = approvedBy;
+        this.approvedAt = approvedAt;
+        this.rejectionReason = rejectionReason;
+        this.publishedAt = publishedAt;
+        this.errorCode = errorCode;
+        this.symptom = symptom;
+        this.cause = cause;
+        this.solution = solution;
+        this.updatedAt = updatedAt;
+    }
+
+    public Integer getArticleId() {
         return articleId;
     }
 
-    public void setArticleId(int articleId) {
+    public void setArticleId(Integer articleId) {
         this.articleId = articleId;
     }
 
@@ -81,6 +117,14 @@ public class Article {
         this.categoryId = categoryId;
     }
 
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -89,12 +133,60 @@ public class Article {
         this.status = status;
     }
 
-    public int getAuthorId() {
+    public Integer getAuthorId() {
         return authorId;
     }
 
-    public void setAuthorId(int authorId) {
+    public void setAuthorId(Integer authorId) {
         this.authorId = authorId;
+    }
+
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
+    }
+
+    public Integer getApprovedBy() {
+        return approvedBy;
+    }
+
+    public void setApprovedBy(Integer approvedBy) {
+        this.approvedBy = approvedBy;
+    }
+
+    public LocalDateTime getApprovedAt() {
+        return approvedAt;
+    }
+
+    public void setApprovedAt(LocalDateTime approvedAt) {
+        this.approvedAt = approvedAt;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
+    }
+
+    public LocalDateTime getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(LocalDateTime publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
     }
 
     public String getSymptom() {
@@ -128,4 +220,5 @@ public class Article {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
+
 }
