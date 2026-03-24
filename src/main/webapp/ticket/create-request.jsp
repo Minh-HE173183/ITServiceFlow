@@ -67,7 +67,7 @@
                         
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted small">
-                                <i class="fas fa-info-circle"></i> Status: <strong>New</strong> 
+                                <i class="fas fa-info-circle"></i> Status: <strong>NEW</strong> 
                             </span>
                             <div>
                                 <a href="${pageContext.request.contextPath}/service-catalog" class="btn btn-light border px-4 me-2">Cancel</a>
