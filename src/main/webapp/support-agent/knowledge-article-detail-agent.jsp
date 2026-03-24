@@ -49,12 +49,16 @@
                 <i class="bi bi-tools me-2 text-warning"></i>Technical Details
             </div>
             <div class="card-body">
-                <c:if test="${not empty article.errorCode}">
-                    <div class="mb-3">
-                        <label class="fw-bold text-muted small d-block">ERROR CODE</label>
-                        <code>${article.errorCode}</code>
-                    </div>
-                </c:if>
+                        <c:if test="${not empty article.errorCode}">
+                            <div class="mb-4">
+                                <p class="text-uppercase text-muted mb-1" style="font-size:11px;letter-spacing:.06em;font-weight:600;">Error code</p>
+                                <a href="${pageContext.request.contextPath}/known-error" method="post""
+                                   class="text-decoration-none">
+                                    <code class="bg-light border px-2 py-1 rounded text-primary">${article.errorCode}</code>
+                                    <i class="bi bi-box-arrow-up-right ms-1 small text-muted"></i>
+                                </a>
+                            </div>
+                        </c:if>
                 <c:if test="${not empty article.symptom}">
                     <div class="mb-3">
                         <label class="fw-bold text-muted small d-block">SYMPTOM</label>

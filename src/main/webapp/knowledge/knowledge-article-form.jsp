@@ -111,13 +111,6 @@
                                 Article Type: KNOWLEDGE ARTICLE 
                             </label> <br/>
                         </div>
-                        <div class="mb-0">
-                            <label class="form-label fw-bold">Tags</label>
-                            <input type="text" name="tag" class="form-control"
-                                   placeholder="e.g. windows, network..."
-                                   value="${article.tag}">
-                            <div class="form-text">Separate with commas</div>
-                        </div>
                     </div>
                 </div>
 
