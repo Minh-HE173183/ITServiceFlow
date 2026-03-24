@@ -1,187 +1,66 @@
+<jsp:include page="/includes/header.jsp" />
+<%-- B? comment dòng d??i n?u b?n ch?a khai báo taglib trong header.jsp --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-    <html>
+<style>
+    /* Hi?u ?ng m??t mà khi di chu?t vào Card */
+    .hover-shadow { transition: all 0.3s ease; }
+    .hover-shadow:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+    .text-truncate-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+</style>
 
-    <head>
+<div class="container-fluid bg-white p-4 rounded shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 text-primary m-0"><i class="bi bi-collection me-2"></i>Service Catalog</h2>
+    
+    <a href="${pageContext.request.contextPath}/ticket/service-request-list" class="btn btn-outline-primary shadow-sm fw-bold">
+        <i class="bi bi-card-list me-1"></i> View Requests
+    </a>
+</div>
 
-        <title>ITServiceFlow - Service Catalog</title>
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form action="${pageContext.request.contextPath}/service-catalog" method="get" class="d-flex shadow-sm rounded">
+                <input type="text" name="search" class="form-control border-end-0"
+                       placeholder="Search for services (e.g., Laptop, Software)..." value="${lastSearch}">
+                <button type="submit" class="btn btn-primary px-4"><i class="bi bi-search"></i> Search</button>
+            </form>
+        </div>
+    </div>
 
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    </head>
-
-    <body class="bg-light">
-
-        <div class="container mt-5">
-
-            <h2 class="mb-4">Service Catalog</h2>
-
-
-
-            <div class="row mb-4">
-
-                <div class="col-md-8">
-
-                    <form action="/service-catalog" method="get" class="d-flex">
-
-                        <input type="text" name="search" class="form-control me-2"
-                            placeholder="Search for services (Laptop, Software)..." value="${lastSearch}">
-
-                        <button type="submit" class="btn btn-primary">Search</button>
-
-                    </form>
-
-                </div>
-
-            </div>
-
-
-
-            
-
-                <div class="row">
-
-                    <c:forEach var="svc" items="${listService}">
-
-                        <div class="col-md-4 mb-3">
-
-                            <div class="card h-100 shadow-sm">
-
-                                <div class="card-header bg-white">
-
-                                    <input name="serviceIds" value="${svc.serviceId}" class="form-check-input">
-
-                                    <small class="text-muted ms-2">${svc.serviceCode}</small>
-
-                                </div>
-
-                                <div class="card-body">
-
-                                    <h5 class="card-title text-primary">${svc.serviceName}</h5>
-
-                                    <p class="card-text small">${svc.description}</p>
-
-                                </div>
-
-                                <div class="card-footer bg-transparent border-top-0 pb-3">
-
-                                    <div class="d-flex gap-2">
-
-                                        <a href="/service/service-detail?id=${svc.serviceId}"
-                                            class="btn btn-outline-primary px-4 flex-grow-1">
-
-                                            View
-
-                                        </a>
-
-
-
-<!--                                        <button type="button" class="btn btn-outline-danger px-4 flex-grow-1" 
-
-                                                onclick="confirmDeleteOne('${svc.serviceId}')">
-
-                                            Delete
-
-                                        </button>-->
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </c:forEach>
-
-                </div>
-
-
-
-<!--                <div class="fixed-bottom p-4 bg-white border-top shadow" id="adminActions" style="display:none;">
-
-                    <div class="container d-flex justify-content-between align-items-center">
-
-                        <span id="selectedCount">0 items selected</span>
-
-                        <button type="submit" class="btn btn-danger"
-                            onclick="return confirm('Are you sure you want to delete selected items?')">
-
-                            Delete All
-
-                        </button>
-
+    <div class="row">
+        <c:forEach var="svc" items="${listService}">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0 hover-shadow bg-light">
+                    <div class="card-header bg-transparent border-bottom-0 pt-3 pb-0">
+                        <span class="badge bg-secondary rounded-pill px-3 py-2 shadow-sm">${svc.serviceCode}</span>
                     </div>
-
-                </div>-->
-
-           
-
-
-
-<!--            <script>
-                const checkboxes = document.querySelectorAll('input[name="serviceIds"]');
-
-                checkboxes.forEach(cb => {
-
-                    cb.addEventListener('change', () => {
-
-                        const checked = document.querySelectorAll('input[name="serviceIds"]:checked');
-
-                        document.getElementById('adminActions').style.display = checked.length > 0 ? 'block' : 'none';
-
-                        document.getElementById('selectedCount').innerText = checked.length + ' items selected';
-
-                    });
-
-                });
-
-
-
-                function confirmDeleteOne(id) {
-
-                    if (confirm('Delete this service? (Only works if no requests exist)')) {
-
-                        const form = document.createElement('form');
-
-                        form.method = 'POST';
-
-                        form.action = 'admin/delete-service';
-
-                        const input = document.createElement('input');
-
-                        input.name = 'serviceIds';
-
-                        input.value = id;
-
-                        form.appendChild(input);
-
-                        document.body.appendChild(form);
-
-                        form.submit();
-
-                    }
-
-                }
-
-            </script>-->
-
-
-
-            <c:if test="${empty listService}">
-
-                <div class="col-12">
-
-                    <div class="alert alert-warning">No services found matching your search.</div>
-
+                    
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold text-primary mb-3">${svc.serviceName}</h5>
+                        <p class="card-text text-muted small text-truncate-3">
+                            ${svc.description}
+                        </p>
+                    </div>
+                    
+                    <div class="card-footer bg-transparent border-top-0 pb-4">
+                        <a href="${pageContext.request.contextPath}/service/service-detail?id=${svc.serviceId}"
+                           class="btn btn-outline-primary w-100 shadow-sm fw-semibold">
+                            <i class="bi bi-arrow-right-circle me-2"></i> Request Service
+                        </a>
+                    </div>
                 </div>
+            </div>
+        </c:forEach>
+    </div>
 
-            </c:if>
-
+    <c:if test="${empty listService}">
+        <div class="alert alert-warning text-center py-5 shadow-sm border-0 rounded">
+            <i class="bi bi-search fs-1 d-block mb-3 text-warning"></i>
+            <h5 class="text-dark">No services found</h5>
+            <p class="text-muted mb-0">Try adjusting your search terms to find what you're looking for.</p>
         </div>
+    </c:if>
+</div>
 
-        </div>
-
-    </body>
-
-    </html>
+<jsp:include page="/includes/footer.jsp" />

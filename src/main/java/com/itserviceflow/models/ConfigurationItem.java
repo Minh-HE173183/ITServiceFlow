@@ -23,6 +23,10 @@ public class ConfigurationItem {
     private String ipAddress;
     private String description;
     private Date updatedAt;
+    
+    // Joined fields
+    private String ownerName;
+    private String ciTypeName;
 
     public int getCiId() {
         return ciId;
@@ -126,5 +130,21 @@ public class ConfigurationItem {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getOwnerName() {
+        return ownerName;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
+    }
+
+    public String getCiTypeName() {
+        return ciTypeName;
+    }
+
+    public void setCiTypeName(String ciTypeName) {
+        this.ciTypeName = ciTypeName;
     }
 }

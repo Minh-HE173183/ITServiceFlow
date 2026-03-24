@@ -12,15 +12,15 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h4 text-primary m-0">
-            <i class="bi bi-journal-text me-2"></i>Knowledge Base Detail
+            <i class="bi bi-journal-text me-2"></i>Knowledge Article Detail
         </h2>
         <div class="d-flex gap-2">
             <c:if test="${article.status == 'PENDING'}">
-                <form action="${pageContext.request.contextPath}/admin/knowledge-base?action=approve"
+                <form action="${pageContext.request.contextPath}/admin/knowledge-article?action=approve"
                       method="post" class="d-inline">
                     <input type="hidden" name="articleId" value="${article.articleId}">
                 </c:if>
-                <a href="${pageContext.request.contextPath}/knowledge-base?action=list"
+                <a href="${pageContext.request.contextPath}/knowledge-article?action=list"
                    class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-1"></i> Back
                 </a>
@@ -46,14 +46,16 @@
                           <i class="bi bi-tools me-2 text-warning"></i>Technical Details
                       </div>
                       <div class="card-body">
-                          <c:if test="${not empty article.errorCode}">
-                              <div class="mb-4">
-                                  <p class="text-uppercase text-muted mb-1" style="font-size:11px;letter-spacing:.06em;font-weight:600;">Error code</p>
-                                  <p class="text-decoration-none">
-                                      <code class="bg-light border px-2 py-1 rounded text-primary">${article.errorCode}</code>
-                                  </p>
-                              </div>
-                          </c:if>
+                        <c:if test="${not empty article.errorCode}">
+                            <div class="mb-4">
+                                <p class="text-uppercase text-muted mb-1" style="font-size:11px;letter-spacing:.06em;font-weight:600;">Error code</p>
+                                <a href="${pageContext.request.contextPath}/known-error" method="post""
+                                   class="text-decoration-none">
+                                    <code class="bg-light border px-2 py-1 rounded text-primary">${article.errorCode}</code>
+                                    <i class="bi bi-box-arrow-up-right ms-1 small text-muted"></i>
+                                </a>
+                            </div>
+                        </c:if>
                           <c:if test="${not empty article.symptom}">
                               <div class="mb-3">
                                   <label class="fw-bold text-muted small d-block">SYMPTOM</label>
@@ -81,7 +83,7 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light fw-bold">
-                    <i class="bi bi-info-circle me-2"></i>Knowledge Base Info
+                    <i class="bi bi-info-circle me-2"></i>Knowledge Article Info
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -90,7 +92,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="fw-bold text-muted small d-block">TYPE</label>
-                        <span class="badge bg-info text-dark">KNOWLEDGE BASE</span>
+                        <span class="badge bg-info text-dark">KNOWLEDGE ARTICLE</span>
                     </div>
                     <div class="mb-3">
                         <label class="fw-bold text-muted small d-block">STATUS</label>

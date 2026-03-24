@@ -1,4 +1,5 @@
 <jsp:include page="/includes/header.jsp" />
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <div class="container-fluid bg-white p-4 rounded shadow-sm">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -55,9 +56,10 @@
                                                         onclick="toggleAll(this)"></th>
                         <th>CI Code</th>
                         <th>Name</th>
+                        <th>Type</th>
                         <th>IP Address</th>
                         <th>Status</th>
-                        <th>Owner ID</th>
+                        <th>Owner</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -70,6 +72,7 @@
                             </td>
                             <td><strong>${ci.ciCode}</strong></td>
                             <td>${ci.ciName}</td>
+                            <td>${ci.ciTypeName}</td>
                             <td>${ci.ipAddress == null ? '<span class="text-muted fst-italic">N/A</span>' :
                                   ci.ipAddress}</td>
                             <td>
@@ -85,8 +88,8 @@
                                     <c:otherwise><span class="badge bg-primary">${ci.status}</span></c:otherwise>
                                 </c:choose>
                             </td>
-                            <td>${ci.ownerId == null ? '<span class="text-muted fst-italic">Unassigned</span>' :
-                                  ci.ownerId}</td>
+                            <td>${ci.ownerName == null ? '<span class="text-muted fst-italic">Unassigned</span>' :
+                                  ci.ownerName}</td>
                             <td class="d-flex gap-1">
                                 <a href="${pageContext.request.contextPath}/cmdb?action=detail&id=${ci.ciId}"
                                    class="btn btn-info btn-sm text-white">

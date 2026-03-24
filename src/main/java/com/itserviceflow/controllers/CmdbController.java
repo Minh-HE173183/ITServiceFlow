@@ -39,15 +39,9 @@ public class CmdbController extends HttpServlet {
 
         switch (action) {
             case "list":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_SYSTEM_ENGINEER,
-                        AuthUtils.ROLE_ASSET_MANAGER, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR))
-                    return;
                 listConfigurationItems(request, response);
                 break;
             case "detail":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_SYSTEM_ENGINEER,
-                        AuthUtils.ROLE_ASSET_MANAGER, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR))
-                    return;
                 viewConfigurationItemDetail(request, response);
                 break;
             case "add":
@@ -61,9 +55,6 @@ public class CmdbController extends HttpServlet {
                 showEditForm(request, response);
                 break;
             default:
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_SYSTEM_ENGINEER,
-                        AuthUtils.ROLE_ASSET_MANAGER, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR))
-                    return;
                 listConfigurationItems(request, response);
                 break;
         }
@@ -112,6 +103,11 @@ public class CmdbController extends HttpServlet {
                     return;
                 bulkToggleConfigurationItemStatus(request, response);
                 break;
+            case "addRelationship":
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ASSET_MANAGER))
+                    return;
+                addCiRelationship(request, response);
+                break;
             default:
                 response.sendRedirect(request.getContextPath() + "/cmdb?action=list");
                 break;
@@ -137,16 +133,20 @@ public class CmdbController extends HttpServlet {
         ConfigurationItem ci = cmdbDAO.getConfigurationItemById(id);
         List<CiRelationship> relationships = cmdbDAO.getCiRelationships(id);
         List<ConfigurationItem> impactedCis = cmdbDAO.getImpactedCis(id);
+        List<ConfigurationItem> allCis = cmdbDAO.getAllConfigurationItemsForDropdown(id);
 
         request.setAttribute("ci", ci);
         request.setAttribute("relationships", relationships);
         request.setAttribute("impactedCis", impactedCis);
+        request.setAttribute("allCis", allCis);
 
         request.getRequestDispatcher("/cmdb/detail.jsp").forward(request, response);
     }
 
     private void showConfigurationItemForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setAttribute("users", cmdbDAO.getAllUsersForDropdown());
+        request.setAttribute("ciTypes", cmdbDAO.getAllCiTypes());
         request.getRequestDispatcher("/cmdb/form.jsp").forward(request, response);
     }
 
@@ -155,6 +155,8 @@ public class CmdbController extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         ConfigurationItem ci = cmdbDAO.getConfigurationItemById(id);
         request.setAttribute("ci", ci);
+        request.setAttribute("users", cmdbDAO.getAllUsersForDropdown());
+        request.setAttribute("ciTypes", cmdbDAO.getAllCiTypes());
         request.getRequestDispatcher("/cmdb/form.jsp").forward(request, response);
     }
 
@@ -276,5 +278,15 @@ public class CmdbController extends HttpServlet {
             }
         }
         response.sendRedirect(request.getContextPath() + "/cmdb?action=list");
+    }
+
+    private void addCiRelationship(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        int parentId = Integer.parseInt(request.getParameter("parentCiId"));
+        int childId = Integer.parseInt(request.getParameter("childCiId"));
+        String relationshipType = request.getParameter("relationshipType");
+        String description = request.getParameter("description");
+
+        cmdbDAO.addCiRelationship(parentId, childId, relationshipType, description);
+        response.sendRedirect(request.getContextPath() + "/cmdb?action=detail&id=" + parentId);
     }
 }

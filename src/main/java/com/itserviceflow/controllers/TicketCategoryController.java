@@ -30,6 +30,8 @@ public class TicketCategoryController extends HttpServlet {
                 showDetail(req, resp);
             case "form" ->
                 showForm(req, resp);
+            case "api" ->
+                sendCategoriesApi(req, resp);
             default ->
                 showList(req, resp);
         }
@@ -287,5 +289,47 @@ public class TicketCategoryController extends HttpServlet {
                 .map(this::parseId)
                 .filter(id -> id > 0)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * GET /ticket-category?action=api
+     * Returns all categories (active + inactive) as JSON for frontend consumption.
+     * Format: [{"id":1,"name":"Network","type":"INCIDENT","status":"active"},
+     *          {"id":2,"name":"Access","type":"SERVICE_REQUEST","status":"inactive"}]
+     */
+    private void sendCategoriesApi(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        resp.setContentType("application/json;charset=UTF-8");
+        resp.setHeader("Cache-Control", "max-age=300"); // cache 5 min
+        
+        // Get all categories (both active and inactive)
+        List<TicketCategory> allCategories = dao.getAllCategories();
+        
+        // Build simple JSON array manually to avoid dependency on Gson
+        StringBuilder json = new StringBuilder("[");
+        for (int i = 0; i < allCategories.size(); i++) {
+            TicketCategory cat = allCategories.get(i);
+            json.append("{");
+            json.append("\"id\":").append(cat.getCategoryId()).append(",");
+            json.append("\"name\":\"").append(escapeJson(cat.getCategoryName())).append("\",");
+            json.append("\"type\":\"").append(escapeJson(cat.getCategoryType())).append("\",");
+            json.append("\"status\":\"").append(cat.isActive() ? "active" : "inactive").append("\"");
+            json.append("}");
+            if (i < allCategories.size() - 1) {
+                json.append(",");
+            }
+        }
+        json.append("]");
+        
+        resp.getWriter().print(json.toString());
+    }
+
+    private String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 }
