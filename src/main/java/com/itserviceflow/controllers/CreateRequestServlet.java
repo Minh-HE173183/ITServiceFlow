@@ -4,6 +4,7 @@ import com.itserviceflow.daos.ServiceDAO;
 import com.itserviceflow.daos.TicketDAO;
 import com.itserviceflow.models.Service;
 import com.itserviceflow.models.Ticket;
+import com.itserviceflow.models.User;
 import com.itserviceflow.utils.WorkflowService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -62,8 +63,19 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
     ticket.setPriority(request.getParameter("priority"));
     
     // Tạm thời hardcode người tạo (sau này thay bằng Session currentUser)
-    ticket.setReportedBy(1); 
-    ticket.setDepartmentId(1);
+    // Lấy thông tin User đang đăng nhập từ Session
+    jakarta.servlet.http.HttpSession session = request.getSession();
+    User currentUser = (User) session.getAttribute("user"); // Đảm bảo dùng đúng chữ "user" như bên màn List
+    
+    if (currentUser != null) {
+        ticket.setReportedBy(currentUser.getUserId());
+        // Nếu User model của bạn có getDepartmentId() thì gài vào luôn, không thì tạm để 1
+        ticket.setDepartmentId(1); 
+    } else {
+        // Nếu phiên đăng nhập hết hạn thì đuổi ra màn hình login
+        response.sendRedirect(request.getContextPath() + "/auth?action=login");
+        return;
+    }
 
     // Lưu vào DB
     if (ticketDAO.createServiceRequest(ticket)) {
