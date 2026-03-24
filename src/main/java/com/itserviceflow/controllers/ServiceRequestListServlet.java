@@ -19,39 +19,41 @@ public class ServiceRequestListServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+    // =========================================================
+        // 1. KIỂM TRA ĐĂNG NHẬP (DÙNG DỮ LIỆU THẬT)
+        // =========================================================
+        HttpSession session = request.getSession();
+        User currentUser = (User) session.getAttribute("user"); // Đảm bảo tên biến này khớp với lúc Login
         
-//        HttpSession session = request.getSession();
-//        User currentUser = (User) session.getAttribute("loggedInUser");
-//        
-//        // Kiểm tra đăng nhập
-//        if (currentUser == null) {
-//            response.sendRedirect(request.getContextPath() + "/login");
-//            return;
-//        }
+        // Bật bảo mật: Nếu chưa đăng nhập thì đuổi ra trang login
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            return;
+        }
 
+        // Lấy ID và Quyền từ tài khoản đang đăng nhập
+        int currentUserId = currentUser.getUserId();
+        int roleId = currentUser.getRoleId();
+
+        // =========================================================
+        // 2. CHUẨN HÓA QUYỀN THEO ĐÚNG DATABASE ĐỂ ĐẨY XUỐNG DAO
+        // =========================================================
+        String roleString = "END_USER"; // Mặc định an toàn nhất là End-user
+
+        if (roleId == 1) { 
+            roleString = "END_USER";   // Role 1: End-user
+        } else if (roleId == 2) {
+            roleString = "SUPPORT";    // Role 2: Support Agent
+        } else if (roleId == 3 || roleId == 10) {
+            roleString = "ADMIN";      // Role 3 (Manager) hoặc cao hơn: Được xem full danh sách
+        }
+
+        // =========================================================
+        // 3. XỬ LÝ TÌM KIẾM & LỌC DỮ LIỆU
+        // =========================================================
         String search = request.getParameter("search");
         String statusFilter = request.getParameter("statusFilter");
-
-        // --- BƯỚC SỬA LỖI PHÂN QUYỀN Ở ĐÂY ---
-        // Lấy roleId từ User model
-//        Integer roleId = currentUser.getRoleId();
-        String roleString = "END_USER"; // Mặc định là người dùng bình thường
-
-        // Mapping roleId với các biến logic trong DAO (Giả sử theo chuẩn thông thường)
-        // BẠN HÃY ĐỔI SỐ 1, 2, 3 NÀY CHO KHỚP VỚI BẢNG 'role' TRONG DATABASE CỦA BẠN NHÉ
-        int currentUserId = 1; // Giả sử ID của bạn là 1
-    Integer roleId = 3;    // Giả sử Role 3 là END_USER
-    
-    if (roleId != null) {
-        if (roleId == 1) { 
-            roleString = "ADMIN";   
-        } else if (roleId == 2) {
-            roleString = "SUPPORT"; 
-        } else if (roleId == 3) {
-            roleString = "END_USER"; 
-        }
-    }
-
+        
     // Gọi DAO lấy danh sách Ticket là Service Request
     List<Ticket> requests = ticketDAO.getRequestsByRole(
         currentUserId, // Truyền ID giả lập
