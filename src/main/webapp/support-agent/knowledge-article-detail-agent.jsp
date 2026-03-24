@@ -22,61 +22,74 @@
                 <form action="${pageContext.request.contextPath}/support-agent/knowledge-article?action=approve"
                       method="post" class="d-inline">
                     <input type="hidden" name="articleId" value="${article.articleId}">
-            </c:if>
-            <a href="${pageContext.request.contextPath}/support-agent/knowledge-article?action=list"
-               class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Back
-            </a>
+                </c:if>
+                <a href="${pageContext.request.contextPath}/support-agent/knowledge-article?action=list"
+                   class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back
+                </a>
         </div>
     </div>
 
     <div class="row g-4">
         <%-- LEFT --%>
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body p-4">
-                    <h3 class="fw-bold mb-1">${article.title}</h3>
-                    <p class="text-muted mb-4">${article.summary}</p>
-                    <hr>
-                    <div class="lh-lg">${article.content}</div>
-                </div>
-            </div>
-
-            <c:if test="${not empty article.symptom or not empty article.cause
-                          or not empty article.solution or not empty article.errorCode}">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-light fw-bold">
-                        <i class="bi bi-tools me-2 text-warning"></i>Technical Details
-                    </div>
-                    <div class="card-body">
-                        <c:if test="${not empty article.errorCode}">
-                            <div class="mb-3">
-                                <label class="fw-bold text-muted small d-block">ERROR CODE</label>
-                                <code>${article.errorCode}</code>
-                            </div>
-                        </c:if>
-                        <c:if test="${not empty article.symptom}">
-                            <div class="mb-3">
-                                <label class="fw-bold text-muted small d-block">SYMPTOM</label>
-                                <p class="mb-0">${article.symptom}</p>
-                            </div>
-                        </c:if>
-                        <c:if test="${not empty article.cause}">
-                            <div class="mb-3">
-                                <label class="fw-bold text-muted small d-block">CAUSE</label>
-                                <p class="mb-0">${article.cause}</p>
-                            </div>
-                        </c:if>
-                        <c:if test="${not empty article.solution}">
-                            <div class="mb-0">
-                                <label class="fw-bold text-muted small d-block">SOLUTION</label>
-                                <p class="mb-0">${article.solution}</p>
-                            </div>
-                        </c:if>
-                    </div>
-                </div>
-            </c:if>
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h3 class="fw-bold mb-1">${article.title}</h3>
+            <p class="text-muted mb-4">${article.summary}</p>
+            <hr>
+            <div class="lh-lg">${article.content}</div>
         </div>
+    </div>
+
+    <c:if test="${not empty article.symptom or not empty article.cause
+                  or not empty article.solution or not empty article.errorCode}">
+        <div class="card border-0 shadow-sm mb-4">  <%-- thêm mb-4 --%>
+            <div class="card-header bg-light fw-bold">
+                <i class="bi bi-tools me-2 text-warning"></i>Technical Details
+            </div>
+            <div class="card-body">
+                        <c:if test="${not empty article.errorCode}">
+                            <div class="mb-4">
+                                <p class="text-uppercase text-muted mb-1" style="font-size:11px;letter-spacing:.06em;font-weight:600;">Error code</p>
+                                <a href="${pageContext.request.contextPath}/known-error" method="post""
+                                   class="text-decoration-none">
+                                    <code class="bg-light border px-2 py-1 rounded text-primary">${article.errorCode}</code>
+                                    <i class="bi bi-box-arrow-up-right ms-1 small text-muted"></i>
+                                </a>
+                            </div>
+                        </c:if>
+                <c:if test="${not empty article.symptom}">
+                    <div class="mb-3">
+                        <label class="fw-bold text-muted small d-block">SYMPTOM</label>
+                        <p class="mb-0">${article.symptom}</p>
+                    </div>
+                </c:if>
+                <c:if test="${not empty article.cause}">
+                    <div class="mb-3">
+                        <label class="fw-bold text-muted small d-block">CAUSE</label>
+                        <p class="mb-0">${article.cause}</p>
+                    </div>
+                </c:if>
+                <c:if test="${not empty article.solution}">
+                    <div class="mb-0">
+                        <label class="fw-bold text-muted small d-block">SOLUTION</label>
+                        <p class="mb-0">${article.solution}</p>
+                    </div>
+                </c:if>
+            </div>
+        </div>
+    </c:if>
+
+    <%-- Related Known Errors — card riêng bên ngoài --%>
+<c:forEach var="linked" items="${linkedArticles}">
+    <a href="${pageContext.request.contextPath}/support-agent/knowledge-article?action=detail&amp;id=${linked.articleId}"
+       class="list-group-item list-group-item-action py-2">
+        <strong>${linked.articleNumber}</strong>
+    </a>
+</c:forEach>
+</div>
+
 
         <%-- RIGHT --%>
         <div class="col-lg-4">
@@ -135,6 +148,7 @@
                         <label class="fw-bold text-muted small d-block">LAST UPDATED</label>
                         <span class="text-muted small">${article.updatedAt}</span>
                     </div>
+
                 </div>
             </div>
         </div>
