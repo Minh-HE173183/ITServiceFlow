@@ -16,9 +16,9 @@ import java.sql.SQLException;
  *       environment variables instead of hardcoding here.
  */
 public class DBConnection {
-    private static final String URL = "jdbc:mysql://localhost:3306/itserviceflow_db?useSSL=false&serverTimezone=UTC";
-    private static final String USER = "root"; 
-    private static final String PASSWORD = "12345";
+    private static final String URL = "jdbc:mysql://localhost:3306/itserviceflow_db";
+    private static final String USER = "root";
+    private static final String PASSWORD = "root";
 
 
 //    private static final String URL =

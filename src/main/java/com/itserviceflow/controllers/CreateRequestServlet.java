@@ -4,6 +4,7 @@ import com.itserviceflow.daos.ServiceDAO;
 import com.itserviceflow.daos.TicketDAO;
 import com.itserviceflow.models.Service;
 import com.itserviceflow.models.Ticket;
+import com.itserviceflow.models.User;
 import com.itserviceflow.utils.WorkflowService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -24,7 +25,7 @@ public class CreateRequestServlet extends HttpServlet {
         String serviceIdStr = request.getParameter("serviceId");
         if (serviceIdStr != null && !serviceIdStr.isEmpty()) {
             int serviceId = Integer.parseInt(serviceIdStr);
-            // Lấy thông tin service để hiển thị tên trên Form
+            
             Service service = serviceDAO.getServiceById(serviceId);
             request.setAttribute("service", service);
         }
@@ -33,42 +34,65 @@ public class CreateRequestServlet extends HttpServlet {
     }
     
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
-            throws ServletException, IOException {
+protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+        throws ServletException, IOException {
+    
+    Ticket ticket = new Ticket();
+    String serviceIdParam = request.getParameter("serviceId");
+
+    if (serviceIdParam != null && !serviceIdParam.isEmpty()) {
+        int serviceId = Integer.parseInt(serviceIdParam);
+        ticket.setServiceId(serviceId);
         
-        Ticket ticket = new Ticket();
-        String serviceIdParam = request.getParameter("serviceId");
-
-
-        if (serviceIdParam != null && !serviceIdParam.isEmpty()) {
-            
-            ticket.setServiceId(Integer.parseInt(serviceIdParam));
+        Service service = serviceDAO.getServiceById(serviceId);
+        if (service != null) {
+            ticket.setTitle("Request for " + service.getServiceName());
         } else {
-            // Xử lý nếu thiếu ID (quay lại catalog)
-            response.sendRedirect(request.getContextPath() + "/service-catalog?error=missing_id");
-            return;
+            ticket.setTitle("Service Request (ID: " + serviceId + ")");
         }
-//        ticket.setServiceId(Integer.parseInt(request.getParameter("serviceId")));
-        ticket.setTitle(request.getParameter("title"));
-        ticket.setDescription(request.getParameter("description"));
-        ticket.setJustification(request.getParameter("justification"));
-        ticket.setPriority(request.getParameter("priority"));
         
-        // reportedBy lấy từ session sau khi login tạm thời để cứng ID = 1
-        ticket.setReportedBy(1); 
-        ticket.setDepartmentId(1);
-
-        if (ticketDAO.createServiceRequest(ticket)) {
-            // Tự động áp dụng workflow
-            Ticket created = ticketDAO.getTicketWithDetails(ticket.getTicketId());
-            if (created != null) {
-                workflowService.onTicketCreated(created);
-            }
-            // Sau khi tạo thành công, quay về catalog 
-            response.sendRedirect(request.getContextPath() + "/service-catalog?msg=success");
-        } else {
-            request.setAttribute("error", "Error creating service request.");
-            request.getRequestDispatcher("/ticket/create-request.jsp").forward(request, response);
-        }
+    } else {
+        response.sendRedirect(request.getContextPath() + "/service-catalog?error=missing_id");
+        return;
     }
+
+    ticket.setTicketType("SERVICE_REQUEST"); 
+    ticket.setStatus("NEW");
+    ticket.setDescription(request.getParameter("description"));
+    ticket.setJustification(request.getParameter("justification"));
+    ticket.setPriority(request.getParameter("priority"));
+    
+    // Tạm thời hardcode người tạo (sau này thay bằng Session currentUser)
+    // Lấy thông tin User đang đăng nhập từ Session
+    jakarta.servlet.http.HttpSession session = request.getSession();
+    User currentUser = (User) session.getAttribute("user"); // Đảm bảo dùng đúng chữ "user" như bên màn List
+    
+    if (currentUser != null) {
+        ticket.setReportedBy(currentUser.getUserId());
+        // Nếu User model của bạn có getDepartmentId() thì gài vào luôn, không thì tạm để 1
+        ticket.setDepartmentId(1); 
+    } else {
+        // Nếu phiên đăng nhập hết hạn thì đuổi ra màn hình login
+        response.sendRedirect(request.getContextPath() + "/auth?action=login");
+        return;
+    }
+
+    // Lưu vào DB
+    if (ticketDAO.createServiceRequest(ticket)) {
+       
+        Ticket created = ticketDAO.getTicketWithDetails(ticket.getTicketId());
+        if (created != null) {
+            workflowService.onTicketCreated(created);
+        }
+        response.sendRedirect(request.getContextPath() + "/ticket/service-request-list?msg=success");
+    } else {
+       
+        if (serviceIdParam != null && !serviceIdParam.isEmpty()) {
+            Service service = serviceDAO.getServiceById(Integer.parseInt(serviceIdParam));
+            request.setAttribute("service", service);
+        }
+        request.setAttribute("error", "Database Error: Vui lòng kiểm tra lại log Console.");
+        request.getRequestDispatcher("/ticket/create-request.jsp").forward(request, response);
+    }
+}
 }

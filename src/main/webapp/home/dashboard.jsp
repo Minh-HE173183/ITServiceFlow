@@ -250,7 +250,7 @@
         </a>
     </c:if>
 
-    <a href="${pageContext.request.contextPath}/service" class="action-card">
+    <a href="${pageContext.request.contextPath}/service-catalog" class="action-card">
         <div class="card-icon orange"><i class="bi bi-grid-3x3-gap-fill"></i></div>
         <h3>Service Catalog</h3>
         <p>Xem danh mục các dịch vụ IT đang cung cấp trong tổ chức.</p>
