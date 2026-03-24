@@ -306,7 +306,7 @@
                             </div>
                         </div>
 
-<!--                        <div class="workflow-card mb-4">
+                        <!--                        <div class="workflow-card mb-4">
             <div class="card-header-bar d-flex align-items-center justify-content-between px-4 py-3"
                 style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#jsonPreviewCollapse">
                 <div class="d-flex align-items-center gap-2">
@@ -399,13 +399,13 @@ out.print(gson.toJson(_pr));
                                             });
                                         }
                                         if (Array.isArray(cfg.steps)) {
-                                                cfg.steps.forEach(s => {
-                                                    // If action is NOTIFY, SLA should always be 0 and not editable
-                                                    const actionVal = s.action || 'APPROVE_REJECT';
-                                                    const slaVal = (actionVal === 'NOTIFY') ? 0 : (s.sla_hours || 24);
-                                                    steps.push({ id: ++stepIdCounter, name: s.name || '', role: s.role || ROLES[0], action: actionVal, sla_hours: slaVal });
-                                                });
-                                            }
+                                            cfg.steps.forEach(s => {
+                                                // If action is NOTIFY, SLA should always be 0 and not editable
+                                                const actionVal = s.action || 'APPROVE_REJECT';
+                                                const slaVal = (actionVal === 'NOTIFY') ? 0 : (s.sla_hours || 24);
+                                                steps.push({ id: ++stepIdCounter, name: s.name || '', description: s.description || '', role: s.role || ROLES[0], action: actionVal, sla_hours: slaVal });
+                                            });
+                                        }
                                     } catch (e) {
                                     }
                                 }
@@ -550,7 +550,7 @@ out.print(gson.toJson(_pr));
 
                             function addStep() {
                                 stepIdCounter++;
-                                steps.push({ id: stepIdCounter, name: '', role: ROLES[0], action: 'APPROVE_REJECT', sla_hours: 24 });
+                                steps.push({ id: stepIdCounter, name: '', description: '', role: ROLES[0], action: 'APPROVE_REJECT', sla_hours: 24 });
                                 renderSteps();
                                 updateJsonPreview();
                             }
@@ -566,9 +566,9 @@ out.print(gson.toJson(_pr));
                                 }
                                 _addStepBtn.classList.remove('d-none');
                                 let html = '';
-                                steps.forEach(function(s, i) {
-                                    var roleOptions = ROLES.map(function(r) { return '<option value="' + r + '"' + (s.role === r ? ' selected' : '') + '>' + r + '</option>'; }).join('');
-                                    var actionOptions = ACTIONS.map(function(a) { return '<option value="' + a.value + '"' + (a.value === s.action ? ' selected' : '') + '>' + a.label + '</option>'; }).join('');
+                                steps.forEach(function (s, i) {
+                                    var roleOptions = ROLES.map(function (r) { return '<option value="' + r + '"' + (s.role === r ? ' selected' : '') + '>' + r + '</option>'; }).join('');
+                                    var actionOptions = ACTIONS.map(function (a) { return '<option value="' + a.value + '"' + (a.value === s.action ? ' selected' : '') + '>' + a.label + '</option>'; }).join('');
                                     var upBtn = i > 0 ? '<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Up" onclick="moveStep(' + s.id + ', -1)"><i class="fa fa-chevron-up"></i></button>' : '<span style="display:inline-block;width:22px;"></span>';
                                     var downBtn = i < steps.length - 1 ? '<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Down" onclick="moveStep(' + s.id + ', 1)"><i class="fa fa-chevron-down"></i></button>' : '<span style="display:inline-block;width:22px;"></span>';
                                     // SLA input is not editable for NOTIFY-only steps; show disabled 0
@@ -583,11 +583,16 @@ out.print(gson.toJson(_pr));
                                         + '<div class="step-number">' + (i + 1) + '</div>'
                                         + upBtn + ' ' + downBtn
                                         + '</div>'
-                                        + '<div class="flex-grow-1 row g-3">'
+                                        + '<div class="flex-grow-1">'
+                                        + '<div class="row g-3 mb-2">'
                                         + '<div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Step Name" value="' + escHtml(s.name) + '" oninput="updateStepField(' + s.id + ', \'name\', this.value)" /></div>'
                                         + '<div class="col-md-3"><select class="form-select form-select-sm" onchange="updateStepField(' + s.id + ', \'role\', this.value)">' + roleOptions + '</select></div>'
                                         + '<div class="col-md-3"><select class="form-select form-select-sm" onchange="updateStepField(' + s.id + ', \'action\', this.value)">' + actionOptions + '</select></div>'
                                         + slaHtml
+                                        + '</div>'
+                                        + '<div class="row g-3">'
+                                        + '<div class="col-12"><input type="text" class="form-control form-control-sm" placeholder="Step Description (Optional)" value="' + escHtml(s.description || '') + '" oninput="updateStepField(' + s.id + ', \'description\', this.value)" /></div>'
+                                        + '</div>'
                                         + '</div>'
                                         + '<button type="button" class="btn btn-sm text-danger" onclick="removeStep(' + s.id + ')"><i class="fa fa-trash"></i></button>'
                                         + '</div>';
@@ -643,7 +648,7 @@ out.print(gson.toJson(_pr));
                                 return {
                                     trigger: selectedTrigger,
                                     conditions: { type: 'group', logic: conditionLogic, criteria: conditions.map(c => ({ type: 'condition', field: c.field, operator: c.operator, value: c.value })) },
-                                    steps: steps.map(s => ({ name: s.name, role: s.role, action: s.action, sla_hours: s.sla_hours }))
+                                    steps: steps.map(s => ({ name: s.name, description: s.description, role: s.role, action: s.action, sla_hours: s.sla_hours }))
                                 };
                             }
                             function updateJsonPreview() {
