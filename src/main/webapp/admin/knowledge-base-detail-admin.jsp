@@ -1,5 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<jsp:include page="/includes/header.jsp">
+    <jsp:param name="pageTitle" value="Knowledge Base" />
+</jsp:include>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <!-- Bootstrap Icons -->
@@ -20,7 +23,7 @@
                       method="post" class="d-inline">
                     <input type="hidden" name="articleId" value="${article.articleId}">
             </c:if>
-            <a href="${pageContext.request.contextPath}/knowledge-base?action=list"
+            <a href="${pageContext.request.contextPath}/admin/knowledge-base?action=list"
                class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Back
             </a>

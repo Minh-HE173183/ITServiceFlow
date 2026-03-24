@@ -1,5 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<jsp:include page="/includes/header.jsp">
+    <jsp:param name="pageTitle" value="Knowledge Article" />
+</jsp:include>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <!-- Bootstrap Icons -->
@@ -12,15 +15,15 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h4 text-primary m-0">
-            <i class="bi bi-journal-text me-2"></i>Knowledge Base Detail
+            <i class="bi bi-journal-text me-2"></i>Knowledge Article Detail
         </h2>
         <div class="d-flex gap-2">
             <c:if test="${article.status == 'PENDING'}">
-                <form action="${pageContext.request.contextPath}/admin/knowledge-base?action=approve"
+                <form action="${pageContext.request.contextPath}/support-agent/knowledge-article?action=approve"
                       method="post" class="d-inline">
                     <input type="hidden" name="articleId" value="${article.articleId}">
             </c:if>
-            <a href="${pageContext.request.contextPath}/knowledge-base?action=list"
+            <a href="${pageContext.request.contextPath}/support-agent/knowledge-article?action=list"
                class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Back
             </a>
@@ -79,7 +82,7 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light fw-bold">
-                    <i class="bi bi-info-circle me-2"></i>Knowledge Base Info
+                    <i class="bi bi-info-circle me-2"></i>Knowledge Article Info
                 </div>
                 <div class="card-body">
                     <div class="mb-3">

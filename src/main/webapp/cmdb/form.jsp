@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <jsp:include page="/includes/header.jsp" />
 
 <div class="container-fluid bg-white p-4 rounded shadow-sm" style="max-width: 900px; margin: auto;">
@@ -16,10 +17,12 @@
                 <input type="text" class="form-control" id="ciName" name="ciName" value="${ci.ciName}" required>
             </div>
             <div class="col-md-6">
-                <label for="ciTypeId" class="form-label fw-bold">CI Type ID <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" id="ciTypeId" name="ciTypeId"
-                    value="${ci.ciTypeId == 0 ? 3 : ci.ciTypeId}" required min="1" max="8">
-                <div class="form-text">(1: Desktop, 2: Laptop, 3: Server, 4: Switch, etc.)</div>
+                <label for="ciTypeId" class="form-label fw-bold">CI Type <span class="text-danger">*</span></label>
+                <select class="form-select" id="ciTypeId" name="ciTypeId" required>
+                    <c:forEach var="type" items="${ciTypes}">
+                        <option value="${type[0]}" ${ci.ciTypeId == type[0] ? 'selected' : ''}>${type[1]}</option>
+                    </c:forEach>
+                </select>
             </div>
         </div>
 
@@ -69,9 +72,13 @@
                     value="${ci.serialNumber}">
             </div>
             <div class="col-md-6">
-                <label for="ownerId" class="form-label fw-bold">Owner User ID</label>
-                <input type="number" class="form-control" id="ownerId" name="ownerId" value="${ci.ownerId}"
-                    placeholder="Leave blank if unassigned">
+                <label for="ownerId" class="form-label fw-bold">Owner</label>
+                <select class="form-select" id="ownerId" name="ownerId">
+                    <option value="">-- Unassigned --</option>
+                    <c:forEach var="u" items="${users}">
+                        <option value="${u.userId}" ${ci.ownerId == u.userId ? 'selected' : ''}>${u.fullName}</option>
+                    </c:forEach>
+                </select>
             </div>
         </div>
 

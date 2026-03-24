@@ -6,6 +6,7 @@ package com.itserviceflow.daos;
 
 import com.itserviceflow.models.User;
 import com.itserviceflow.utils.DBConnection;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -68,30 +69,6 @@ public class UserDAO {
         }
 
         return u;
-    }
-
-    public void migratePasswords() {
-        String selectSql = "SELECT user_id, password_hash FROM `user`";
-        String updateSql = "UPDATE `user` SET password_hash = ? WHERE user_id = ?";
-        try (PreparedStatement select = conn.prepareStatement(selectSql);
-                PreparedStatement update = conn.prepareStatement(updateSql)) {
-            ResultSet rs = select.executeQuery();
-            while (rs.next()) {
-                int userId = rs.getInt("user_id");
-                String plainPassword = rs.getString("password_hash");
-
-                // Chỉ hash nếu chưa phải BCrypt (BCrypt bắt đầu bằng $2a$)
-                if (!plainPassword.startsWith("$2a$")) {
-                    String hashed = BCrypt.hashpw(plainPassword, BCrypt.gensalt());
-                    update.setString(1, hashed);
-                    update.setInt(2, userId);
-                    update.executeUpdate();
-                    System.out.println("Migrated userId: " + userId);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public List<User> getUsersByRoleId(int roleId) {
@@ -214,7 +191,19 @@ public class UserDAO {
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {
                     User u = mapUser(rs);
-                    if (BCrypt.checkpw(password, u.getPasswordHash())) {
+                    String stored = u.getPasswordHash();
+                    boolean valid;
+                    if (stored.startsWith("$2a$")) {
+                        valid = BCrypt.checkpw(password, stored);
+                    } else {
+                        // Plain text password, compare directly
+                        valid = password.equals(stored);
+                        // If valid, hash it for future logins
+                        if (valid) {
+                            updatePassword(u.getUserId(), password);
+                        }
+                    }
+                    if (valid) {
                         updateLastLogin(u.getUserId());
                         return u;
                     }
@@ -229,7 +218,6 @@ public class UserDAO {
     public static void main(String[] args) {
         UserDAO userDao = new UserDAO();
         System.out.println(userDao.login("admin@test.com", "Admin123"));
-        userDao.migratePasswords();
     }
 
     private void updateLastLogin(int userId) {

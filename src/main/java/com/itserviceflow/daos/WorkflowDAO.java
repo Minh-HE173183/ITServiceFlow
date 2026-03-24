@@ -117,6 +117,30 @@ public class WorkflowDAO {
     }
 
     // ---------------------------------------------------------------
+    // READ: find workflow by name (case-insensitive)
+    // ---------------------------------------------------------------
+    public Workflow getWorkflowByName(String name) throws SQLException {
+        if (name == null) return null;
+        String sql = """
+                SELECT w.workflow_id, w.workflow_name, w.description, w.status,
+                       w.workflow_config, w.created_by, w.updated_at,
+                       u.full_name AS created_by_name
+                FROM workflow w
+                LEFT JOIN `user` u ON w.created_by = u.user_id
+                WHERE LOWER(w.workflow_name) = LOWER(?)
+                LIMIT 1
+                """;
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapRow(rs);
+            }
+        }
+        return null;
+    }
+
+    // ---------------------------------------------------------------
     // UPDATE
     // ---------------------------------------------------------------
     public boolean updateWorkflow(Workflow w) throws SQLException {
