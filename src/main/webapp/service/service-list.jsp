@@ -14,7 +14,7 @@
     <h2 class="h4 text-primary m-0"><i class="bi bi-collection me-2"></i>Service Catalog</h2>
     
     <a href="${pageContext.request.contextPath}/ticket/service-request-list" class="btn btn-outline-primary shadow-sm fw-bold">
-        <i class="bi bi-card-list me-1"></i> View My Requests
+        <i class="bi bi-card-list me-1"></i> View Requests
     </a>
 </div>
 
