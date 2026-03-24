@@ -26,7 +26,7 @@ public class ServiceDAO {
 //    }
     public List<Service> searchServices(String query) {
         List<Service> services = new ArrayList<>();
-        
+
         String sql = "SELECT * FROM service WHERE status = 'ACTIVE' AND (service_name LIKE ? OR description LIKE ?)";
 
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -98,7 +98,7 @@ public class ServiceDAO {
                 psCheck.setInt(1, serviceId);
                 ResultSet rs = psCheck.executeQuery();
                 if (rs.next() && rs.getInt(1) > 0) {
-                    return "cannot_delete"; 
+                    return "cannot_delete";
                 }
             }
 
@@ -126,7 +126,6 @@ public class ServiceDAO {
 //            e.printStackTrace();
 //        }
 //    }
-    
     // Hàm xử lý đổi trạng thái (ACTIVE/INACTIVE) cho nhiều dịch vụ cùng lúc
     public int bulkToggleStatus(String[] ids, String newStatus) {
         String sql = "UPDATE service SET status = ? WHERE service_id = ?";
@@ -136,7 +135,7 @@ public class ServiceDAO {
             for (String id : ids) {
                 ps.setString(1, newStatus);
                 ps.setInt(2, Integer.parseInt(id));
-                ps.addBatch(); 
+                ps.addBatch();
             }
 
             int[] results = ps.executeBatch();
@@ -198,5 +197,23 @@ public class ServiceDAO {
             e.printStackTrace();
             return false;
         }
+    }
+
+    // Hàm kiểm tra xem service_code đã tồn tại chưa (loại trừ chính dịch vụ đang sửa)
+    public boolean checkDuplicateServiceCode(String serviceCode, int currentServiceId) {
+        String sql = "SELECT COUNT(*) FROM service WHERE service_code = ? AND service_id != ?";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, serviceCode);
+            ps.setInt(2, currentServiceId); // Không tính ID của chính nó đang sửa
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0; // Trả về true nếu count > 0 (bị trùng)
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false; // Không trùng
     }
 }
