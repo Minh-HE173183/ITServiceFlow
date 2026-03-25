@@ -16,20 +16,10 @@ import java.sql.SQLException;
  *       environment variables instead of hardcoding here.
  */
 public class DBConnection {
-    private static final String URL = "jdbc:mysql://localhost:3306/itserviceflow_db";
-    private static final String USER = "root";
-    private static final String PASSWORD = "root";
+    private static final String URL = "jdbc:mysql://localhost:3306/itserviceflow_db?useSSL=false&serverTimezone=UTC";
+    private static final String USER = "root"; 
+    private static final String PASSWORD = "Admin123";
 
-
-//    private static final String URL =
-//            "jdbc:mysql://localhost:8080/itserviceflow_db" +
-//            "?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8&useUnicode=true";
-
-//    private static final String USER     = "root";
-//    private static final String PASSWORD = "1234";
-//    private static final String URL = "jdbc:mysql://localhost:3306/itserviceflow_db";
-//    private static final String USER = "root";
-//    private static final String PASSWORD = "root";
     static {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
