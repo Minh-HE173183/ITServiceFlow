@@ -26,12 +26,14 @@ public class Ticket {
     private String cause;
     private String solution;private String justification;
     private Integer serviceId;
+    private Integer ciId;
     private Date createdAt;
     private Date updatedAt;
 
     // Virtual fields for display
     private String reportedByName;
     private String assignedToName;
+    private String ciName;
 
     public Ticket() {
     }
@@ -216,5 +218,21 @@ public class Ticket {
 
     public void setAssignedToName(String assignedToName) {
         this.assignedToName = assignedToName;
+    }
+
+    public Integer getCiId() {
+        return ciId;
+    }
+
+    public void setCiId(Integer ciId) {
+        this.ciId = ciId;
+    }
+
+    public String getCiName() {
+        return ciName;
+    }
+
+    public void setCiName(String ciName) {
+        this.ciName = ciName;
     }
 }

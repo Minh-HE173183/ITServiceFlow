@@ -116,6 +116,7 @@
                             <th>Relationship Type</th>
                             <th>Child CI</th>
                             <th>Description</th>
+                            <th class="text-center" style="width: 100px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -134,17 +135,25 @@
                                     <c:if test="${rel.childCiId ne ci.ciId}"><a href="${pageContext.request.contextPath}/cmdb?action=detail&id=${rel.childCiId}">${rel.childCiName} (${rel.childCiCode})</a></c:if>
                                 </td>
                                 <td class="text-muted">${rel.description}</td>
+                                <td class="text-center">
+                                    <form action="${pageContext.request.contextPath}/cmdb" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to remove this relationship?');">
+                                        <input type="hidden" name="action" value="deleteRelationship">
+                                        <input type="hidden" name="relationshipId" value="${rel.relationshipId}">
+                                        <input type="hidden" name="ciId" value="${ci.ciId}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove Connection">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         </c:forEach>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Vis.js script rendering -->
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     var nodeSet = {};
-                    // Root CI node
                     nodeSet[${ci.ciId}] = { 
                         id: ${ci.ciId}, 
                         label: '${ci.ciName}\\n(${ci.ciCode})', 
@@ -247,11 +256,11 @@
                             <label for="relationshipType" class="form-label fw-bold">Relationship Type *</label>
                             <select class="form-select" id="relationshipType" name="relationshipType" required>
                                 <option value="">Select relationship type...</option>
-                                <option value="DEPENDS_ON">Depends On (Tùy thuộc vào)</option>
-                                <option value="CONNECTED_TO">Connected To (Kết nối với)</option>
-                                <option value="RUNS_ON">Runs On (Chạy trên)</option>
-                                <option value="HOSTED_BY">Hosted By (Được chứa bởi)</option>
-                                <option value="PART_OF">Part Of (Là 1 phần của)</option>
+                                <option value="DEPENDS_ON">Depends On</option>
+                                <option value="CONNECTED_TO">Connected To</option>
+                                <option value="RUNS_ON">Runs On</option>
+                                <option value="HOSTED_BY">Hosted By</option>
+                                <option value="PART_OF">Part Of</option>
                             </select>
                         </div>
 
