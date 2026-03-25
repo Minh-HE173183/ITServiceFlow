@@ -627,10 +627,18 @@
                     <label>Title</label>
                     <span>${incident.title}</span>
                 </div>
-                <div class="detail-item">
+            <div class="detail-item">
                     <label>Status</label>
                     <span class="badge badge-${fn:toLowerCase(incident.status)}">${incident.status}</span>
                 </div>
+                
+                <!-- Cancel Reason Display -->
+                <c:if test="${incident.status eq 'CANCELLED' and not empty cancelReason}">
+                    <div class="detail-item">
+                        <label>Cancel Reason</label>
+                        <span style="color: #c53030; font-weight: 500;">${cancelReason}</span>
+                    </div>
+                </c:if>
                 <div class="detail-item">
                     <label>Priority</label>
                     <span
