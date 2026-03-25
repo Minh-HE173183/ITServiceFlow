@@ -67,10 +67,9 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Error Code</label>
-                            <input type="text" name="errorCode" class="form-control"
-                                   placeholder="e.g. ERR-404..."
-                                   value="${article.errorCode}">
+                            <label class="form-label fw-bold">
+                                Error Code: No 
+                            </label> <br/>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Symptom</label>
@@ -102,13 +101,6 @@
                             <label class="form-label fw-bold">
                                 Article Type: KNOWLEDGE BASE 
                             </label> <br/>
-                        </div>
-                        <div class="mb-0">
-                            <label class="form-label fw-bold">Tags</label>
-                            <input type="text" name="tag" class="form-control"
-                                   placeholder="e.g. windows, network..."
-                                   value="${article.tag}">
-                            <div class="form-text">Separate with commas</div>
                         </div>
                     </div>
                 </div>

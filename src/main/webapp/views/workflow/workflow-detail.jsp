@@ -816,6 +816,7 @@
                                         <div class="step-num">\${idx + 1}</div>
                                         <div class="flex-grow-1">
                                             <div class="fw-semibold">\${s.name || 'Bước ' + (idx + 1)}</div>
+                                            \${s.description ? '<div class="small text-muted mb-1">' + s.description + '</div>' : ''}
                                             <div class="small text-muted">Phụ trách: <span class="text-primary">\${s.role}</span> &bull; Hành động: <span class="text-primary">\${s.action}</span></div>
                                         </div>
                                         <div class="text-end">

@@ -3,9 +3,11 @@ package com.itserviceflow.controllers;
 import com.itserviceflow.daos.ProblemDAO;
 import com.itserviceflow.daos.TicketDAO;
 import com.itserviceflow.daos.UserDAO;
+import com.itserviceflow.daos.CmdbDAO;
 import com.itserviceflow.models.Comment;
 import com.itserviceflow.models.Ticket;
 import com.itserviceflow.models.User;
+import com.itserviceflow.models.ConfigurationItem;
 import com.itserviceflow.utils.AuthUtils;
 
 import jakarta.servlet.ServletException;
@@ -22,11 +24,13 @@ public class ProblemController extends HttpServlet {
 
     private ProblemDAO problemDAO;
     private TicketDAO ticketDAO;
+    private CmdbDAO cmdbDAO;
 
     @Override
     public void init() throws ServletException {
         problemDAO = new ProblemDAO();
         ticketDAO = new TicketDAO();
+        cmdbDAO = new CmdbDAO();
     }
 
     @Override
@@ -37,8 +41,9 @@ public class ProblemController extends HttpServlet {
             action = "list";
         }
 
-        if (!AuthUtils.isLoggedIn(request, response))
+        if (!AuthUtils.isLoggedIn(request, response)) {
             return;
+        }
 
         User currentUser = AuthUtils.getCurrentUser(request);
         request.setAttribute("currentUser", currentUser);
@@ -46,30 +51,35 @@ public class ProblemController extends HttpServlet {
         switch (action) {
             case "list":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT,
-                        AuthUtils.ROLE_IT_DIRECTOR))
+                        AuthUtils.ROLE_IT_DIRECTOR)) {
                     return;
+                }
                 listProblems(request, response);
                 break;
             case "detail":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT,
-                        AuthUtils.ROLE_IT_DIRECTOR))
+                        AuthUtils.ROLE_IT_DIRECTOR)) {
                     return;
+                }
                 viewProblemDetail(request, response);
                 break;
             case "add":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT)) {
                     return;
+                }
                 showProblemForm(request, response);
                 break;
             case "edit":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT)) {
                     return;
+                }
                 showEditForm(request, response);
                 break;
             default:
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT,
-                        AuthUtils.ROLE_IT_DIRECTOR))
+                        AuthUtils.ROLE_IT_DIRECTOR)) {
                     return;
+                }
                 listProblems(request, response);
                 break;
         }
@@ -88,23 +98,27 @@ public class ProblemController extends HttpServlet {
             return;
         }
 
-        if (!AuthUtils.isLoggedIn(request, response))
+        if (!AuthUtils.isLoggedIn(request, response)) {
             return;
+        }
 
         switch (action) {
             case "insert":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT)) {
                     return;
+                }
                 insertProblem(request, response);
                 break;
             case "update":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT)) {
                     return;
+                }
                 updateProblem(request, response);
                 break;
             case "delete":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT)) {
                     return;
+                }
                 deleteProblem(request, response);
                 break;
             case "bulkDelete":
@@ -114,19 +128,22 @@ public class ProblemController extends HttpServlet {
                 bulkDeleteProblem(request, response);
                 break;
             case "assign":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT)) {
                     return;
+                }
                 assignProblem(request, response);
                 break;
             case "cancel":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT)) {
                     return;
+                }
                 cancelProblem(request, response);
                 break;
 
             case "addComment":
-                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT))
+                if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_TECHNICAL_EXPERT)) {
                     return;
+                }
                 addComment(request, response);
                 break;
             default:
@@ -186,7 +203,10 @@ public class ProblemController extends HttpServlet {
             throws ServletException, IOException {
         User currentUser = AuthUtils.getCurrentUser(request);
         List<Ticket> incidents = ticketDAO.getIncidentList(currentUser.getUserId(), currentUser.getRoleName());
+        List<ConfigurationItem> activeCis = cmdbDAO.searchConfigurationItems(null, "ACTIVE");
+
         request.setAttribute("incidents", incidents);
+        request.setAttribute("activeCis", activeCis);
         request.getRequestDispatcher("/problem/form.jsp").forward(request, response);
     }
 
@@ -203,10 +223,12 @@ public class ProblemController extends HttpServlet {
 
         List<Ticket> incidents = ticketDAO.getIncidentList(currentUser.getUserId(), currentUser.getRoleName());
         List<Ticket> linkedIncidents = problemDAO.getLinkedIncidents(id);
+        List<ConfigurationItem> activeCis = cmdbDAO.searchConfigurationItems(null, "ACTIVE");
 
         request.setAttribute("problem", problem);
         request.setAttribute("incidents", incidents);
         request.setAttribute("linkedIncidents", linkedIncidents);
+        request.setAttribute("activeCis", activeCis);
         request.getRequestDispatcher("/problem/form.jsp").forward(request, response);
     }
 
@@ -221,6 +243,15 @@ public class ProblemController extends HttpServlet {
         problem.setDescription(description);
         problem.setCause(cause);
         problem.setSolution(solution);
+
+        String ciIdStr = request.getParameter("ciId");
+        if (ciIdStr != null && !ciIdStr.trim().isEmpty()) {
+            try {
+                problem.setCiId(Integer.parseInt(ciIdStr.trim()));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
         User user = AuthUtils.getCurrentUser(request);
         problem.setReportedBy(user.getUserId());
 
@@ -267,6 +298,14 @@ public class ProblemController extends HttpServlet {
         problem.setCause(cause);
         problem.setSolution(solution);
 
+        String ciIdStr = request.getParameter("ciId");
+        if (ciIdStr != null && !ciIdStr.trim().isEmpty()) {
+            try {
+                problem.setCiId(Integer.parseInt(ciIdStr.trim()));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
         problemDAO.updateProblemTicket(problem);
 
         String[] incidentIdStrs = request.getParameterValues("incidentIds");
@@ -291,34 +330,56 @@ public class ProblemController extends HttpServlet {
     private void deleteProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         Ticket ticket = problemDAO.getProblemById(id);
+        User user = AuthUtils.getCurrentUser(request);
 
-        // UC37: Delete only if NEW, unlinked, unassigned
-        if (ticket != null && "NEW".equals(ticket.getStatus()) && ticket.getAssignedTo() == null) {
-            List<Ticket> links = problemDAO.getLinkedIncidents(id);
-            if (links == null || links.isEmpty()) {
-                problemDAO.deleteProblemTicket(id);
+        if (ticket != null && "NEW".equals(ticket.getStatus()) && (ticket.getAssignedTo() == null || ticket.getAssignedTo() == 0)) {
+            if (ticket.getReportedBy() == user.getUserId() || user.getRoleId() == AuthUtils.ROLE_MANAGER || user.getRoleId() == AuthUtils.ROLE_ADMIN) {
+                boolean deleted = problemDAO.deleteProblemTicket(id);
+                if (deleted) {
+                    request.getSession().setAttribute("message", "Problem ticket deleted successfully.");
+                } else {
+                    request.getSession().setAttribute("errorMsg", "Failed to delete problem ticket.");
+                }
+            } else {
+                request.getSession().setAttribute("errorMsg", "You can only delete your own problem tickets, unless you are a Manager.");
             }
+        } else {
+            request.getSession().setAttribute("errorMsg", "Can only delete NEW problem tickets that are unassigned.");
         }
+
         response.sendRedirect(request.getContextPath() + "/problem?action=list");
     }
 
     private void bulkDeleteProblem(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String[] ids = request.getParameterValues("selectedIds");
+        User user = AuthUtils.getCurrentUser(request);
+        int successCount = 0;
+        int failCount = 0;
+
         if (ids != null) {
             for (String idStr : ids) {
                 try {
                     int id = Integer.parseInt(idStr);
                     Ticket ticket = problemDAO.getProblemById(id);
-                    if (ticket != null && "NEW".equals(ticket.getStatus()) && ticket.getAssignedTo() == null) {
-                        List<Ticket> links = problemDAO.getLinkedIncidents(id);
-                        if (links == null || links.isEmpty()) {
-                            problemDAO.deleteProblemTicket(id);
+                    if (ticket != null && "NEW".equals(ticket.getStatus()) && (ticket.getAssignedTo() == null || ticket.getAssignedTo() == 0)) {
+                        if (ticket.getReportedBy() == user.getUserId() || user.getRoleId() == AuthUtils.ROLE_MANAGER || user.getRoleId() == AuthUtils.ROLE_ADMIN) {
+                            boolean deleted = problemDAO.deleteProblemTicket(id);
+                            if (deleted) {
+                                successCount++;
+                            } else {
+                                failCount++;
+                            }
+                        } else {
+                            failCount++;
                         }
+                    } else {
+                        failCount++;
                     }
                 } catch (NumberFormatException ignored) {
                 }
             }
         }
+        request.getSession().setAttribute("message", "Bulk Delete execution complete. Success: " + successCount + ". Skipped: " + failCount + " (Rule: Must be NEW, unassigned, and owned by you, or you must be Admin/Manager).");
         response.sendRedirect(request.getContextPath() + "/problem?action=list");
     }
 
@@ -332,6 +393,17 @@ public class ProblemController extends HttpServlet {
         }
 
         int assignedTo = Integer.parseInt(request.getParameter("assignedTo"));
+
+        User currentUser = AuthUtils.getCurrentUser(request);
+        if (currentUser.getRoleId() == AuthUtils.ROLE_TECHNICAL_EXPERT) {
+            if (assignedTo != currentUser.getUserId()
+                    || (existingProblem.getAssignedTo() != null && existingProblem.getAssignedTo() != 0)
+                    || existingProblem.getReportedBy() == currentUser.getUserId()) {
+                response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
+                return;
+            }
+        }
+
         problemDAO.assignProblemTicket(id, assignedTo);
         response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
     }
@@ -342,6 +414,8 @@ public class ProblemController extends HttpServlet {
         Ticket existingProblem = problemDAO.getProblemById(id);
         User currentUser = AuthUtils.getCurrentUser(request);
         if (existingProblem == null || "CANCELLED".equals(existingProblem.getStatus())
+                || "RESOLVED".equals(existingProblem.getStatus())
+                || "CLOSED".equals(existingProblem.getStatus())
                 || !canManageProblem(existingProblem, currentUser)) {
             response.sendRedirect(request.getContextPath() + "/problem?action=detail&id=" + id);
             return;

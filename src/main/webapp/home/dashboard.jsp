@@ -233,6 +233,13 @@
         <p>Tra cứu tài liệu hướng dẫn, FAQ và giải pháp từ kho tri thức nội bộ.</p>
         <i class="bi bi-arrow-right card-arrow"></i>
     </a>
+        
+    <a href="${pageContext.request.contextPath}/knowledge-article?action=list" class="action-card">
+        <div class="card-icon bg-primary text-white"><i class="bi bi-file-earmark-text"></i></div>
+        <h3>Knowledge Article</h3>
+        <p>Tra cứu tài liệu hướng dẫn, FAQ và giải pháp từ kho tri thức nội bộ.</p>
+        <i class="bi bi-arrow-right card-arrow"></i>
+    </a>
 
     <c:if test="${sessionScope.user.roleId != 1}">
         <a href="${pageContext.request.contextPath}/known-error?action=list" class="action-card">
@@ -243,7 +250,7 @@
         </a>
     </c:if>
 
-    <a href="${pageContext.request.contextPath}/service" class="action-card">
+    <a href="${pageContext.request.contextPath}/service-catalog" class="action-card">
         <div class="card-icon orange"><i class="bi bi-grid-3x3-gap-fill"></i></div>
         <h3>Service Catalog</h3>
         <p>Xem danh mục các dịch vụ IT đang cung cấp trong tổ chức.</p>
@@ -276,6 +283,11 @@
     <a href="${pageContext.request.contextPath}/knowledge-base?action=list" class="info-card" style="text-decoration:none; color:inherit;">
         <div class="info-icon">📚</div>
         <h4>Knowledge Base</h4>
+        <p>Kho tri thức nội bộ</p>
+    </a>
+    <a href="${pageContext.request.contextPath}/knowledge-article?action=list" class="info-card" style="text-decoration:none; color:inherit;">
+        <div class="info-icon">🧰</div>
+        <h4>Knowledge Article</h4>
         <p>Kho tri thức nội bộ</p>
     </a>
     <c:if test="${sessionScope.user.roleId != 1}">

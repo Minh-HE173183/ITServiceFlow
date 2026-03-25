@@ -124,7 +124,7 @@ public class KnowledgeBaseController extends HttpServlet {
             return;
         }
         req.setAttribute("article", article);
-        req.getRequestDispatcher("/knowledge/knowledge-base-detail.jsp").forward(req, resp);
+        req.getRequestDispatcher("/admin/knowledge-base-detail-admin.jsp").forward(req, resp);
     }
 
     // ===================== ACTION HANDLERS =====================

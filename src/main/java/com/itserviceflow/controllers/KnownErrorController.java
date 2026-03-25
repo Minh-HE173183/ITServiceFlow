@@ -15,6 +15,7 @@ import java.util.List;
 
 @WebServlet("/known-error")
 public class KnownErrorController extends HttpServlet {
+
     private KnownErrorDAO knownErrorDAO;
 
     @Override
@@ -30,8 +31,9 @@ public class KnownErrorController extends HttpServlet {
             action = "list";
         }
 
-        if (!AuthUtils.isLoggedIn(request, response))
+        if (!AuthUtils.isLoggedIn(request, response)) {
             return;
+        }
 
         User currentUser = AuthUtils.getCurrentUser(request);
         request.setAttribute("currentUser", currentUser);
@@ -39,32 +41,37 @@ public class KnownErrorController extends HttpServlet {
         switch (action) {
             case "list":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_TECHNICAL_EXPERT,
-                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR, AuthUtils.ROLE_ADMIN))
+                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR, AuthUtils.ROLE_ADMIN)) {
                     return;
+                }
                 listKnownErrors(request, response);
                 break;
             case "detail":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_TECHNICAL_EXPERT,
-                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR, AuthUtils.ROLE_ADMIN))
+                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR, AuthUtils.ROLE_ADMIN)) {
                     return;
+                }
                 viewKnownErrorDetail(request, response);
                 break;
             case "add":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT, AuthUtils.ROLE_MANAGER,
-                        AuthUtils.ROLE_ADMIN))
+                        AuthUtils.ROLE_ADMIN)) {
                     return;
+                }
                 showKnownErrorForm(request, response);
                 break;
             case "edit":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT, AuthUtils.ROLE_MANAGER,
-                        AuthUtils.ROLE_ADMIN))
+                        AuthUtils.ROLE_ADMIN)) {
                     return;
+                }
                 showEditForm(request, response);
                 break;
             default:
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_SUPPORT_AGENT, AuthUtils.ROLE_TECHNICAL_EXPERT,
-                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR, AuthUtils.ROLE_ADMIN))
+                        AuthUtils.ROLE_MANAGER, AuthUtils.ROLE_IT_DIRECTOR, AuthUtils.ROLE_ADMIN)) {
                     return;
+                }
                 listKnownErrors(request, response);
                 break;
         }
@@ -79,32 +86,37 @@ public class KnownErrorController extends HttpServlet {
             return;
         }
 
-        if (!AuthUtils.isLoggedIn(request, response))
+        if (!AuthUtils.isLoggedIn(request, response)) {
             return;
+        }
 
         switch (action) {
             case "insert":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT, AuthUtils.ROLE_MANAGER,
-                        AuthUtils.ROLE_ADMIN))
+                        AuthUtils.ROLE_ADMIN)) {
                     return;
+                }
                 insertKnownError(request, response);
                 break;
             case "update":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT, AuthUtils.ROLE_MANAGER,
-                        AuthUtils.ROLE_ADMIN))
+                        AuthUtils.ROLE_ADMIN)) {
                     return;
+                }
                 updateKnownError(request, response);
                 break;
             case "delete":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT, AuthUtils.ROLE_MANAGER,
-                        AuthUtils.ROLE_ADMIN))
+                        AuthUtils.ROLE_ADMIN)) {
                     return;
+                }
                 deleteKnownError(request, response);
                 break;
             case "bulkDelete":
                 if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_TECHNICAL_EXPERT, AuthUtils.ROLE_MANAGER,
-                        AuthUtils.ROLE_ADMIN))
+                        AuthUtils.ROLE_ADMIN)) {
                     return;
+                }
                 bulkDeleteKnownError(request, response);
                 break;
             case "review":
@@ -241,7 +253,7 @@ public class KnownErrorController extends HttpServlet {
         Article ke = knownErrorDAO.getKnownErrorById(id);
         User user = AuthUtils.getCurrentUser(request);
         if (ke != null && ("PENDING".equals(ke.getStatus()) || "REJECTED".equals(ke.getStatus()))) {
-            if (ke.getAuthorId() == user.getUserId()) {
+            if (ke.getAuthorId() == user.getUserId() || user.getRoleId() == AuthUtils.ROLE_ADMIN || user.getRoleId() == AuthUtils.ROLE_MANAGER) {
                 knownErrorDAO.deleteKnownError(id);
             }
         }
@@ -251,53 +263,90 @@ public class KnownErrorController extends HttpServlet {
     private void bulkDeleteKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String[] ids = request.getParameterValues("selectedIds");
         User user = AuthUtils.getCurrentUser(request);
+        int successCount = 0;
+        int failCount = 0;
+
         if (ids != null) {
             for (String idStr : ids) {
                 try {
                     int id = Integer.parseInt(idStr);
                     Article ke = knownErrorDAO.getKnownErrorById(id);
                     if (ke != null && ("PENDING".equals(ke.getStatus()) || "REJECTED".equals(ke.getStatus()))) {
-                        if (ke.getAuthorId() == user.getUserId()) {
-                            knownErrorDAO.deleteKnownError(id);
+                        if (ke.getAuthorId() == user.getUserId() || user.getRoleId() == AuthUtils.ROLE_ADMIN || user.getRoleId() == AuthUtils.ROLE_MANAGER) {
+                            boolean deleted = knownErrorDAO.deleteKnownError(id);
+                            if (deleted) {
+                                successCount++;
+                            } else {
+                                failCount++;
+                            }
+                        } else {
+                            failCount++;
                         }
+                    } else {
+                        failCount++;
                     }
                 } catch (NumberFormatException ignored) {
                 }
             }
         }
+        request.getSession().setAttribute("message", "Bulk Delete execution complete. Success: " + successCount + ". Skipped: " + failCount + " (Rule: Must be PENDING/REJECTED and owned by you, or you must be Admin/Manager).");
         response.sendRedirect(request.getContextPath() + "/known-error?action=list");
     }
 
     private void reviewKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ADMIN, AuthUtils.ROLE_MANAGER))
+        if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ADMIN, AuthUtils.ROLE_MANAGER)) {
             return;
+        }
 
         int id = Integer.parseInt(request.getParameter("id"));
         String status = request.getParameter("status");
         String rejectionReason = request.getParameter("rejectionReason");
 
         User user = AuthUtils.getCurrentUser(request);
-        knownErrorDAO.reviewKnownError(id, status, user.getUserId(), rejectionReason);
+        Article ke = knownErrorDAO.getKnownErrorById(id);
+
+        if (ke != null && "PENDING".equals(ke.getStatus())) {
+            knownErrorDAO.reviewKnownError(id, status, user.getUserId(), rejectionReason);
+            request.getSession().setAttribute("message", "Successfully reviewed Known Error document.");
+        } else {
+            request.getSession().setAttribute("errorMsg", "Can only review PENDING documents.");
+        }
+
         response.sendRedirect(request.getContextPath() + "/known-error?action=detail&id=" + id);
     }
 
     private void bulkReviewKnownError(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ADMIN, AuthUtils.ROLE_MANAGER))
+        if (!AuthUtils.hasRole(request, response, AuthUtils.ROLE_ADMIN, AuthUtils.ROLE_MANAGER)) {
             return;
+        }
 
         String[] ids = request.getParameterValues("selectedIds");
         String status = request.getParameter("status");
         String rejectionReason = "Bulk reviewed";
         User user = AuthUtils.getCurrentUser(request);
+        int successCount = 0;
+        int failCount = 0;
+
         if (ids != null && status != null) {
             for (String idStr : ids) {
                 try {
                     int id = Integer.parseInt(idStr);
-                    knownErrorDAO.reviewKnownError(id, status, user.getUserId(), rejectionReason);
+                    Article ke = knownErrorDAO.getKnownErrorById(id);
+                    if (ke != null && "PENDING".equals(ke.getStatus())) {
+                        boolean reviewed = knownErrorDAO.reviewKnownError(id, status, user.getUserId(), rejectionReason);
+                        if (reviewed) {
+                            successCount++;
+                        } else {
+                            failCount++;
+                        }
+                    } else {
+                        failCount++;
+                    }
                 } catch (NumberFormatException ignored) {
                 }
             }
         }
+        request.getSession().setAttribute("message", "Bulk Review execution complete. Success: " + successCount + ". Skipped: " + failCount + " (Rule: Document must be in PENDING state).");
         response.sendRedirect(request.getContextPath() + "/known-error?action=list");
     }
 
@@ -322,6 +371,9 @@ public class KnownErrorController extends HttpServlet {
 
         String[] ids = request.getParameterValues("selectedIds");
         String toggleTo = request.getParameter("toggleTo");
+        int successCount = 0;
+        int failCount = 0;
+
         if (ids != null && toggleTo != null) {
             for (String idStr : ids) {
                 try {
@@ -329,12 +381,20 @@ public class KnownErrorController extends HttpServlet {
                     Article ke = knownErrorDAO.getKnownErrorById(id);
                     if (ke != null && ("APPROVED".equals(ke.getStatus()) || "INACTIVE".equals(ke.getStatus()))) {
                         String mockCurrentStatus = toggleTo.equals("INACTIVE") ? "APPROVED" : "INACTIVE";
-                        knownErrorDAO.toggleKnownErrorStatus(id, mockCurrentStatus);
+                        boolean toggled = knownErrorDAO.toggleKnownErrorStatus(id, mockCurrentStatus);
+                        if (toggled) {
+                            successCount++;
+                        } else {
+                            failCount++;
+                        }
+                    } else {
+                        failCount++;
                     }
                 } catch (NumberFormatException ignored) {
                 }
             }
         }
+        request.getSession().setAttribute("message", "Bulk Status Update execution complete. Successfully updated: " + successCount + ". Skipped: " + failCount + " (Rule: Can only toggle APPROVED and INACTIVE articles).");
         response.sendRedirect(request.getContextPath() + "/known-error?action=list");
     }
 }

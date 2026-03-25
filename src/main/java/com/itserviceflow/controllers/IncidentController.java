@@ -2,6 +2,7 @@ package com.itserviceflow.controllers;
 
 import com.itserviceflow.daos.TicketDAO;
 import com.itserviceflow.daos.RoleDAO;
+import com.itserviceflow.daos.ActivityLogDAO;
 import com.itserviceflow.models.Ticket;
 import com.itserviceflow.models.User;
 import com.itserviceflow.utils.TimeLogService;
@@ -137,12 +138,20 @@ public class IncidentController extends HttpServlet {
             category = categoryDAO.findById(incident.getCategoryId());
         }
         
+        // Load cancel reason from activity log
+        String cancelReason = null;
+        if ("CANCELLED".equals(incident.getStatus())) {
+            ActivityLogDAO activityLogDAO = new ActivityLogDAO();
+            cancelReason = activityLogDAO.getCancelReason(id);
+        }
+        
         // Set attributes for JSP
         request.setAttribute("incident", incident);
         request.setAttribute("relatedIncidents", related);
         request.setAttribute("timeLogs", timeLogs);
         request.setAttribute("totalTimeSpent", totalTimeSpent);
         request.setAttribute("category", category);
+        request.setAttribute("cancelReason", cancelReason);
         
         request.getRequestDispatcher("/incidents/incident-detail.jsp").forward(request, response);
     }
@@ -277,13 +286,10 @@ public class IncidentController extends HttpServlet {
         // Cancel the incident
         ticketDAO.cancelIncidentTicket(id);
         
-        // Log the cancellation with reason
+        // Log the cancellation with reason using ActivityLogDAO
         if (cancelReason != null && !cancelReason.trim().isEmpty()) {
-            // Auto-log CANCELLED activity with reason
-            Ticket ticket = ticketDAO.getTicketWithDetails(id);
-            if (ticket != null) {
-                timeLogService.autoLogWithReason(ticket, userId, "CANCELLED", cancelReason);
-            }
+            ActivityLogDAO activityLogDAO = new ActivityLogDAO();
+            activityLogDAO.logActivity(id, userId, "CANCELLED", cancelReason);
         }
         
         response.sendRedirect(request.getContextPath() + "/incident?action=detail&id=" + id);

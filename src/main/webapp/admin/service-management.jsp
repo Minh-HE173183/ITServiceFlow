@@ -131,21 +131,21 @@
     function submitBulkAction(actionType) {
         var checkboxes = document.querySelectorAll('.rowCheckbox:checked');
         if (checkboxes.length === 0) {
-            alert('Vui lòng ch?n ít nh?t m?t d?ch v?.');
+            alert('Please select at least one service.');
             return;
         }
 
         var form = document.getElementById('bulkForm');
         
         if (actionType === 'DELETE') {
-            if (confirm('B?n có ch?c ch?n mu?n XÓA các d?ch v? ?ã ch?n? (Ch? xóa ???c n?u ch?a có Ticket nào s? d?ng)')) {
+            if (confirm('Are you sure you want to DELETE the selected services?')) {
                 form.action = '${pageContext.request.contextPath}/admin/delete-service';
                 form.submit();
             }
         } else {
             // Tr??ng h?p ACTIVE ho?c INACTIVE
             var actionName = actionType === 'ACTIVE' ? 'KÍCH HO?T' : 'T?M ?N';
-            if (confirm('B?n có mu?n ' + actionName + ' các d?ch v? ?ã ch?n?')) {
+            if (confirm('Do you want ' + actionName + ' selected services?')) {
                 form.action = '${pageContext.request.contextPath}/admin/toggle-service';
                 document.getElementById('statusAction').value = actionType;
                 form.submit();
@@ -155,7 +155,7 @@
     
     function toggleOne(id, newStatus) {
         var actionName = newStatus === 'ACTIVE' ? 'KÍCH HO?T' : 'T?M ?N';
-        if (confirm('B?n có mu?n ' + actionName + ' d?ch v? này?')) {
+        if (confirm('Do you want ' + actionName + ' this service?')) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '${pageContext.request.contextPath}/admin/toggle-service';
@@ -169,7 +169,7 @@
     
     // Xóa m?t dòng duy nh?t
     function confirmDeleteOne(id) {
-        if (confirm('Xóa d?ch v? này? (Ch? thành công n?u ch?a có Ticket nào s? d?ng)')) {
+        if (confirm('Delete this service? ')) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '${pageContext.request.contextPath}/admin/delete-service';

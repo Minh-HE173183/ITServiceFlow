@@ -18,14 +18,16 @@ import java.util.List;
  * @author Admin
  */
 public class ProblemDAO {
+
     public List<Ticket> getAllProblems(String keyword, String statusFilter, int offset, int limit) {
         List<Ticket> problems = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
-                "SELECT t.*, ur.username AS reported_by_name, ua.username AS assigned_to_name " +
-                        "FROM ticket t " +
-                        "LEFT JOIN user ur ON t.reported_by = ur.user_id " +
-                        "LEFT JOIN user ua ON t.assigned_to = ua.user_id " +
-                        "WHERE t.ticket_type = 'PROBLEM'");
+                "SELECT t.*, ur.username AS reported_by_name, ua.username AS assigned_to_name, c.ci_name AS ci_name "
+                + "FROM ticket t "
+                + "LEFT JOIN user ur ON t.reported_by = ur.user_id "
+                + "LEFT JOIN user ua ON t.assigned_to = ua.user_id "
+                + "LEFT JOIN configuration_item c ON t.ci_id = c.ci_id "
+                + "WHERE t.ticket_type = 'PROBLEM'");
 
         List<Object> params = new ArrayList<>();
 
@@ -45,8 +47,7 @@ public class ProblemDAO {
         params.add(limit);
         params.add(offset);
 
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
                 stmt.setObject(i + 1, params.get(i));
@@ -80,8 +81,7 @@ public class ProblemDAO {
             params.add(statusFilter);
         }
 
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
                 stmt.setObject(i + 1, params.get(i));
@@ -99,11 +99,12 @@ public class ProblemDAO {
     }
 
     public Ticket getProblemById(int ticketId) {
-        String sql = "SELECT t.*, ur.username AS reported_by_name, ua.username AS assigned_to_name " +
-                "FROM ticket t " +
-                "LEFT JOIN user ur ON t.reported_by = ur.user_id " +
-                "LEFT JOIN user ua ON t.assigned_to = ua.user_id " +
-                "WHERE t.ticket_id = ? AND t.ticket_type = 'PROBLEM'";
+        String sql = "SELECT t.*, ur.username AS reported_by_name, ua.username AS assigned_to_name, c.ci_name AS ci_name "
+                + "FROM ticket t "
+                + "LEFT JOIN user ur ON t.reported_by = ur.user_id "
+                + "LEFT JOIN user ua ON t.assigned_to = ua.user_id "
+                + "LEFT JOIN configuration_item c ON t.ci_id = c.ci_id "
+                + "WHERE t.ticket_id = ? AND t.ticket_type = 'PROBLEM'";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, ticketId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -119,13 +120,13 @@ public class ProblemDAO {
 
     public List<Ticket> getLinkedIncidents(int problemTicketId) {
         List<Ticket> incidents = new ArrayList<>();
-        String sql = "SELECT t.*, ur.username AS reported_by_name, ua.username AS assigned_to_name FROM ticket t " +
-                "JOIN ticket_relation tr ON t.ticket_id = tr.source_ticket_id " +
-                "LEFT JOIN user ur ON t.reported_by = ur.user_id " +
-                "LEFT JOIN user ua ON t.assigned_to = ua.user_id " +
-                "WHERE tr.target_ticket_id = ? AND tr.relation_type = 'CAUSED_BY' AND t.ticket_type = 'INCIDENT'";
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+        String sql = "SELECT t.*, ur.username AS reported_by_name, ua.username AS assigned_to_name, c.ci_name AS ci_name FROM ticket t "
+                + "JOIN ticket_relation tr ON t.ticket_id = tr.source_ticket_id "
+                + "LEFT JOIN user ur ON t.reported_by = ur.user_id "
+                + "LEFT JOIN user ua ON t.assigned_to = ua.user_id "
+                + "LEFT JOIN configuration_item c ON t.ci_id = c.ci_id "
+                + "WHERE tr.target_ticket_id = ? AND tr.relation_type = 'CAUSED_BY' AND t.ticket_type = 'INCIDENT'";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, problemTicketId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -139,9 +140,8 @@ public class ProblemDAO {
     }
 
     public boolean createProblemTicket(Ticket problem, List<Integer> incidentIds, int createdBy) {
-        String insertProblem = "INSERT INTO ticket (ticket_number, ticket_type, title, description, status, reported_by, cause, solution) "
-                +
-                "VALUES (?, 'PROBLEM', ?, ?, 'NEW', ?, ?, ?)";
+        String insertProblem = "INSERT INTO ticket (ticket_number, ticket_type, title, description, status, reported_by, cause, solution, ci_id) "
+                + "VALUES (?, 'PROBLEM', ?, ?, 'NEW', ?, ?, ?, ?)";
         String insertRelation = "INSERT INTO ticket_relation (source_ticket_id, target_ticket_id, relation_type, created_by) "
                 + "VALUES (?, ?, 'CAUSED_BY', ?)";
 
@@ -158,6 +158,11 @@ public class ProblemDAO {
                 stmt.setInt(4, problem.getReportedBy());
                 stmt.setString(5, problem.getCause());
                 stmt.setString(6, problem.getSolution());
+                if (problem.getCiId() != null) {
+                    stmt.setInt(7, problem.getCiId());
+                } else {
+                    stmt.setNull(7, Types.INTEGER);
+                }
                 stmt.executeUpdate();
 
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
@@ -212,7 +217,7 @@ public class ProblemDAO {
     }
 
     public boolean updateProblemTicket(Ticket problem) {
-        String sql = "UPDATE ticket SET title = ?, description = ?, status = ?, cause = ?, solution = ? "
+        String sql = "UPDATE ticket SET title = ?, description = ?, status = ?, cause = ?, solution = ?, ci_id = ? "
                 + "WHERE ticket_id = ? AND ticket_type = 'PROBLEM'";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, problem.getTitle());
@@ -220,7 +225,12 @@ public class ProblemDAO {
             stmt.setString(3, problem.getStatus());
             stmt.setString(4, problem.getCause());
             stmt.setString(5, problem.getSolution());
-            stmt.setInt(6, problem.getTicketId());
+            if (problem.getCiId() != null) {
+                stmt.setInt(6, problem.getCiId());
+            } else {
+                stmt.setNull(6, Types.INTEGER);
+            }
+            stmt.setInt(7, problem.getTicketId());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -358,8 +368,9 @@ public class ProblemDAO {
     }
 
     public int bulkDeleteProblems(List<Integer> ids) {
-        if (ids == null || ids.isEmpty())
+        if (ids == null || ids.isEmpty()) {
             return 0;
+        }
         int deleted = 0;
         for (int id : ids) {
             if (deleteProblemTicket(id)) {
@@ -387,8 +398,7 @@ public class ProblemDAO {
         String sql = "SELECT c.*, u.username as user_name FROM comment c "
                 + "JOIN user u ON c.user_id = u.user_id "
                 + "WHERE c.ticket_id = ? ORDER BY c.created_at DESC";
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, ticketId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -427,6 +437,11 @@ public class ProblemDAO {
         t.setCreatedAt(rs.getTimestamp("created_at"));
         t.setUpdatedAt(rs.getTimestamp("updated_at"));
 
+        t.setCiId((Integer) rs.getObject("ci_id"));
+        try {
+            t.setCiName(rs.getString("ci_name"));
+        } catch (SQLException e) {
+        }
         try {
             t.setReportedByName(rs.getString("reported_by_name"));
         } catch (SQLException e) {
