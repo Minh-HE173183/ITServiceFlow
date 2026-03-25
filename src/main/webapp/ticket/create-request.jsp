@@ -1,19 +1,12 @@
+<jsp:include page="/includes/header.jsp" />
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>ITServiceFlow - Create Service Request</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-        <!--    <style>
-                .form-label { fw-bold; color: #495057; }
-                .card-header-green { background-color: #198754; color: white; }
-            </style>-->
-    </head>
-    <body class="bg-light">
+<style>
+    /* Tuỳ chỉnh CSS riêng nếu cần, nếu không có thể bỏ */
+    .card-header-green { background-color: #198754; color: white; }
+</style>
 
-        <div class="container mt-5 mb-5">
+ <div class="container mt-5 mb-5">
             <div class="row justify-content-center">
                 <div class="col-md-8">
                     <nav aria-label="breadcrumb" class="mb-3">
@@ -74,7 +67,7 @@
                         
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted small">
-                                <i class="fas fa-info-circle"></i> Status: <strong>New</strong> 
+                                <i class="fas fa-info-circle"></i> Status: <strong>NEW</strong> 
                             </span>
                             <div>
                                 <a href="${pageContext.request.contextPath}/service-catalog" class="btn btn-light border px-4 me-2">Cancel</a>
@@ -88,5 +81,4 @@
             </div>
         </div>
 
-    </body>
-</html>
+<jsp:include page="/includes/footer.jsp" />

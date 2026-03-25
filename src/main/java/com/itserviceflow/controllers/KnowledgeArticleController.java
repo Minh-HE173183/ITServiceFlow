@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet(name = "KnowledgeArticleController", urlPatterns = {"/support-agent/knowledge-article"})
@@ -61,6 +62,7 @@ public class KnowledgeArticleController extends HttpServlet {
                 resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article");
         }
     }
+    
 
     // ===================== VIEW HANDLERS =====================
     private void listArticles(HttpServletRequest req, HttpServletResponse resp)
@@ -88,89 +90,105 @@ public class KnowledgeArticleController extends HttpServlet {
         req.getRequestDispatcher("/support-agent/knowledge-article.jsp").forward(req, resp);
     }
 
-    private void addView(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        req.setAttribute("article", new Article());
-        req.getRequestDispatcher("/knowledge/knowledge-article-form.jsp").forward(req, resp);
+private void addView(HttpServletRequest req, HttpServletResponse resp)
+        throws ServletException, IOException {
+    req.setAttribute("article", new Article());
+    req.setAttribute("knownErrors", kbDAO.listKnownErrors());
+    req.getRequestDispatcher("/knowledge/knowledge-article-form.jsp").forward(req, resp);
+}
+
+private void editView(HttpServletRequest req, HttpServletResponse resp)
+        throws ServletException, IOException {
+    String idStr = req.getParameter("id");
+    if (idStr == null || idStr.isEmpty()) {
+        resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article");
+        return;
     }
-
-    private void editView(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        String idStr = req.getParameter("id");
-        if (idStr == null || idStr.isEmpty()) {
-            req.getRequestDispatcher("/knowledge/knowledge-article-form.jsp").forward(req, resp);
-
-            return;
-        }
-        Article article = kbDAO.findById(Integer.parseInt(idStr));
-        if (article == null) {
-            resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article?error=Article not found");
-            return;
-        }
-        req.setAttribute("article", article);
-        req.getRequestDispatcher("/knowledge/knowledge-article-form.jsp").forward(req, resp);
+    Article article = kbDAO.findById(Integer.parseInt(idStr));
+    if (article == null) {
+        resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article?error=Article not found");
+        return;
     }
+    req.setAttribute("article", article);
+    req.setAttribute("knownErrors", kbDAO.listKnownErrors());
+    req.getRequestDispatcher("/knowledge/knowledge-article-form.jsp").forward(req, resp);
+}
 
-    private void detailView(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        String idStr = req.getParameter("id");
-        if (idStr == null || idStr.isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article");
-            return;
-        }
-        Article article = kbDAO.findById(Integer.parseInt(idStr));
+private void detailView(HttpServletRequest req, HttpServletResponse resp)
+        throws ServletException, IOException {
+    // Tìm theo errorCode (từ link click)
+    String errorCode = req.getParameter("errorCode");
+    if (errorCode != null && !errorCode.isEmpty()) {
+        Article article = kbDAO.findByErrorCode(errorCode);
         if (article == null) {
             resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article?error=Article not found");
             return;
         }
         req.setAttribute("article", article);
         req.getRequestDispatcher("/support-agent/knowledge-article-detail-agent.jsp").forward(req, resp);
+        return;
     }
 
-    // ===================== ACTION HANDLERS =====================
-    private void addArticle(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        try {
-            User sessionUser = (User) req.getSession().getAttribute("user");
-            Article article = buildArticleFromRequest(req);
-            article.setAuthorId(sessionUser.getUserId());
-            article.setStatus("PUBLISHED"); // ← luôn là PUBLISHED, không cần submitAction
+    // Tìm theo id (bình thường)
+    String idStr = req.getParameter("id");
+    if (idStr == null || idStr.isEmpty()) {
+        resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article");
+        return;
+    }
+    Article article = kbDAO.findById(Integer.parseInt(idStr));
+    if (article == null) {
+        resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article?error=Article not found");
+        return;
+    }
+    req.setAttribute("article", article);
+    req.getRequestDispatcher("/support-agent/knowledge-article-detail-agent.jsp").forward(req, resp);
+}
 
-            if (kbDAO.addArticle(article)) {
-                resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article?message=Article created successfully");
-            } else {
-                req.setAttribute("error", "Could not create article");
-                req.setAttribute("article", article);
-                req.getRequestDispatcher("/knowledge/knowledge-article-form.jsp").forward(req, resp);
-            }
-        } catch (Exception e) {
-            System.out.println("addArticle error: " + e);
+private void addArticle(HttpServletRequest req, HttpServletResponse resp)
+        throws ServletException, IOException {
+    try {
+        User sessionUser = (User) req.getSession().getAttribute("user");
+        Article article = buildArticleFromRequest(req);
+        article.setAuthorId(sessionUser.getUserId());
+        article.setStatus("PUBLISHED");
+
+        if (kbDAO.addArticle(article)) {
+            resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article?message=Article created successfully");
+        } else {
+            req.setAttribute("error", "Could not create article");
+            req.setAttribute("article", article);
+            req.setAttribute("knownErrors", kbDAO.listKnownErrors());
+            req.getRequestDispatcher("/knowledge/knowledge-article-form.jsp").forward(req, resp);
         }
+    } catch (Exception e) {
+        System.out.println("addArticle error: " + e);
     }
+}
 
-    private void updateArticle(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        try {
-            String idStr = req.getParameter("articleId");
-            if (idStr == null || idStr.isEmpty()) {
-                resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article");
-                return;
-            }
-            Article article = buildArticleFromRequest(req);
-            article.setArticleId(Integer.parseInt(idStr));
-            article.setStatus("PUBLISHED"); // ← luôn là PUBLISHED
-
-            if (kbDAO.updateArticle(article)) {
-                resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article?message=Article updated successfully");
-            } else {
-                req.setAttribute("error", "Could not update article");
-                req.setAttribute("article", article);
-                req.getRequestDispatcher("/knowledge/knowledge-article-form.jsp").forward(req, resp);
-            }
-        } catch (Exception e) {
-            System.out.println("updateArticle error: " + e);
+private void updateArticle(HttpServletRequest req, HttpServletResponse resp)
+        throws ServletException, IOException {
+    try {
+        String idStr = req.getParameter("articleId");
+        if (idStr == null || idStr.isEmpty()) {
+            resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article");
+            return;
         }
+        Article article = buildArticleFromRequest(req);
+        article.setArticleId(Integer.parseInt(idStr));
+        article.setStatus("PUBLISHED");
+
+        if (kbDAO.updateArticle(article)) {
+            resp.sendRedirect(req.getContextPath() + "/support-agent/knowledge-article?message=Article updated successfully");
+        } else {
+            req.setAttribute("error", "Could not update article");
+            req.setAttribute("article", article);
+            req.setAttribute("knownErrors", kbDAO.listKnownErrors());
+            req.getRequestDispatcher("/knowledge/knowledge-article-form.jsp").forward(req, resp);
+        }
+    } catch (Exception e) {
+        System.out.println("updateArticle error: " + e);
     }
+}
 
     private void deleteArticle(HttpServletRequest req, HttpServletResponse resp)
         throws IOException {

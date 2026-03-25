@@ -19,11 +19,11 @@
                 <form action="${pageContext.request.contextPath}/admin/knowledge-article?action=approve"
                       method="post" class="d-inline">
                     <input type="hidden" name="articleId" value="${article.articleId}">
-            </c:if>
-            <a href="${pageContext.request.contextPath}/knowledge-article?action=list"
-               class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Back
-            </a>
+                </c:if>
+                <a href="${pageContext.request.contextPath}/knowledge-article?action=list"
+                   class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back
+                </a>
         </div>
     </div>
 
@@ -41,37 +41,41 @@
 
             <c:if test="${not empty article.symptom or not empty article.cause
                           or not empty article.solution or not empty article.errorCode}">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-light fw-bold">
-                        <i class="bi bi-tools me-2 text-warning"></i>Technical Details
-                    </div>
-                    <div class="card-body">
+                  <div class="card border-0 shadow-sm">
+                      <div class="card-header bg-light fw-bold">
+                          <i class="bi bi-tools me-2 text-warning"></i>Technical Details
+                      </div>
+                      <div class="card-body">
                         <c:if test="${not empty article.errorCode}">
-                            <div class="mb-3">
-                                <label class="fw-bold text-muted small d-block">ERROR CODE</label>
-                                <code>${article.errorCode}</code>
+                            <div class="mb-4">
+                                <p class="text-uppercase text-muted mb-1" style="font-size:11px;letter-spacing:.06em;font-weight:600;">Error code</p>
+                                <a href="${pageContext.request.contextPath}/known-error" method="post""
+                                   class="text-decoration-none">
+                                    <code class="bg-light border px-2 py-1 rounded text-primary">${article.errorCode}</code>
+                                    <i class="bi bi-box-arrow-up-right ms-1 small text-muted"></i>
+                                </a>
                             </div>
                         </c:if>
-                        <c:if test="${not empty article.symptom}">
-                            <div class="mb-3">
-                                <label class="fw-bold text-muted small d-block">SYMPTOM</label>
-                                <p class="mb-0">${article.symptom}</p>
-                            </div>
-                        </c:if>
-                        <c:if test="${not empty article.cause}">
-                            <div class="mb-3">
-                                <label class="fw-bold text-muted small d-block">CAUSE</label>
-                                <p class="mb-0">${article.cause}</p>
-                            </div>
-                        </c:if>
-                        <c:if test="${not empty article.solution}">
-                            <div class="mb-0">
-                                <label class="fw-bold text-muted small d-block">SOLUTION</label>
-                                <p class="mb-0">${article.solution}</p>
-                            </div>
-                        </c:if>
-                    </div>
-                </div>
+                          <c:if test="${not empty article.symptom}">
+                              <div class="mb-3">
+                                  <label class="fw-bold text-muted small d-block">SYMPTOM</label>
+                                  <p class="mb-0">${article.symptom}</p>
+                              </div>
+                          </c:if>
+                          <c:if test="${not empty article.cause}">
+                              <div class="mb-3">
+                                  <label class="fw-bold text-muted small d-block">CAUSE</label>
+                                  <p class="mb-0">${article.cause}</p>
+                              </div>
+                          </c:if>
+                          <c:if test="${not empty article.solution}">
+                              <div class="mb-0">
+                                  <label class="fw-bold text-muted small d-block">SOLUTION</label>
+                                  <p class="mb-0">${article.solution}</p>
+                              </div>
+                          </c:if>
+                      </div>
+                  </div>
             </c:if>
         </div>
 
@@ -88,16 +92,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="fw-bold text-muted small d-block">TYPE</label>
-                        <c:choose>
-                            <c:when test="${article.articleType == 'HOW_TO'}">
-                                <span class="badge bg-info text-dark">How To</span></c:when>
-                            <c:when test="${article.articleType == 'TROUBLESHOOT'}">
-                                <span class="badge bg-warning text-dark">Troubleshoot</span></c:when>
-                            <c:when test="${article.articleType == 'FAQ'}">
-                                <span class="badge bg-secondary">FAQ</span></c:when>
-                            <c:when test="${article.articleType == 'REFERENCE'}">
-                                <span class="badge bg-dark">Reference</span></c:when>
-                        </c:choose>
+                        <span class="badge bg-info text-dark">KNOWLEDGE ARTICLE</span>
                     </div>
                     <div class="mb-3">
                         <label class="fw-bold text-muted small d-block">STATUS</label>
@@ -114,20 +109,6 @@
                                 <span class="badge bg-dark">Archived</span></c:when>
                         </c:choose>
                     </div>
-                    <c:if test="${not empty article.rejectionReason}">
-                        <div class="mb-3">
-                            <label class="fw-bold text-muted small d-block">REJECTION REASON</label>
-                            <span class="text-danger">${article.rejectionReason}</span>
-                        </div>
-                    </c:if>
-                    <c:if test="${not empty article.tag}">
-                        <div class="mb-3">
-                            <label class="fw-bold text-muted small d-block">TAGS</label>
-                            <c:forTokens items="${article.tag}" delims="," var="tag">
-                                <span class="badge bg-light text-dark border me-1">${tag}</span>
-                            </c:forTokens>
-                        </div>
-                    </c:if>
                     <div class="mb-0">
                         <label class="fw-bold text-muted small d-block">LAST UPDATED</label>
                         <span class="text-muted small">${article.updatedAt}</span>

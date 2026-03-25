@@ -154,7 +154,7 @@ public class KnowledgeBaseDAO {
             st.setString(2, a.getSummary());
             st.setString(3, a.getContent());
             st.setString(4, "KNOWLEDGE_BASE");
-            st.setString(5, a.getTag());
+            st.setString(5, "NULL");
             st.setString(6, a.getStatus());
             if (a.getAuthorId() != null) {
                 st.setInt(7, a.getAuthorId());
@@ -174,18 +174,17 @@ public class KnowledgeBaseDAO {
 
     public boolean updateArticle(Article a) {
         String sql
-                = "UPDATE article SET title=?, summary=?, content=?, tag=?, "
+                = "UPDATE article SET title=?, summary=?, content=?, "
                 + "symptom=?, cause=?, solution=?, updated_at=NOW() "
                 + "WHERE article_id=?";
         try (PreparedStatement st = conn.prepareStatement(sql)) {
             st.setString(1, a.getTitle());
             st.setString(2, a.getSummary());
             st.setString(3, a.getContent());
-            st.setString(4, a.getTag());
-            st.setString(5, a.getSymptom());
-            st.setString(6, a.getCause());
-            st.setString(7, a.getSolution());
-            st.setInt(8, a.getArticleId());  // ← WHERE article_id=?
+            st.setString(4, a.getSymptom());
+            st.setString(5, a.getCause());
+            st.setString(6, a.getSolution());
+            st.setInt(7, a.getArticleId());  // ← WHERE article_id=?
             return st.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();

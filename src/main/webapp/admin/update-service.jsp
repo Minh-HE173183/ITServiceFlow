@@ -8,6 +8,22 @@
         <div class="card-header bg-white py-3">
             <h5 class="mb-0 fw-bold text-primary">Update Service: ${service.serviceName}</h5>
         </div>
+        <%-- Khung hiển thị thông báo lỗi (Màu đỏ) --%>
+<c:if test="${not empty error}">
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>Thất bại!</strong> ${error}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</c:if>
+
+<%-- (Tùy chọn) Khung hiển thị thông báo thành công (Màu xanh) --%>
+<c:if test="${not empty sessionScope.message}">
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> ${sessionScope.message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <c:remove var="message" scope="session"/>
+    </div>
+</c:if>
         <div class="card-body p-4">
             <form action="${pageContext.request.contextPath}/admin/update-service" method="post">
                 <input type="hidden" name="serviceId" value="${service.serviceId}">

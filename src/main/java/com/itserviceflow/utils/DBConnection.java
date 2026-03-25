@@ -19,6 +19,7 @@ public class DBConnection {
     private static final String URL = "jdbc:mysql://localhost:3306/itserviceflow_db?useSSL=false&serverTimezone=UTC";
     private static final String USER = "root"; 
     private static final String PASSWORD = "Admin123";
+
     static {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");

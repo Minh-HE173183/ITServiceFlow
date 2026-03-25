@@ -12,6 +12,7 @@ import com.itserviceflow.models.User;
 import com.itserviceflow.models.Workflow;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -121,6 +122,74 @@ public class WorkflowService {
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING,
                         "WorkflowService: error processing workflow id=" + wf.getWorkflowId(), e);
+            }
+        }
+    }
+
+    /**
+     * Dành riêng cho Scheduled Task, quét các ticket đang mở và check xem có vi phạm SLA không.
+     */
+    public void runSlaBreachCheck() {
+        List<Workflow> activeWorkflows;
+        try {
+            activeWorkflows = workflowDAO.getActiveWorkflows();
+        } catch (SQLException e) {
+            LOGGER.log(Level.WARNING, "WorkflowService: cannot load workflows for SLA", e);
+            return;
+        }
+
+        // 1. Lấy danh sách ticket đang mở
+        List<Ticket> openTickets = ticketDAO.getOpenTicketsForSLA();
+        if (openTickets == null || openTickets.isEmpty()) return;
+
+        // 2. Lấy workflows SLA 
+        List<Workflow> slaWorkflows = new ArrayList<>();
+        for (Workflow wf : activeWorkflows) {
+            String configJson = wf.getWorkflowConfig();
+            if (configJson == null || configJson.isBlank()) continue;
+            try {
+                JsonObject cfg = gson.fromJson(configJson, JsonObject.class);
+                if ("SLA_BREACH".equals(getStringOrNull(cfg, "trigger"))) {
+                    slaWorkflows.add(wf);
+                }
+            } catch (Exception e) {}
+        }
+        if (slaWorkflows.isEmpty()) return; 
+
+        long currentTime = System.currentTimeMillis();
+
+        // 3. Áp dụng rules SLA
+        for (Ticket ticket : openTickets) {
+            for (Workflow wf : slaWorkflows) {
+                try {
+                    JsonObject cfg = gson.fromJson(wf.getWorkflowConfig(), JsonObject.class);
+                    
+                    int slaHours = 0;
+                    if (cfg.has("sla_hours") && !cfg.get("sla_hours").isJsonNull()) {
+                        slaHours = cfg.get("sla_hours").getAsInt();
+                    } else if (cfg.has("steps") && cfg.getAsJsonArray("steps").size() > 0) {
+                        JsonObject firstStep = cfg.getAsJsonArray("steps").get(0).getAsJsonObject();
+                        if (firstStep.has("sla_hours") && !firstStep.get("sla_hours").isJsonNull()) {
+                            slaHours = firstStep.get("sla_hours").getAsInt();
+                        }
+                    }
+
+                    if (slaHours <= 0 || ticket.getCreatedAt() == null) continue;
+                    
+                    if (!evaluateConditions(cfg, ticket)) continue;
+                    
+                    // Tính giờ đã trôi qua
+                    long diffHours = (currentTime - ticket.getCreatedAt().getTime()) / (1000 * 60 * 60);
+
+                    if (diffHours >= slaHours) {
+                        LOGGER.info(String.format("WorkflowService [SLA_BREACH] ticket=%d, wf=%d (passed %d h)", 
+                                ticket.getTicketId(), wf.getWorkflowId(), diffHours));
+                        
+                        executeSteps(cfg, ticket);
+                    }
+                } catch (Exception e) {
+                    LOGGER.log(Level.WARNING, "Error on SLA check wf=" + wf.getWorkflowId(), e);
+                }
             }
         }
     }
