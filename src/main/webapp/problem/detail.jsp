@@ -19,6 +19,17 @@
                     <div class="col-md-6">
                         <p class="mb-2"><strong>Reported By:</strong> ${not empty problem.reportedByName ?
                             problem.reportedByName : 'User ID '.concat(problem.reportedBy)}</p>
+                        <p class="mb-2">
+                            <strong>Linked CI:</strong>
+                            <c:if test="${not empty problem.ciId}">
+                                <a href="${pageContext.request.contextPath}/cmdb?action=detail&id=${problem.ciId}" class="text-decoration-none fw-bold">
+                                    <i class="bi bi-hdd-network"></i> ${problem.ciName}
+                                </a>
+                            </c:if>
+                            <c:if test="${empty problem.ciId}">
+                                <span class="text-muted fst-italic">None</span>
+                            </c:if>
+                        </p>
                         <p class="mb-2 d-flex align-items-center gap-2">
                             <strong>Assigned To:</strong>
                             <span
@@ -117,7 +128,7 @@
 
                 <div class="d-flex gap-2 mt-4">
                     <c:if test="${canManage}">
-                        <c:if test="${problem.status ne 'CANCELLED'}">
+                        <c:if test="${problem.status eq 'NEW' || problem.status eq 'IN_PROGRESS'}">
                             <a href="${pageContext.request.contextPath}/problem?action=edit&id=${problem.ticketId}"
                                 class="btn btn-warning">
                                 <i class="bi bi-pencil"></i> Edit/Update RCA

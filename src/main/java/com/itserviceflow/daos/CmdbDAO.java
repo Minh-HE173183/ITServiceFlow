@@ -37,8 +37,7 @@ public class CmdbDAO {
             sql.append(" AND c.status = ?");
         }
 
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
             int paramIndex = 1;
             if (keyword != null && !keyword.trim().isEmpty()) {
                 String searchPattern = "%" + keyword.trim() + "%";
@@ -87,7 +86,7 @@ public class CmdbDAO {
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, ci.getCiName());
             stmt.setInt(2, ci.getCiTypeId());
-            stmt.setString(3, "CI-" + System.currentTimeMillis());
+            stmt.setString(3, "CI-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
             stmt.setString(4, ci.getLocation());
             if (ci.getOwnerId() != null) {
                 stmt.setInt(5, ci.getOwnerId());
@@ -144,8 +143,7 @@ public class CmdbDAO {
 
         String deleteSql = "DELETE FROM configuration_item WHERE ci_id = ?";
 
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
             checkStmt.setInt(1, ciId);
             checkStmt.setInt(2, ciId);
             checkStmt.setInt(3, ciId);
@@ -232,6 +230,17 @@ public class CmdbDAO {
         return false;
     }
 
+    public boolean deleteCiRelationship(int relationshipId) {
+        String sql = "DELETE FROM ci_relationship WHERE relationship_id = ?";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, relationshipId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public List<ConfigurationItem> getImpactedCis(int problemCiId) {
         List<ConfigurationItem> impactedCis = new ArrayList<>();
         String sql = "SELECT c.*, u.full_name as owner_name, ct.type_name as ci_type_name "
@@ -272,25 +281,24 @@ public class CmdbDAO {
         ci.setIpAddress(rs.getString("ip_address"));
         ci.setDescription(rs.getString("description"));
         ci.setUpdatedAt(rs.getTimestamp("updated_at"));
-        
+
         try {
             ci.setOwnerName(rs.getString("owner_name"));
-        } catch (SQLException e) { /* Ignore if column not selected */ }
-        
+        } catch (SQLException e) {
+            /* Ignore if column not selected */ }
+
         try {
             ci.setCiTypeName(rs.getString("ci_type_name"));
-        } catch (SQLException e) { /* Ignore if column not selected */ }
-        
+        } catch (SQLException e) {
+            /* Ignore if column not selected */ }
+
         return ci;
     }
 
-    // Helper methods for Dropdowns
     public List<com.itserviceflow.models.User> getAllUsersForDropdown() {
         List<com.itserviceflow.models.User> users = new ArrayList<>();
         String sql = "SELECT user_id, full_name FROM `user` ORDER BY full_name";
-        try (Connection conn = DBConnection.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 com.itserviceflow.models.User u = new com.itserviceflow.models.User();
                 u.setUserId(rs.getInt("user_id"));
@@ -306,9 +314,7 @@ public class CmdbDAO {
     public List<String[]> getAllCiTypes() {
         List<String[]> types = new ArrayList<>();
         String sql = "SELECT type_id, type_name FROM ci_type ORDER BY type_name";
-        try (Connection conn = DBConnection.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 types.add(new String[]{String.valueOf(rs.getInt("type_id")), rs.getString("type_name")});
             }
