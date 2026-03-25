@@ -495,7 +495,7 @@ out.print(gson.toJson(_pr));
                                                 const slaVal = (actionVal === 'NOTIFY') ? 0 : (s.sla_hours || 24);
                                                 // Prefer explicit users array in config; fall back to legacy role
                                                 const usersArr = Array.isArray(s.users) ? s.users.map(u => ({ userId: u.userId, fullName: u.fullName, role: u.roleName || u.role || '', departmentName: u.departmentName || u.department || '' })) : [];
-                                                steps.push({ id: ++stepIdCounter, name: s.name || '', users: usersArr, legacyRole: s.role || null, action: actionVal, sla_hours: slaVal });
+                                                steps.push({ id: ++stepIdCounter, name: s.name || '', description: s.description || '', users: usersArr, legacyRole: s.role || null, action: actionVal, sla_hours: slaVal });
                                             });
                                         }
                                     } catch (e) {
