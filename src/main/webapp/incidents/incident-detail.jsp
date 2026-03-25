@@ -676,17 +676,9 @@
                 <a href="${pageContext.request.contextPath}/incident?action=edit&id=${incident.ticketId}"
                    class="btn btn-warning">Edit</a>
                 
-                <!-- Cancel Button for User (Reported By) -->
+                <!-- Cancel Button for User (Reported By) and Admin -->
                 <c:if test="${incident.status ne 'CANCELLED' and incident.status ne 'CLOSED' 
-                              and sessionScope.user.userId == incident.reportedBy}">
-                    <button type="button" class="btn btn-danger" onclick="openCancelModal()">
-                        Cancel
-                    </button>
-                </c:if>
-                
-                <!-- Cancel Button for Admin (System Admin) -->
-                <c:if test="${incident.status ne 'CANCELLED' and incident.status ne 'CLOSED' 
-                              and sessionScope.user.roleId == 10}">
+                              and (sessionScope.user.userId == incident.reportedBy or sessionScope.user.roleId == 10)}">
                     <button type="button" class="btn btn-danger" onclick="openCancelModal()">
                         Cancel
                     </button>

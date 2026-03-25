@@ -628,16 +628,11 @@
                                                        class="btn btn-primary">
                                                         👁️ View
                                                     </a>
-                                                    <c:if test="${incident.status != 'RESOLVED' && incident.status != 'CANCELLED'}">
-                                                        <a href="${pageContext.request.contextPath}/incident?action=edit&id=${incident.ticketId}" 
-                                                           class="btn btn-warning">
-                                                            ✏️ Edit
-                                                        </a>
-                                                    </c:if>
-                                                    <c:if test="${incident.status == 'NEW'}">
-                                                        <a href="${pageContext.request.contextPath}/incident?action=cancel&id=${incident.ticketId}" 
-                                                           class="btn btn-danger">
-                                                            ❌ Cancel
+                                                    <c:if test="${user.roleId == 10}">
+                                                        <a href="${pageContext.request.contextPath}/incident?action=delete&id=${incident.ticketId}" 
+                                                           class="btn btn-danger"
+                                                           onclick="return confirm('Are you sure you want to delete this incident?')">
+                                                            🗑️ Delete
                                                         </a>
                                                     </c:if>
                                                 </div>
