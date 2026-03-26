@@ -58,6 +58,10 @@ public class ServiceRequestDetailServlet extends HttpServlet {
 
         // 4. Đẩy dữ liệu ra màn hình
         request.setAttribute("ticket", ticket);
+        // === UC63: LẤY DANH SÁCH COMMENT ===
+        java.util.List<com.itserviceflow.models.Comment> commentList = ticketDAO.getCommentsByTicketId(ticketId);
+        request.setAttribute("commentList", commentList);
+        // ====================================
         System.out.println("========== DEBUG QUYỀN ==========");
         System.out.println("Role ID đang chạy là: " + currentUserRoleId);
 
@@ -66,6 +70,11 @@ public class ServiceRequestDetailServlet extends HttpServlet {
             request.getRequestDispatcher("/ticket/service-request-detail-user.jsp").forward(request, response);
         } else {
             System.out.println("=> ĐÃ VÀO NHÁNH 2: Mở trang MANAGER (Có form)");
+            // THÊM ĐOẠN CODE NÀY ĐỂ LẤY DANH SÁCH IT SUPPORT
+            // Chỉ cần lấy danh sách nếu Ticket là NEW (vì chỉ khi đó Manager mới cần Assign)
+                com.itserviceflow.daos.UserDAO userDAO = new com.itserviceflow.daos.UserDAO();
+                java.util.List<com.itserviceflow.models.User> supportList = userDAO.getUsersByRoleId(2);
+                request.setAttribute("supportList", supportList);
             request.getRequestDispatcher("/ticket/service-request-detail-manager.jsp").forward(request, response);
         }
         System.out.println("=================================");
