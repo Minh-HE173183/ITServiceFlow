@@ -81,6 +81,24 @@ public class TimeLogService {
         return timeLogDAO.insertLog(log);
     }
 
+    /**
+     * Calculates time spent and persists a time_log record automatically with custom reason.
+     * Used for CANCELLED activity with reason.
+     *
+     * @param ticket the ticket (must have ticketId, ticketType, priority, difficultyLevel set)
+     * @param agentUserId the user_id of the agent performing the action
+     * @param activityType one of ASSIGNED | INVESTIGATION | RESOLVED | CLOSED | CANCELLED
+     * @param reason custom reason for the activity (e.g., cancellation reason)
+     * @return true if the log was saved successfully
+     */
+    public boolean autoLogWithReason(Ticket ticket, int agentUserId, String activityType, String reason) {
+        double timeSpent = calculateTimeSpent(ticket, activityType);
+        String description = buildDescriptionWithReason(ticket, activityType, timeSpent, reason);
+
+        TimeLog log = new TimeLog(ticket.getTicketId(), agentUserId, activityType, timeSpent, description);
+        return timeLogDAO.insertLog(log);
+    }
+
     // -----------------------------------------------------------------------
     // Formula helpers
     // -----------------------------------------------------------------------
@@ -160,6 +178,19 @@ public class TimeLogService {
                 ticket.getPriority(),
                 ticket.getDifficultyLevel() != null ? ticket.getDifficultyLevel() : "N/A",
                 timeSpent
+        );
+    }
+
+    private String buildDescriptionWithReason(Ticket ticket, String activityType, double timeSpent, String reason) {
+        return String.format(
+                "Auto-logged: [%s] on ticket %s | Type: %s | Priority: %s | Difficulty: %s | Time: %.2f h | Reason: %s",
+                activityType,
+                ticket.getTicketNumber() != null ? ticket.getTicketNumber() : "#" + ticket.getTicketId(),
+                ticket.getTicketType(),
+                ticket.getPriority(),
+                ticket.getDifficultyLevel() != null ? ticket.getDifficultyLevel() : "N/A",
+                timeSpent,
+                reason
         );
     }
 }

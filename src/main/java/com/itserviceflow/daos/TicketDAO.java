@@ -754,15 +754,24 @@ public class TicketDAO {
      * this when you need difficulty for logtime calculation.
      */
     public Ticket getTicketWithDetails(int ticketId) {
-        String sql = "SELECT t.*, tc.difficulty_level "
+        // Join ticket_category for difficulty and user table twice to fetch reporter/assignee names
+        String sql = "SELECT t.*, tc.difficulty_level, "
+                + "ru.full_name AS reported_by_name, au.full_name AS assigned_to_name "
                 + "FROM ticket t "
                 + "LEFT JOIN ticket_category tc ON t.category_id = tc.category_id "
+                + "LEFT JOIN `user` ru ON t.reported_by = ru.user_id "
+                + "LEFT JOIN `user` au ON t.assigned_to = au.user_id "
                 + "WHERE t.ticket_id = ?";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, ticketId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return mapRowToTicket(rs);
+                    Ticket t = mapRowToTicket(rs);
+                    // Set virtual/display fields
+                    t.setDifficultyLevel(rs.getString("difficulty_level"));
+                    t.setReportedByName(rs.getString("reported_by_name"));
+                    t.setAssignedToName(rs.getString("assigned_to_name"));
+                    return t;
                 }
             }
         } catch (Exception e) {
@@ -772,6 +781,23 @@ public class TicketDAO {
     }
 
     // ---------- workflow-driven operations ----------
+    /**
+     * Lấy các ticket đang mở (chưa đóng/huỷ/hoàn tất) để kiểm tra SLA
+     */
+    public List<Ticket> getOpenTicketsForSLA() {
+        List<Ticket> list = new ArrayList<>();
+        String sql = "SELECT * FROM ticket WHERE status NOT IN ('CLOSED', 'RESOLVED', 'CANCELLED', 'Closed', 'Resolved', 'Cancelled')";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapRowToTicket(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     /**
      * Cập nhật status của ticket bất kỳ (dùng bởi WorkflowService).
      */

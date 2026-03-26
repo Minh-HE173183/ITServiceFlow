@@ -352,6 +352,157 @@
                 font-size: 0.8rem;
                 color: var(--text-secondary);
             }
+
+            /* Search Box Styles */
+            .search-container {
+                position: relative;
+                display: flex;
+                align-items: center;
+                background: white;
+                border: 2px solid var(--border-color);
+                border-radius: 25px;
+                padding: 8px 16px;
+                transition: all 0.3s ease;
+                width: 300px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            }
+
+            .search-container:focus-within {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+
+            .search-icon {
+                color: var(--text-secondary);
+                margin-right: 8px;
+                font-size: 1.1rem;
+            }
+
+            .search-input {
+                border: none;
+                outline: none;
+                flex: 1;
+                font-size: 0.9rem;
+                color: var(--text-primary);
+                background: transparent;
+            }
+
+            .search-input::placeholder {
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+            }
+
+            /* Responsive Search */
+            @media (max-width: 768px) {
+                .search-container {
+                    width: 100%;
+                    margin-bottom: 15px;
+                }
+            }
+
+            /* Pagination Styles */
+            .pagination-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 20px 0;
+                border-top: 1px solid var(--border-color);
+                margin-top: 20px;
+            }
+
+            .pagination-info {
+                font-size: 0.9rem;
+                color: var(--text-secondary);
+            }
+
+            .pagination-controls {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .page-size-selector {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 0.9rem;
+                color: var(--text-secondary);
+            }
+
+            .page-size-selector select {
+                padding: 6px 12px;
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
+                background: white;
+                font-size: 0.9rem;
+                cursor: pointer;
+            }
+
+            .pagination-buttons {
+                display: flex;
+                gap: 5px;
+            }
+
+            .page-btn {
+                padding: 8px 12px;
+                border: 1px solid var(--border-color);
+                background: white;
+                color: var(--text-primary);
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: all 0.3s ease;
+                min-width: 40px;
+                text-align: center;
+            }
+
+            .page-btn:hover {
+                background-color: var(--primary-color);
+                color: white;
+                border-color: var(--primary-color);
+            }
+
+            .page-btn.active {
+                background-color: var(--primary-color);
+                color: white;
+                border-color: var(--primary-color);
+            }
+
+            .page-btn.disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                background-color: #f3f4f6;
+                color: #9ca3af;
+                border-color: #e5e7eb;
+            }
+
+            .page-ellipsis {
+                padding: 8px 12px;
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+            }
+
+            /* Responsive Pagination */
+            @media (max-width: 768px) {
+                .pagination-container {
+                    flex-direction: column;
+                    gap: 15px;
+                    align-items: flex-end;
+                }
+                
+                .pagination-info {
+                    align-self: flex-start;
+                }
+                
+                .pagination-controls {
+                    width: 100%;
+                    justify-content: space-between;
+                }
+                
+                .page-size-selector {
+                    display: none; /* Ẩn dropdown trên mobile để tiết kiệm không gian */
+                }
+            }
         </style>
     </head>
     <body>
@@ -371,6 +522,15 @@
                 <div class="card-header">
                     <div class="card-title">📋 Incident List</div>
                     <div class="card-actions">
+                        <div class="search-container">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="searchInput" class="search-input" 
+                                   placeholder="Tìm theo mã ticket, tiêu đề hoặc người báo cáo..." 
+                                   onkeyup="searchIncidents()">
+                        </div>
+                        <a href="${pageContext.request.contextPath}/home" class="btn btn-secondary">
+                            ← Back to Home
+                        </a>
                         <a href="${pageContext.request.contextPath}/incident?action=add" class="btn btn-primary">
                             ➕ New Incident
                         </a>
@@ -382,7 +542,7 @@
 
                 <!-- Table Container -->
                 <div class="table-container">
-                    <table>
+                    <table id="incidentTable">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -489,8 +649,222 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="pagination-info" id="paginationInfo">
+                        Hiển thị 1-10 của 0 incident
+                    </div>
+                    <div class="pagination-controls">
+                        <div class="page-size-selector">
+                            <span>Hiển thị:</span>
+                            <select id="pageSizeSelector" onchange="changePageSize()">
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span>hàng mỗi trang</span>
+                        </div>
+                        <div class="pagination-buttons" id="paginationButtons">
+                            <!-- Pagination buttons will be generated here -->
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
     </body>
+    
+    <script>
+        // Pagination variables
+        let currentPage = 1;
+        let pageSize = 10;
+        let totalPages = 1;
+        let allRows = [];
+        let visibleRows = [];
+
+        // Initialize pagination when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePagination();
+        });
+
+        function initializePagination() {
+            const table = document.getElementById('incidentTable');
+            const tbody = table.getElementsByTagName('tbody')[0];
+            allRows = Array.from(tbody.getElementsByTagName('tr'));
+            
+            // Filter out empty state row
+            allRows = allRows.filter(row => !row.querySelector('.empty-state'));
+            
+            if (allRows.length === 0) {
+                document.getElementById('paginationInfo').textContent = 'Hiển thị 0-0 của 0 incident';
+                document.getElementById('paginationButtons').innerHTML = '';
+                return;
+            }
+
+            // Set default page size from dropdown
+            const savedPageSize = localStorage.getItem('incidentPageSize');
+            if (savedPageSize) {
+                pageSize = parseInt(savedPageSize);
+                document.getElementById('pageSizeSelector').value = pageSize;
+            }
+
+            updatePagination();
+        }
+
+        function updatePagination() {
+            // Filter visible rows based on search
+            const searchInput = document.getElementById('searchInput');
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            visibleRows = allRows.filter(row => {
+                const tdTicketNumber = row.getElementsByTagName('td')[1];
+                const tdTitle = row.getElementsByTagName('td')[2];
+                
+                if (tdTicketNumber && tdTitle) {
+                    const ticketNumber = tdTicketNumber.textContent || tdTicketNumber.innerText;
+                    const title = tdTitle.textContent || tdTitle.innerText;
+                    
+                    return ticketNumber.toLowerCase().indexOf(searchTerm) > -1 || 
+                           title.toLowerCase().indexOf(searchTerm) > -1;
+                }
+                return false;
+            });
+
+            // Calculate pagination
+            totalPages = Math.ceil(visibleRows.length / pageSize);
+            
+            // Ensure current page is valid
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+            if (currentPage < 1) {
+                currentPage = 1;
+            }
+
+            // Update display
+            updateTableDisplay();
+            updatePaginationInfo();
+            updatePaginationButtons();
+        }
+
+        function updateTableDisplay() {
+            // Hide all rows first
+            allRows.forEach(row => {
+                row.style.display = 'none';
+            });
+
+            // Show only rows for current page
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, visibleRows.length);
+
+            for (let i = startIndex; i < endIndex; i++) {
+                if (visibleRows[i]) {
+                    visibleRows[i].style.display = '';
+                }
+            }
+        }
+
+        function updatePaginationInfo() {
+            const totalVisible = visibleRows.length;
+            const startIndex = (currentPage - 1) * pageSize + 1;
+            const endIndex = Math.min(currentPage * pageSize, totalVisible);
+            
+            const infoText = totalVisible === 0 
+                ? 'Hiển thị 0-0 của 0 incident'
+                : `Hiển thị ${startIndex}-${endIndex} của ${totalVisible} incident`;
+            
+            document.getElementById('paginationInfo').textContent = infoText;
+        }
+
+        function updatePaginationButtons() {
+            const container = document.getElementById('paginationButtons');
+            container.innerHTML = '';
+
+            // Previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'page-btn' + (currentPage === 1 ? ' disabled' : '');
+            prevBtn.textContent = 'Trước';
+            prevBtn.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    updatePagination();
+                }
+            };
+            container.appendChild(prevBtn);
+
+            // Page numbers
+            const maxButtons = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+            let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+            if (endPage - startPage < maxButtons - 1) {
+                startPage = Math.max(1, endPage - maxButtons + 1);
+            }
+
+            if (startPage > 1) {
+                const firstBtn = document.createElement('button');
+                firstBtn.className = 'page-btn';
+                firstBtn.textContent = '1';
+                firstBtn.onclick = () => { currentPage = 1; updatePagination(); };
+                container.appendChild(firstBtn);
+
+                if (startPage > 2) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.className = 'page-ellipsis';
+                    ellipsis.textContent = '...';
+                    container.appendChild(ellipsis);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+                btn.textContent = i;
+                btn.onclick = () => { currentPage = i; updatePagination(); };
+                container.appendChild(btn);
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.className = 'page-ellipsis';
+                    ellipsis.textContent = '...';
+                    container.appendChild(ellipsis);
+                }
+
+                const lastBtn = document.createElement('button');
+                lastBtn.className = 'page-btn';
+                lastBtn.textContent = totalPages;
+                lastBtn.onclick = () => { currentPage = totalPages; updatePagination(); };
+                container.appendChild(lastBtn);
+            }
+
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'page-btn' + (currentPage === totalPages ? ' disabled' : '');
+            nextBtn.textContent = 'Sau';
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    updatePagination();
+                }
+            };
+            container.appendChild(nextBtn);
+        }
+
+        function changePageSize() {
+            const select = document.getElementById('pageSizeSelector');
+            pageSize = parseInt(select.value);
+            localStorage.setItem('incidentPageSize', pageSize);
+            currentPage = 1;
+            updatePagination();
+        }
+
+        function searchIncidents() {
+            currentPage = 1;
+            updatePagination();
+        }
+    </script>
 </html>

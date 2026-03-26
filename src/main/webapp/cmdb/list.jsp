@@ -1,4 +1,5 @@
 <jsp:include page="/includes/header.jsp" />
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <div class="container-fluid bg-white p-4 rounded shadow-sm">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -18,6 +19,14 @@
             </a>
         </div>
     </div>
+
+    <c:if test="${not empty sessionScope.message}">
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> ${sessionScope.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <c:remove var="message" scope="session"/>
+    </c:if>
 
     <form action="${pageContext.request.contextPath}/cmdb" method="get"
           class="bg-light p-3 rounded mb-4 border d-flex gap-3 align-items-center">
@@ -43,11 +52,12 @@
         <a href="${pageContext.request.contextPath}/cmdb?action=list" class="btn btn-outline-secondary">Clear</a>
     </form>
 
-    <form id="bulkForm" action="${pageContext.request.contextPath}/cmdb" method="post">
+    <form id="bulkForm" action="${pageContext.request.contextPath}/cmdb" method="post" style="display:none;">
         <input type="hidden" name="action" id="bulkActionType" value="">
         <input type="hidden" name="toggleTo" id="bulkToggleTo" value="">
+    </form>
 
-        <div class="table-responsive">
+    <div class="table-responsive">
             <table class="table table-hover table-bordered align-middle mt-3">
                 <thead class="table-light">
                     <tr>
@@ -55,9 +65,10 @@
                                                         onclick="toggleAll(this)"></th>
                         <th>CI Code</th>
                         <th>Name</th>
+                        <th>Type</th>
                         <th>IP Address</th>
                         <th>Status</th>
-                        <th>Owner ID</th>
+                        <th>Owner</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -70,6 +81,7 @@
                             </td>
                             <td><strong>${ci.ciCode}</strong></td>
                             <td>${ci.ciName}</td>
+                            <td>${ci.ciTypeName}</td>
                             <td>${ci.ipAddress == null ? '<span class="text-muted fst-italic">N/A</span>' :
                                   ci.ipAddress}</td>
                             <td>
@@ -85,8 +97,8 @@
                                     <c:otherwise><span class="badge bg-primary">${ci.status}</span></c:otherwise>
                                 </c:choose>
                             </td>
-                            <td>${ci.ownerId == null ? '<span class="text-muted fst-italic">Unassigned</span>' :
-                                  ci.ownerId}</td>
+                            <td>${ci.ownerName == null ? '<span class="text-muted fst-italic">Unassigned</span>' :
+                                  ci.ownerName}</td>
                             <td class="d-flex gap-1">
                                 <a href="${pageContext.request.contextPath}/cmdb?action=detail&id=${ci.ciId}"
                                    class="btn btn-info btn-sm text-white">
@@ -130,7 +142,6 @@
                 </tbody>
             </table>
         </div>
-    </form>
 </div>
 
 <script>
@@ -141,22 +152,33 @@
         }
     }
 
-    function submitBulkAction(actionType, extraParam) {
-        var checkboxes = document.querySelectorAll('.rowCheckbox:checked');
-        if (checkboxes.length === 0) {
-            alert('Please select at least one item.');
-            return;
-        }
-        if (confirm('Are you sure you want to perform this action on the selected items? \nWarning: Ensure the selected items are in the valid state for this action.')) {
-            document.getElementById('bulkActionType').value = actionType;
-
-            if (actionType === 'bulkToggleStatus') {
-                document.getElementById('bulkToggleTo').value = extraParam;
+        function submitBulkAction(actionType, toggleTo) {
+            const checkboxes = document.querySelectorAll('.rowCheckbox:checked');
+            if (checkboxes.length === 0) {
+                alert('Please select at least one item.');
+                return;
             }
 
-            document.getElementById('bulkForm').submit();
+            let msg = actionType === 'bulkDelete' ? 'Are you sure you want to delete selected items?' :
+                'Are you sure you want to change status to ' + toggleTo + '?';
+
+            if (confirm(msg + '\nWarning: Ensure the selected items are in a valid state.')) {
+                const bulkForm = document.getElementById('bulkForm');
+                bulkForm.querySelectorAll('input[name="selectedIds"]').forEach(el => el.remove());
+                checkboxes.forEach(cb => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'selectedIds';
+                    input.value = cb.value;
+                    bulkForm.appendChild(input);
+                });
+                
+                document.getElementById('bulkActionType').value = actionType;
+                if (toggleTo) document.getElementById('bulkToggleTo').value = toggleTo;
+
+                bulkForm.submit();
+            }
         }
-    }
 </script>
 
 <jsp:include page="/includes/footer.jsp" />

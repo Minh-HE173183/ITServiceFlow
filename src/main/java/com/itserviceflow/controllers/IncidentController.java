@@ -130,10 +130,20 @@ public class IncidentController extends HttpServlet {
         java.util.List<com.itserviceflow.models.TimeLog> timeLogs = timeLogDAO.getLogsByTicketId(id);
         double totalTimeSpent = timeLogDAO.getTotalTimeByTicket(id);
 
+        // Load category information for dynamic display
+        com.itserviceflow.daos.TicketCategoryDAO categoryDAO = new com.itserviceflow.daos.TicketCategoryDAO();
+        com.itserviceflow.models.TicketCategory category = null;
+        if (incident.getCategoryId() != 0) {
+            category = categoryDAO.findById(incident.getCategoryId());
+        }
+        
+        // Set attributes for JSP
         request.setAttribute("incident", incident);
         request.setAttribute("relatedIncidents", related);
         request.setAttribute("timeLogs", timeLogs);
         request.setAttribute("totalTimeSpent", totalTimeSpent);
+        request.setAttribute("category", category);
+        
         request.getRequestDispatcher("/incidents/incident-detail.jsp").forward(request, response);
     }
 
@@ -257,7 +267,25 @@ public class IncidentController extends HttpServlet {
     private void cancelIncident(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
+        String cancelReason = request.getParameter("cancelReason");
+        
+        // Get current user
+        HttpSession session = request.getSession();
+        User currentUser = (User) session.getAttribute("user");
+        int userId = (currentUser != null) ? currentUser.getUserId() : 1;
+        
+        // Cancel the incident
         ticketDAO.cancelIncidentTicket(id);
+        
+        // Log the cancellation with reason
+        if (cancelReason != null && !cancelReason.trim().isEmpty()) {
+            // Auto-log CANCELLED activity with reason
+            Ticket ticket = ticketDAO.getTicketWithDetails(id);
+            if (ticket != null) {
+                timeLogService.autoLogWithReason(ticket, userId, "CANCELLED", cancelReason);
+            }
+        }
+        
         response.sendRedirect(request.getContextPath() + "/incident?action=detail&id=" + id);
     }
 

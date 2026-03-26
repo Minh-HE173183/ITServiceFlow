@@ -438,6 +438,169 @@
                 color: #c53030;
                 border: 1px solid #feb2b2;
             }
+
+            /* Cancel Modal Styles */
+            .modal-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1000;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .modal-overlay.active {
+                display: flex;
+            }
+
+            .modal-content {
+                background: #fff;
+                border-radius: 12px;
+                width: 500px;
+                max-width: 95vw;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+                animation: modalSlideIn 0.2s ease-out;
+            }
+
+            @keyframes modalSlideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px) scale(0.98);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+
+            .modal-header {
+                padding: 20px 24px;
+                border-bottom: 1px solid #e2e8f0;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .modal-title {
+                font-size: 18px;
+                font-weight: 700;
+                color: #2d3748;
+            }
+
+            .modal-body {
+                padding: 20px 24px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .reason-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .reason-group label {
+                font-size: 14px;
+                font-weight: 600;
+                color: #4a5568;
+            }
+
+            .reason-options {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .reason-option {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 12px;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.15s;
+            }
+
+            .reason-option:hover {
+                border-color: #cbd5e0;
+                background: #f7fafc;
+            }
+
+            .reason-option input[type="radio"] {
+                width: 18px;
+                height: 18px;
+                cursor: pointer;
+            }
+
+            .reason-option.active {
+                border-color: #4299e1;
+                background: #ebf8ff;
+            }
+
+            .reason-detail {
+                display: none;
+                margin-top: 8px;
+            }
+
+            .reason-detail.active {
+                display: block;
+            }
+
+            .reason-detail textarea {
+                width: 100%;
+                min-height: 80px;
+                padding: 10px 12px;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                font-size: 14px;
+                font-family: inherit;
+                resize: vertical;
+            }
+
+            .reason-detail textarea:focus {
+                outline: none;
+                border-color: #4299e1;
+                box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+            }
+
+            .modal-footer {
+                padding: 16px 24px 24px;
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+                border-top: 1px solid #e2e8f0;
+            }
+
+            .btn-cancel {
+                background: #edf2f7;
+                color: #4a5568;
+            }
+
+            .btn-cancel:hover {
+                background: #e2e8f0;
+            }
+
+            .btn-confirm {
+                background: #fc8181;
+                color: #742a2a;
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            .btn-confirm.active {
+                opacity: 1;
+                cursor: pointer;
+            }
+
+            .btn-confirm.active:hover {
+                background: #f56565;
+            }
         </style>
     </head>
 
@@ -483,7 +646,12 @@
                 </div>
                 <div class="detail-item">
                     <label>Reported By</label>
-                    <span>User #${incident.reportedBy}</span>
+                    <span>
+                        <c:choose>
+                            <c:when test="${not empty incident.reportedByName}">${incident.reportedByName}</c:when>
+                            <c:otherwise>User #${incident.reportedBy}</c:otherwise>
+                        </c:choose>
+                    </span>
                 </div>
                 <div class="detail-item">
                     <label>Assigned To</label>
@@ -492,7 +660,12 @@
                             <span style="color:#a0aec0;">Unassigned</span>
                         </c:when>
                         <c:otherwise>
-                            <span>Agent #${incident.assignedTo}</span>
+                            <span>
+                                <c:choose>
+                                    <c:when test="${not empty incident.assignedToName}">${incident.assignedToName}</c:when>
+                                    <c:otherwise>Agent #${incident.assignedTo}</c:otherwise>
+                                </c:choose>
+                            </span>
                         </c:otherwise>
                     </c:choose>
                 </div>
@@ -504,15 +677,26 @@
             <div class="action-bar">
                 <a href="${pageContext.request.contextPath}/incident?action=edit&id=${incident.ticketId}"
                    class="btn btn-warning">Edit</a>
-                <c:if test="${incident.status ne 'CANCELLED' and incident.status ne 'CLOSED'}">
-                    <form action="${pageContext.request.contextPath}/incident" method="post"
-                          style="margin:0;" onsubmit="return confirm('Cancel this ticket?');">
-                        <input type="hidden" name="action" value="cancel">
-                        <input type="hidden" name="id" value="${incident.ticketId}">
-                        <button type="submit" class="btn btn-danger">Cancel</button>
-                    </form>
+                
+                <!-- Cancel Button for User (Reported By) -->
+                <c:if test="${incident.status ne 'CANCELLED' and incident.status ne 'CLOSED' 
+                              and sessionScope.user.userId == incident.reportedBy}">
+                    <button type="button" class="btn btn-danger" onclick="openCancelModal()">
+                        Cancel
+                    </button>
                 </c:if>
-                <c:if test="${incident.assignedTo == null and incident.status ne 'CANCELLED'}">
+                
+                <!-- Cancel Button for Admin (System Admin) -->
+                <c:if test="${incident.status ne 'CANCELLED' and incident.status ne 'CLOSED' 
+                              and sessionScope.user.roleId == 10}">
+                    <button type="button" class="btn btn-danger" onclick="openCancelModal()">
+                        Cancel
+                    </button>
+                </c:if>
+                
+                <!-- Assign Button (Hide for User and System Admin) -->
+                <c:if test="${incident.assignedTo == null and incident.status ne 'CANCELLED' 
+                              and sessionScope.user.roleId != 1 and sessionScope.user.roleId != 10}">
                     <form action="${pageContext.request.contextPath}/incident" method="post"
                           style="margin:0;">
                         <input type="hidden" name="action" value="assign">
@@ -525,131 +709,179 @@
         </div>
 
         <!-- TABS CARD -->
-        <div class="card" style="padding-bottom: 28px;">
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('timelog', this)">&#9201; Time Log</button>
-                <button class="tab-btn" onclick="switchTab('related', this)">&#128279; Related
-                    Incidents</button>
-            </div>
-
-            <!-- TIME LOG TAB -->
-            <div id="tab-timelog" class="tab-content active">
-                <div class="timelog-summary">
-                    <div class="timelog-stat ts-purple">
-                        <div class="stat-value">
-                            <fmt:formatNumber value="${totalTimeSpent}" maxFractionDigits="2" />h
-                        </div>
-                        <div class="stat-label">Total Time Logged</div>
-                    </div>
-                    <div class="timelog-stat ts-green">
-                        <div class="stat-value">${fn:length(timeLogs)}</div>
-                        <div class="stat-label">Log Entries</div>
-                    </div>
+        <c:if test="${sessionScope.user.roleId != 1}">
+            <div class="card" style="padding-bottom: 28px;">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('timelog', this)">&#9201; Time Log</button>
+                    <button class="tab-btn" onclick="switchTab('related', this)">&#128279; Related
+                        Incidents</button>
                 </div>
 
-                <c:choose>
-                    <c:when test="${not empty timeLogs}">
-                        <table class="timelog-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Activity</th>
-                                    <th>Agent</th>
-                                    <th>Time Spent</th>
-                                    <th>Description</th>
-                                    <th>Logged At</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach var="log" items="${timeLogs}" varStatus="s">
-                                    <tr>
-                                        <td style="color:#a0aec0;">${s.index + 1}</td>
-                                        <td>
-                                            <span
-                                                class="activity-chip chip-${fn:toLowerCase(log.activityType)}">${log.activityType}</span>
-                                        </td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${not empty log.agentName}">${log.agentName}
-                                                </c:when>
-                                                <c:otherwise>User #${log.userId}</c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td><span class="time-value">
-                                                <fmt:formatNumber value="${log.timeSpent}"
-                                                                  maxFractionDigits="2" />h
-                                            </span></td>
-                                        <td style="color:#718096;">${log.description}</td>
-                                        <td style="color:#a0aec0; font-size:12px;">
-                                            <fmt:formatDate value="${log.loggedAt}"
-                                                            pattern="dd/MM/yyyy HH:mm" />
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="empty-state">
-                            <p>No time entries yet.</p>
-                            <p style="font-size:13px; margin-top:6px;">Time will be auto-logged when the
-                                agent assigns, resolves, or closes this ticket.</p>
-                        </div>
-                    </c:otherwise>
-                </c:choose>
-
-                <c:if test="${incident.status ne 'CLOSED' and incident.status ne 'CANCELLED'}">
-                    <div class="manual-log-form">
-                        <h4>Log Time Manually</h4>
-                        <form action="${pageContext.request.contextPath}/incident" method="post">
-                            <input type="hidden" name="action" value="logtime">
-                            <input type="hidden" name="id" value="${incident.ticketId}">
-                            <div class="form-row">
-                                <div class="form-group fg-time">
-                                    <label for="timeSpent">Hours spent</label>
-                                    <input type="number" id="timeSpent" name="timeSpent" step="0.25"
-                                           min="0.25" max="24" placeholder="1.5" required>
-                                </div>
-                                <div class="form-group fg-desc">
-                                    <label for="logDescription">Description</label>
-                                    <input type="text" id="logDescription" name="logDescription"
-                                           placeholder="What did you work on?" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>&nbsp;</label>
-                                    <button type="submit" class="btn btn-primary">
-                                        Save Log</button>
-                                </div>
+                <!-- TIME LOG TAB -->
+                <div id="tab-timelog" class="tab-content active">
+                    <div class="timelog-summary">
+                        <div class="timelog-stat ts-purple">
+                            <div class="stat-value">
+                                <fmt:formatNumber value="${totalTimeSpent}" maxFractionDigits="2" />h
                             </div>
-                        </form>
-                    </div>
-                </c:if>
-            </div>
-
-            <!-- RELATED INCIDENTS TAB -->
-            <div id="tab-related" class="tab-content">
-                <c:choose>
-                    <c:when test="${not empty relatedIncidents}">
-                        <ul class="related-list">
-                            <c:forEach var="inc" items="${relatedIncidents}">
-                                <li>
-                                    <div>
-                                        <strong>${inc.ticketNumber}</strong>
-                                        <span style="margin-left:10px; color:#4a5568;">${inc.title}</span>
-                                    </div>
-                                    <span
-                                        class="badge badge-${fn:toLowerCase(inc.status)}">${inc.status}</span>
-                                </li>
-                            </c:forEach>
-                        </ul>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="empty-state">
-                            <div class="empty-icon">&#128279;</div>
-                            <p>No related incidents found.</p>
+                            <div class="stat-label">Total Time Logged</div>
                         </div>
-                    </c:otherwise>
-                </c:choose>
+                        <div class="timelog-stat ts-green">
+                            <div class="stat-value">${fn:length(timeLogs)}</div>
+                            <div class="stat-label">Log Entries</div>
+                        </div>
+                    </div>
+
+                    <c:choose>
+                        <c:when test="${not empty timeLogs}">
+                            <table class="timelog-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Activity</th>
+                                        <th>Agent</th>
+                                        <th>Time Spent</th>
+                                        <th>Description</th>
+                                        <th>Logged At</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <c:forEach var="log" items="${timeLogs}" varStatus="s">
+                                        <tr>
+                                            <td style="color:#a0aec0;">${s.index + 1}</td>
+                                            <td>
+                                                <span
+                                                    class="activity-chip chip-${fn:toLowerCase(log.activityType)}">${log.activityType}</span>
+                                            </td>
+                                            <td>
+                                                <c:choose>
+                                                    <c:when test="${not empty log.agentName}">${log.agentName}
+                                                    </c:when>
+                                                    <c:otherwise>User #${log.userId}</c:otherwise>
+                                                </c:choose>
+                                            </td>
+                                            <td><span class="time-value">
+                                                    <fmt:formatNumber value="${log.timeSpent}"
+                                                                      maxFractionDigits="2" />h
+                                                </span></td>
+                                            <td style="color:#718096;">${log.description}</td>
+                                            <td style="color:#a0aec0; font-size:12px;">
+                                                <fmt:formatDate value="${log.loggedAt}"
+                                                                pattern="dd/MM/yyyy HH:mm" />
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                </tbody>
+                            </table>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="empty-state">
+                                <p>No time entries yet.</p>
+                                <p style="font-size:13px; margin-top:6px;">Time will be auto-logged when the
+                                    agent assigns, resolves, or closes this ticket.</p>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+
+                    <c:if test="${incident.status ne 'CLOSED' and incident.status ne 'CANCELLED'}">
+                        <div class="manual-log-form">
+                            <h4>Log Time Manually</h4>
+                            <form action="${pageContext.request.contextPath}/incident" method="post">
+                                <input type="hidden" name="action" value="logtime">
+                                <input type="hidden" name="id" value="${incident.ticketId}">
+                                <div class="form-row">
+                                    <div class="form-group fg-time">
+                                        <label for="timeSpent">Hours spent</label>
+                                        <input type="number" id="timeSpent" name="timeSpent" step="0.25"
+                                               min="0.25" max="24" placeholder="1.5" required>
+                                    </div>
+                                    <div class="form-group fg-desc">
+                                        <label for="logDescription">Description</label>
+                                        <input type="text" id="logDescription" name="logDescription"
+                                               placeholder="What did you work on?" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>&nbsp;</label>
+                                        <button type="submit" class="btn btn-primary">
+                                            Save Log</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </c:if>
+                </div>
+
+                <!-- RELATED INCIDENTS TAB -->
+                <div id="tab-related" class="tab-content">
+                    <c:choose>
+                        <c:when test="${not empty relatedIncidents}">
+                            <ul class="related-list">
+                                <c:forEach var="inc" items="${relatedIncidents}">
+                                    <li>
+                                        <div>
+                                            <strong>${inc.ticketNumber}</strong>
+                                            <span style="margin-left:10px; color:#4a5568;">${inc.title}</span>
+                                        </div>
+                                        <span
+                                            class="badge badge-${fn:toLowerCase(inc.status)}">${inc.status}</span>
+                                    </li>
+                                </c:forEach>
+                            </ul>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="empty-state">
+                                <div class="empty-icon">&#128279;</div>
+                                <p>No related incidents found.</p>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
+        </c:if>
+
+        <!-- Cancel Modal -->
+        <div class="modal-overlay" id="cancelModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span style="font-size: 24px;">⚠️</span>
+                    <div class="modal-title">Xác nhận hủy ticket</div>
+                </div>
+                <div class="modal-body">
+                    <div class="reason-group">
+                        <label>Chọn lý do hủy ticket:</label>
+                        <div class="reason-options">
+                            <div class="reason-option active" onclick="selectReason('Tôi không cần hỗ trợ nữa')">
+                                <input type="radio" name="cancelReason" value="Tôi không cần hỗ trợ nữa" checked>
+                                <span>Tôi không cần hỗ trợ nữa</span>
+                            </div>
+                            <div class="reason-option" onclick="selectReason('Tôi đã tự giải quyết được')">
+                                <input type="radio" name="cancelReason" value="Tôi đã tự giải quyết được">
+                                <span>Tôi đã tự giải quyết được</span>
+                            </div>
+                            <div class="reason-option" onclick="selectReason('Tôi tạo nhầm ticket')">
+                                <input type="radio" name="cancelReason" value="Tôi tạo nhầm ticket">
+                                <span>Tôi tạo nhầm ticket</span>
+                            </div>
+                            <div class="reason-option" onclick="selectReason('Vấn đề đã được giải quyết qua kênh khác')">
+                                <input type="radio" name="cancelReason" value="Vấn đề đã được giải quyết qua kênh khác">
+                                <span>Vấn đề đã được giải quyết qua kênh khác</span>
+                            </div>
+                            <div class="reason-option" onclick="selectReason('Lý do khác')">
+                                <input type="radio" name="cancelReason" value="Lý do khác">
+                                <span>Lý do khác</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="reason-detail" id="reasonDetail">
+                        <label>Nhập lý do chi tiết:</label>
+                        <textarea id="reasonDetailText" placeholder="Vui lòng nhập lý do chi tiết..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" onclick="closeCancelModal()">Hủy bỏ</button>
+                    <button type="button" class="btn btn-confirm" id="confirmCancelBtn" onclick="confirmCancel()">Xác nhận</button>
+                </div>
             </div>
         </div>
 
@@ -664,6 +896,118 @@
                 btnEl.classList.add('active');
                 document.getElementById('tab-' + tabId).classList.add('active');
             }
+
+            // Cancel Modal Functions
+            function openCancelModal() {
+                document.getElementById('cancelModal').classList.add('active');
+                document.getElementById('reasonDetail').classList.remove('active');
+                document.getElementById('reasonDetailText').value = '';
+                document.getElementById('confirmCancelBtn').classList.remove('active');
+            }
+
+            function closeCancelModal() {
+                document.getElementById('cancelModal').classList.remove('active');
+            }
+
+            function selectReason(reason) {
+                // Update radio selection
+                const options = document.querySelectorAll('.reason-option');
+                options.forEach(option => {
+                    option.classList.remove('active');
+                    const radio = option.querySelector('input[type="radio"]');
+                    radio.checked = false;
+                });
+
+                // Find and activate selected option
+                const selectedOption = Array.from(options).find(option => 
+                    option.querySelector('input[type="radio"]').value === reason
+                );
+                if (selectedOption) {
+                    selectedOption.classList.add('active');
+                    selectedOption.querySelector('input[type="radio"]').checked = true;
+                }
+
+                // Show/hide detail textarea
+                const detailDiv = document.getElementById('reasonDetail');
+                if (reason === 'Lý do khác') {
+                    detailDiv.classList.add('active');
+                } else {
+                    detailDiv.classList.remove('active');
+                }
+
+                // Update confirm button state
+                updateConfirmButton();
+            }
+
+            function updateConfirmButton() {
+                const selectedReason = document.querySelector('input[name="cancelReason"]:checked');
+                const detailText = document.getElementById('reasonDetailText').value.trim();
+                const detailRequired = document.getElementById('reasonDetail').classList.contains('active');
+
+                const confirmBtn = document.getElementById('confirmCancelBtn');
+                
+                if (selectedReason) {
+                    if (detailRequired && detailText === '') {
+                        confirmBtn.classList.remove('active');
+                    } else {
+                        confirmBtn.classList.add('active');
+                    }
+                } else {
+                    confirmBtn.classList.remove('active');
+                }
+            }
+
+            function confirmCancel() {
+                const confirmBtn = document.getElementById('confirmCancelBtn');
+                if (!confirmBtn.classList.contains('active')) {
+                    return;
+                }
+
+                const selectedReason = document.querySelector('input[name="cancelReason"]:checked').value;
+                const detailText = document.getElementById('reasonDetailText').value.trim();
+                
+                // Prepare reason text
+                let reasonText = selectedReason;
+                if (detailText && detailText !== '') {
+                    reasonText += ' - Chi tiết: ' + detailText;
+                }
+
+                // Submit form with reason
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = '${pageContext.request.contextPath}/incident';
+
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'cancel';
+
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = '${incident.ticketId}';
+
+                const reasonInput = document.createElement('input');
+                reasonInput.type = 'hidden';
+                reasonInput.name = 'cancelReason';
+                reasonInput.value = reasonText;
+
+                form.appendChild(actionInput);
+                form.appendChild(idInput);
+                form.appendChild(reasonInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+
+            // Add event listeners for detail textarea
+            document.getElementById('reasonDetailText').addEventListener('input', updateConfirmButton);
+            document.querySelectorAll('.reason-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    const reason = option.querySelector('input[type="radio"]').value;
+                    selectReason(reason);
+                });
+            });
+
         </script>
     </body>
 

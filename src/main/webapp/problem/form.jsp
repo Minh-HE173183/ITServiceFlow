@@ -52,6 +52,18 @@
                 </c:if>
 
                 <div class="mb-3">
+                    <label for="ciId" class="form-label fw-bold">Select Configuration Item (Optional)</label>
+                    <select class="form-select" id="ciId" name="ciId">
+                        <option value="">-- None --</option>
+                        <c:forEach var="ci" items="${activeCis}">
+                            <option value="${ci.ciId}" ${problem.ciId == ci.ciId ? 'selected' : ''}>
+                                ${ci.ciName} (${ci.ciCode})
+                            </option>
+                        </c:forEach>
+                    </select>
+                </div>
+
+                <div class="mb-3">
                     <label for="cause" class="form-label fw-bold">Root Cause</label>
                     <textarea class="form-control" id="cause" name="cause" rows="4">${problem.cause}</textarea>
                 </div>

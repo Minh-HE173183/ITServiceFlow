@@ -26,6 +26,7 @@ public class Ticket {
     private String cause;
     private String solution;private String justification;
     private Integer serviceId;
+    private Integer ciId;
     private Date createdAt;
     private Date updatedAt;
 

@@ -8,24 +8,25 @@ import java.sql.SQLException;
  * Utility class for obtaining a JDBC connection to the MySQL database.
  *
  * Configuration:
- * - URL: jdbc:mysql://localhost:3306/itserviceflow_db
- * - Username: root
- * - Password: (configured below)
+ *   - URL:      jdbc:mysql://localhost:3306/itserviceflow_db
+ *   - Username: root
+ *   - Password: (configured below)
  *
  * NOTE: For production, externalize credentials via JNDI DataSource or
- * environment variables instead of hardcoding here.
+ *       environment variables instead of hardcoding here.
  */
 public class DBConnection {
-    private static final String URL = "jdbc:mysql://localhost:3306/itserviceflow_db";
-    private static final String USER = "root";
-    private static final String PASSWORD = "root";
+    private static final String URL = "jdbc:mysql://localhost:3306/itserviceflow_db?useSSL=false&serverTimezone=UTC";
+    private static final String USER = "root"; 
+    private static final String PASSWORD = "Admin123";
 
     static {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             throw new ExceptionInInitializerError(
-                    "MySQL JDBC Driver not found. Add mysql-connector-j to pom.xml\n" + e.getMessage());
+                "MySQL JDBC Driver not found. Add mysql-connector-j to pom.xml\n" + e.getMessage()
+            );
         }
     }
 
@@ -44,9 +45,10 @@ public class DBConnection {
             return null;
         }
     }
-
+    
     public static void main(String[] args) {
-        System.out.println(DBConnection.getConnection());
+        System.out.println(DBConnection.getConnection());   
     }
 
 }
+

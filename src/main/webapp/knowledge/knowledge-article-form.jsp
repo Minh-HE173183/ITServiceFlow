@@ -1,17 +1,19 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <jsp:include page="/includes/header.jsp">
-    <jsp:param name="pageTitle" value="${empty article.articleId ? 'Create Knowledge Base' : 'Edit Knowledge Base'}" />
+    <jsp:param name="pageTitle" value="${empty article.articleId ? 'Create Knowledge Article' : 'Edit Knowledge Article'}" />
 </jsp:include>
 
 <div class="container-fluid bg-white p-4 rounded shadow-sm">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h4 text-primary m-0">
             <i class="bi bi-journal-plus me-2"></i>
-            ${empty article.articleId ? 'Create New Knowledge Base' : 'Edit Knowledge Base'}
+            ${empty article.articleId ? 'Create New Knowledge Article' : 'Edit Knowledge Article'}
         </h2>
-        <a href="${pageContext.request.contextPath}/admin/knowledge-base?action=list"
+        <a href="${pageContext.request.contextPath}/support-agent/knowledge-article?action=list"
            class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i> Back
         </a>
@@ -24,7 +26,7 @@
         </div>
     </c:if>
 
-    <form action="${pageContext.request.contextPath}/admin/knowledge-base?action=${empty article.articleId ? 'add' : 'edit'}"
+    <form action="${pageContext.request.contextPath}/support-agent/knowledge-article?action=${empty article.articleId ? 'add' : 'edit'}"
           method="post">
         <input type="hidden" name="articleId" value="${article.articleId}">
 
@@ -67,9 +69,16 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">
-                                Error Code: No 
-                            </label> <br/>
+                            <label class="form-label fw-bold">Error Code</label>
+                            <select name="errorCode" id="errorCode" class="form-select" style="width:100%">
+                                <option value="">-- Select Known Error --</option>
+                                <c:forEach var="ke" items="${knownErrors}">
+                                    <option value="${ke.articleNumber}"
+                                            ${article.errorCode == ke.articleNumber ? 'selected' : ''}>
+                                        ${ke.articleNumber} - ${ke.title}
+                                    </option>
+                                </c:forEach>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Symptom</label>
@@ -99,7 +108,7 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="form-label fw-bold">
-                                Article Type: KNOWLEDGE BASE 
+                                Article Type: KNOWLEDGE ARTICLE 
                             </label> <br/>
                         </div>
                     </div>
@@ -110,15 +119,25 @@
                         <button type="submit" name="submitAction" value="publish" class="btn btn-primary">
                             <i class="bi bi-save me-2"></i>Save
                         </button>
-                        <a href="${pageContext.request.contextPath}/admin/knowledge-base?action=list"
+                        <a href="${pageContext.request.contextPath}/support-agent/knowledge-article?action=list"
                            class="btn btn-outline-danger">
                             <i class="bi bi-x-circle me-2"></i>Cancel
                         </a>
                     </div>
                 </div>
+
             </div>
         </div>
     </form>
 </div>
 
 <jsp:include page="/includes/footer.jsp" />
+<script>
+    $(document).ready(function () {
+        $('#errorCode').select2({
+            placeholder: '-- Select Known Error --',
+            allowClear: true,
+            width: '100%'
+        });
+    });
+</script>
