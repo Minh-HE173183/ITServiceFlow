@@ -618,6 +618,12 @@
         <c:if test="${not empty param.logError}">
             <div class="alert alert-error">Could not save time log (${param.logError}).</div>
         </c:if>
+        <c:if test="${param.feedbackSuccess eq '1'}">
+            <div class="alert alert-success">Thank you for your feedback!</div>
+        </c:if>
+        <c:if test="${not empty param.feedbackError}">
+            <div class="alert alert-error">Could not submit feedback (${param.feedbackError}).</div>
+        </c:if>
 
         <!-- DETAILS CARD -->
         <div class="card">
@@ -654,7 +660,12 @@
                 </div>
                 <div class="detail-item">
                     <label>Reported By</label>
-                    <span>User #${incident.reportedBy}</span>
+                    <span>
+                        <c:choose>
+                            <c:when test="${not empty incident.reportedByName}">${incident.reportedByName}</c:when>
+                            <c:otherwise>User #${incident.reportedBy}</c:otherwise>
+                        </c:choose>
+                    </span>
                 </div>
                 <div class="detail-item">
                     <label>Assigned To</label>
@@ -663,7 +674,12 @@
                             <span style="color:#a0aec0;">Unassigned</span>
                         </c:when>
                         <c:otherwise>
-                            <span>Agent #${incident.assignedTo}</span>
+                            <span>
+                                <c:choose>
+                                    <c:when test="${not empty incident.assignedToName}">${incident.assignedToName}</c:when>
+                                    <c:otherwise>Agent #${incident.assignedTo}</c:otherwise>
+                                </c:choose>
+                            </span>
                         </c:otherwise>
                     </c:choose>
                 </div>
@@ -698,6 +714,16 @@
             </div>
         </div>
 
+        <!-- CSAT Survey Section (Only for End-Users when ticket is CLOSED) -->
+        <c:if test="${sessionScope.user.roleId == 1 and incident.status == 'CLOSED'}">
+            <c:set var="hasFeedback" value="${feedbackDAO.hasFeedback(incident.ticketId)}" />
+            <c:if test="${not hasFeedback}">
+                <div id="surveySection">
+                    <jsp:include page="feedback-form.jsp" />
+                </div>
+            </c:if>
+        </c:if>
+
         <!-- TABS CARD -->
         <c:if test="${sessionScope.user.roleId != 1}">
             <div class="card" style="padding-bottom: 28px;">
@@ -705,6 +731,7 @@
                     <button class="tab-btn active" onclick="switchTab('timelog', this)">&#9201; Time Log</button>
                     <button class="tab-btn" onclick="switchTab('related', this)">&#128279; Related
                         Incidents</button>
+                    <button class="tab-btn" onclick="switchTab('comments', this)">&#128172; Comments</button>
                 </div>
 
                 <!-- TIME LOG TAB -->
@@ -782,7 +809,7 @@
                                 <div class="form-row">
                                     <div class="form-group fg-time">
                                         <label for="timeSpent">Hours spent</label>
-                                        <input type="number" id="timeSpent" name="timeSpent" step="0.25"
+                                        <input type="number" id="timeSpent" name="timeSpent" step="any"
                                                min="0.25" max="24" placeholder="1.5" required>
                                     </div>
                                     <div class="form-group fg-desc">
@@ -825,6 +852,62 @@
                             </div>
                         </c:otherwise>
                     </c:choose>
+                </div>
+
+                <!-- COMMENTS TAB -->
+                <div id="tab-comments" class="tab-content">
+                    <div class="card shadow-sm border-0 mt-4 border-top border-4 border-info">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 text-dark fw-bold"><i class="bi bi-chat-dots me-2"></i>Discussion & Updates</h5>
+                        </div>
+                        <div class="card-body p-4 bg-light">
+                            
+                            <!-- Hiển thị danh sách Comment như dạng khung Chat -->
+                            <div class="mb-4 pe-2" style="max-height: 400px; overflow-y: auto;">
+                                <c:forEach var="cmt" items="${commentList}">
+                                    <!-- Ép phải nếu là comment của mình, ép trái nếu của người khác -->
+                                    <div class="d-flex mb-3 ${cmt.userId == sessionScope.user.userId ? 'justify-content-end' : ''}">
+                                        <div class="card shadow-sm border-0" style="max-width: 80%; ${cmt.userId == sessionScope.user.userId ? 'background-color: #e3f2fd;' : 'background-color: #fff;'}">
+                                            <div class="card-body p-3">
+                                                <h6 class="card-subtitle mb-2 text-muted fw-bold" style="font-size: 0.85rem;">
+                                                    ${cmt.userName} 
+                                                    <span class="badge bg-secondary ms-1">${cmt.userRoleId == 1 ? 'End-User' : (cmt.userRoleId == 2 ? 'IT Support' : (cmt.userRoleId == 3 ? 'Manager' : 'Admin'))}</span>
+                                                    <span class="fw-normal ms-2" style="font-size: 0.75rem;">
+                                                        <i class="bi bi-clock me-1"></i><fmt:formatDate value="${cmt.createdAt}" pattern="dd/MM/yyyy HH:mm" />
+                                                    </span>
+                                                </h6>
+                                                <p class="card-text mb-0 text-dark" style="white-space: pre-wrap;">${cmt.commentText}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </c:forEach>
+                                
+                                <c:if test="${empty commentList}">
+                                    <div class="text-center text-muted fst-italic py-4">
+                                        <i class="bi bi-chat-square-text fs-3 d-block mb-2 text-secondary"></i>
+                                        Chưa có bình luận nào. Hãy là người đầu tiên trao đổi!
+                                    </div>
+                                </c:if>
+                            </div>
+                            
+                            <!-- Form Gửi Comment (Ẩn form nếu Request đã CLOSED/CANCELLED) -->
+                            <c:if test="${incident.status ne 'CLOSED' and incident.status ne 'CANCELLED'}">
+                                <form action="${pageContext.request.contextPath}/ticket/add-comment" method="post">
+                                    <input type="hidden" name="ticketId" value="${incident.ticketId}">
+                                    <input type="hidden" name="ticketType" value="INCIDENT">
+                                    <div class="input-group shadow-sm">
+                                        <input type="text" name="commentText" class="form-control border-secondary p-3" placeholder="Nhập bình luận hoặc cập nhật tình hình..." required autocomplete="off">
+                                        <button class="btn btn-primary px-4 fw-bold" type="submit"><i class="bi bi-send me-1"></i> Send</button>
+                                    </div>
+                                </form>
+                            </c:if>
+                            <c:if test="${incident.status eq 'CLOSED' or incident.status eq 'CANCELLED'}">
+                                <div class="alert alert-secondary mb-0 text-center">
+                                    <i class="bi bi-lock me-1"></i> Ticket này đã đóng, không thể bình luận thêm.
+                                </div>
+                            </c:if>
+                        </div>
+                    </div>
                 </div>
             </div>
         </c:if>

@@ -29,11 +29,24 @@ public class Ticket {
     private Integer ciId;
     private Date createdAt;
     private Date updatedAt;
-
-    // Virtual fields for display
     private String reportedByName;
     private String assignedToName;
     private String ciName;
+    
+    private String changeType;
+    private String riskLevel;
+    private String impactAssessment;
+    private String rollbackPlan;
+    private String implementationPlan;
+    private String testPlan;
+    private String cabDecision;
+    private Integer cabMemberId;
+    private String cabRiskAssessment;
+    private String cabComment;
+    private Date scheduledStart;
+    private Date scheduledEnd;
+    private boolean downtimeRequired;
+    private Double estimatedDowntimeHour;
 
     public Ticket() {
     }
@@ -204,22 +217,6 @@ public class Ticket {
     }
 
 
-    public String getReportedByName() {
-        return reportedByName;
-    }
-
-    public void setReportedByName(String reportedByName) {
-        this.reportedByName = reportedByName;
-    }
-
-    public String getAssignedToName() {
-        return assignedToName;
-    }
-
-    public void setAssignedToName(String assignedToName) {
-        this.assignedToName = assignedToName;
-    }
-
     public Integer getCiId() {
         return ciId;
     }
@@ -235,4 +232,62 @@ public class Ticket {
     public void setCiName(String ciName) {
         this.ciName = ciName;
     }
+
+    public String getReportedByName() {
+        return reportedByName;
+    }
+
+    public void setReportedByName(String reportedByName) {
+        this.reportedByName = reportedByName;
+    }
+
+    public String getAssignedToName() {
+        return assignedToName;
+    }
+
+    public void setAssignedToName(String assignedToName) {
+        this.assignedToName = assignedToName;
+    }
+    
+    public String getChangeType() { return changeType; }
+    public void setChangeType(String changeType) { this.changeType = changeType; }
+    
+    public String getRiskLevel() { return riskLevel; }
+    public void setRiskLevel(String riskLevel) { this.riskLevel = riskLevel; }
+    
+    public String getImpactAssessment() { return impactAssessment; }
+    public void setImpactAssessment(String impactAssessment) { this.impactAssessment = impactAssessment; }
+    
+    public String getRollbackPlan() { return rollbackPlan; }
+    public void setRollbackPlan(String rollbackPlan) { this.rollbackPlan = rollbackPlan; }
+    
+    public String getImplementationPlan() { return implementationPlan; }
+    public void setImplementationPlan(String implementationPlan) { this.implementationPlan = implementationPlan; }
+    
+    public String getTestPlan() { return testPlan; }
+    public void setTestPlan(String testPlan) { this.testPlan = testPlan; }
+    
+    public String getCabDecision() { return cabDecision; }
+    public void setCabDecision(String cabDecision) { this.cabDecision = cabDecision; }
+    
+    public Integer getCabMemberId() { return cabMemberId; }
+    public void setCabMemberId(Integer cabMemberId) { this.cabMemberId = cabMemberId; }
+    
+    public String getCabRiskAssessment() { return cabRiskAssessment; }
+    public void setCabRiskAssessment(String cabRiskAssessment) { this.cabRiskAssessment = cabRiskAssessment; }
+    
+    public String getCabComment() { return cabComment; }
+    public void setCabComment(String cabComment) { this.cabComment = cabComment; }
+    
+    public Date getScheduledStart() { return scheduledStart; }
+    public void setScheduledStart(Date scheduledStart) { this.scheduledStart = scheduledStart; }
+    
+    public Date getScheduledEnd() { return scheduledEnd; }
+    public void setScheduledEnd(Date scheduledEnd) { this.scheduledEnd = scheduledEnd; }
+    
+    public boolean isDowntimeRequired() { return downtimeRequired; }
+    public void setDowntimeRequired(boolean downtimeRequired) { this.downtimeRequired = downtimeRequired; }
+    
+    public Double getEstimatedDowntimeHour() { return estimatedDowntimeHour; }
+    public void setEstimatedDowntimeHour(Double estimatedDowntimeHour) { this.estimatedDowntimeHour = estimatedDowntimeHour; }
 }

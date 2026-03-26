@@ -108,5 +108,59 @@
             </div>
         </div>
     </div>
-</div>
+                    <%-- ============================================ --%>
+    <%-- KHU VỰC 3: DISCUSSION / COMMENT (Dành cho TẤT CẢ) --%>
+    <%-- ============================================ --%>
+    <div class="card shadow-sm border-0 mt-4 border-top border-4 border-info">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 text-dark fw-bold"><i class="bi bi-chat-dots me-2"></i>Discussion & Updates</h5>
+        </div>
+        <div class="card-body p-4 bg-light">
+            
+            <%-- Hiển thị danh sách Comment như dạng khung Chat --%>
+            <div class="mb-4 pe-2" style="max-height: 400px; overflow-y: auto;">
+                <c:forEach var="cmt" items="${commentList}">
+                    <%-- Ép phải nếu là comment của mình, ép trái nếu của người khác --%>
+                    <div class="d-flex mb-3 ${cmt.userId == sessionScope.user.userId ? 'justify-content-end' : ''}">
+                        <div class="card shadow-sm border-0" style="max-width: 80%; ${cmt.userId == sessionScope.user.userId ? 'background-color: #e3f2fd;' : 'background-color: #fff;'}">
+                            <div class="card-body p-3">
+                                <h6 class="card-subtitle mb-2 text-muted fw-bold" style="font-size: 0.85rem;">
+                                    <%-- GỌI TÊN TỪ MODEL COMMENT CỦA BẠN --%>
+                                    ${cmt.userName} 
+                                    <span class="badge bg-secondary ms-1">${cmt.userRoleId == 1 ? 'End-User' : (cmt.userRoleId == 2 ? 'IT Support' : (cmt.userRoleId == 3 ? 'Manager' : 'Admin'))}</span>
+                                    <span class="fw-normal ms-2" style="font-size: 0.75rem;">
+                                        <i class="bi bi-clock me-1"></i><fmt:formatDate value="${cmt.createdAt}" pattern="dd/MM/yyyy HH:mm" />
+                                    </span>
+                                </h6>
+                                <p class="card-text mb-0 text-dark" style="white-space: pre-wrap;">${cmt.commentText}</p>
+                            </div>
+                        </div>
+                    </div>
+                </c:forEach>
+                
+                <c:if test="${empty commentList}">
+                    <div class="text-center text-muted fst-italic py-4">
+                        <i class="bi bi-chat-square-text fs-3 d-block mb-2 text-secondary"></i>
+                        Chưa có bình luận nào. Hãy là người đầu tiên trao đổi!
+                    </div>
+                </c:if>
+            </div>
+            
+            <%-- Form Gửi Comment (Ẩn form nếu Request đã CLOSED/CANCELLED) --%>
+            <c:if test="${ticket.status ne 'CLOSED' and ticket.status ne 'CANCELLED'}">
+                <form action="${pageContext.request.contextPath}/ticket/add-comment" method="post">
+                    <input type="hidden" name="ticketId" value="${ticket.ticketId}">
+                    <div class="input-group shadow-sm">
+                        <input type="text" name="commentText" class="form-control border-secondary p-3" placeholder="Nhập bình luận hoặc cập nhật tình hình..." required autocomplete="off">
+                        <button class="btn btn-primary px-4 fw-bold" type="submit"><i class="bi bi-send me-1"></i> Send</button>
+                    </div>
+                </form>
+            </c:if>
+            <c:if test="${ticket.status eq 'CLOSED' or ticket.status eq 'CANCELLED'}">
+                <div class="alert alert-secondary mb-0 text-center">
+                    <i class="bi bi-lock me-1"></i> Ticket này đã đóng, không thể bình luận thêm.
+                </div>
+            </c:if>
+        </div>
+    </div>v>
 <jsp:include page="/includes/footer.jsp" />

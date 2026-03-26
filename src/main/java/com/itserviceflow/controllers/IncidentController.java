@@ -2,10 +2,18 @@ package com.itserviceflow.controllers;
 
 import com.itserviceflow.daos.TicketDAO;
 import com.itserviceflow.daos.RoleDAO;
+<<<<<<< HEAD
 import com.itserviceflow.daos.ActivityLogDAO;
+=======
+import com.itserviceflow.daos.CmdbDAO;
+import com.itserviceflow.daos.FeedbackDAO;
+>>>>>>> main
 import com.itserviceflow.models.Ticket;
 import com.itserviceflow.models.User;
+import com.itserviceflow.models.ConfigurationItem;
 import com.itserviceflow.utils.TimeLogService;
+import com.itserviceflow.utils.AuthUtils;
+import com.itserviceflow.daos.UserDAO;
 import com.itserviceflow.utils.WorkflowService;
 
 import jakarta.servlet.ServletException;
@@ -138,12 +146,19 @@ public class IncidentController extends HttpServlet {
             category = categoryDAO.findById(incident.getCategoryId());
         }
         
+<<<<<<< HEAD
         // Load cancel reason from activity log
         String cancelReason = null;
         if ("CANCELLED".equals(incident.getStatus())) {
             ActivityLogDAO activityLogDAO = new ActivityLogDAO();
             cancelReason = activityLogDAO.getCancelReason(id);
         }
+=======
+        // Load feedback information for CSAT survey
+        FeedbackDAO feedbackDAO = new FeedbackDAO();
+        com.itserviceflow.models.Feedback feedback = feedbackDAO.getFeedbackByTicketId(id);
+        boolean hasFeedback = feedbackDAO.hasFeedback(id);
+>>>>>>> main
         
         // Set attributes for JSP
         request.setAttribute("incident", incident);
@@ -151,7 +166,13 @@ public class IncidentController extends HttpServlet {
         request.setAttribute("timeLogs", timeLogs);
         request.setAttribute("totalTimeSpent", totalTimeSpent);
         request.setAttribute("category", category);
+<<<<<<< HEAD
         request.setAttribute("cancelReason", cancelReason);
+=======
+        request.setAttribute("feedback", feedback);
+        request.setAttribute("hasFeedback", hasFeedback);
+        request.setAttribute("feedbackDAO", feedbackDAO);
+>>>>>>> main
         
         request.getRequestDispatcher("/incidents/incident-detail.jsp").forward(request, response);
     }
@@ -162,6 +183,11 @@ public class IncidentController extends HttpServlet {
         com.itserviceflow.daos.TicketCategoryDAO categoryDAO = new com.itserviceflow.daos.TicketCategoryDAO();
         java.util.List<com.itserviceflow.models.TicketCategory> categories = categoryDAO.getActiveCategories();
         request.setAttribute("categories", categories);
+        
+        // Load active Configuration Items for dropdown
+        CmdbDAO cmdbDAO = new CmdbDAO();
+        List<ConfigurationItem> activeCis = cmdbDAO.searchConfigurationItems(null, "ACTIVE");
+        request.setAttribute("activeCis", activeCis);
         
         request.getRequestDispatcher("/incidents/incident-form.jsp").forward(request, response);
     }
@@ -187,10 +213,10 @@ public class IncidentController extends HttpServlet {
         String priority = request.getParameter("priority");
         int categoryId = Integer.parseInt(request.getParameter("categoryId"));
 
-        // Get current logged-in user
-        HttpSession session = request.getSession();
-        User currentUser = (User) session.getAttribute("user");
-        int creatorId = (currentUser != null) ? currentUser.getUserId() : 1;
+    // Get current logged-in user
+    HttpSession session = request.getSession();
+    User currentUser = (User) session.getAttribute("user");
+    int creatorId = (currentUser != null) ? currentUser.getUserId() : 1;
 
         Ticket incident = new Ticket();
         incident.setTitle(title);
@@ -216,7 +242,10 @@ public class IncidentController extends HttpServlet {
             // Load full details (including difficulty_level) for logtime calc
             Ticket full = ticketDAO.getTicketWithDetails(incident.getTicketId());
             if (full != null) {
-                timeLogService.autoLog(full, creatorId, "INVESTIGATION");
+                // Skip auto-log for actions performed by end-users
+                if (currentUser == null || currentUser.getRoleId() == null || currentUser.getRoleId() != AuthUtils.ROLE_END_USER) {
+                    timeLogService.autoLog(full, creatorId, "INVESTIGATION");
+                }
                 // Tự động áp dụng workflow
                 workflowService.onTicketCreated(full);
             }
@@ -256,10 +285,18 @@ public class IncidentController extends HttpServlet {
         int agentId = (currentUser != null) ? currentUser.getUserId() : 1;
 
         if (existing != null && newStatus != null && !newStatus.equals(oldStatus)) {
-            if ("RESOLVED".equals(newStatus)) {
-                timeLogService.autoLog(existing, agentId, "RESOLVED");
-            } else if ("CLOSED".equals(newStatus)) {
-                timeLogService.autoLog(existing, agentId, "CLOSED");
+            // Do not auto-log if the user performing the update is an end-user
+            HttpSession session2 = request.getSession();
+            User currentUser2 = (User) session2.getAttribute("user");
+            boolean isEndUserActor = (currentUser2 != null && currentUser2.getRoleId() != null
+                    && currentUser2.getRoleId() == AuthUtils.ROLE_END_USER);
+
+            if (!isEndUserActor) {
+                if ("RESOLVED".equals(newStatus)) {
+                    timeLogService.autoLog(existing, agentId, "RESOLVED");
+                } else if ("CLOSED".equals(newStatus)) {
+                    timeLogService.autoLog(existing, agentId, "CLOSED");
+                }
             }
         }
 
@@ -288,8 +325,20 @@ public class IncidentController extends HttpServlet {
         
         // Log the cancellation with reason using ActivityLogDAO
         if (cancelReason != null && !cancelReason.trim().isEmpty()) {
+<<<<<<< HEAD
             ActivityLogDAO activityLogDAO = new ActivityLogDAO();
             activityLogDAO.logActivity(id, userId, "CANCELLED", cancelReason);
+=======
+            // Auto-log CANCELLED activity with reason, but skip if actor is end-user
+            Ticket ticket = ticketDAO.getTicketWithDetails(id);
+            if (ticket != null) {
+                HttpSession session2 = request.getSession();
+                User currentUser2 = (User) session2.getAttribute("user");
+                if (currentUser2 == null || currentUser2.getRoleId() == null || currentUser2.getRoleId() != AuthUtils.ROLE_END_USER) {
+                    timeLogService.autoLogWithReason(ticket, userId, "CANCELLED", cancelReason);
+                }
+            }
+>>>>>>> main
         }
         
         response.sendRedirect(request.getContextPath() + "/incident?action=detail&id=" + id);
@@ -305,7 +354,12 @@ public class IncidentController extends HttpServlet {
         // Auto-log ASSIGNED activity
         Ticket ticket = ticketDAO.getTicketWithDetails(id);
         if (ticket != null) {
-            timeLogService.autoLog(ticket, assignedTo, "ASSIGNED");
+            // Only auto-log if the assignee is not an end-user
+            UserDAO userDAO = new UserDAO();
+            User assignee = userDAO.findById(assignedTo);
+            if (assignee == null || assignee.getRoleId() == null || assignee.getRoleId() != AuthUtils.ROLE_END_USER) {
+                timeLogService.autoLog(ticket, assignedTo, "ASSIGNED");
+            }
         }
 
         response.sendRedirect(request.getContextPath() + "/incident?action=detail&id=" + id);
@@ -357,6 +411,12 @@ public class IncidentController extends HttpServlet {
         HttpSession session = request.getSession();
         User currentUser = (User) session.getAttribute("user");
         int agentId = (currentUser != null) ? currentUser.getUserId() : 1;
+
+        // Prevent end-users from creating manual time logs
+        if (currentUser != null && currentUser.getRoleId() != null && currentUser.getRoleId() == AuthUtils.ROLE_END_USER) {
+            response.sendRedirect(request.getContextPath() + "/incident?action=detail&id=" + ticketId + "&logError=forbidden");
+            return;
+        }
 
         boolean saved = timeLogService.manualLog(ticketId, agentId, timeSpent, description);
         String param = saved ? "&logSuccess=1" : "&logError=saveFailed";
