@@ -304,7 +304,7 @@
             </div>
             <div class="col-md-2">
                 <label class="form-label fw-semibold mb-1" style="font-size:.8rem;">Số hàng / trang</label>
-                <select class="form-select form-select-sm" name="pageSize" onchange="this.form.submit()">
+                <select class="form-select form-select-sm" name="pageSize">
                     <option value="10" ${fPageSize == '10' ? 'selected' : ''}>10</option>
                     <option value="15" ${fPageSize == '15' ? 'selected' : ''}>15</option>
                     <option value="25" ${fPageSize == '25' ? 'selected' : ''}>25</option>
@@ -370,20 +370,32 @@
                                 <fmt:formatDate value="${log.loggedAt}" pattern="dd/MM/yyyy HH:mm" />
                             </td>
                             <td class="text-center">
-                                <button class="btn-action btn-edit btn-open-edit"
-                                        title="Chỉnh sửa"
-                                        data-log-id="${log.logId}"
-                                        data-time-spent="${log.timeSpent}"
-                                        data-description="${fn:escapeXml(log.description)}">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn-action btn-delete btn-open-delete ms-1"
-                                        title="Xóa"
-                                        data-log-id="${log.logId}"
-                                        data-ticket="${not empty log.ticketNumber ? log.ticketNumber : log.ticketId}"
-                                        data-agent="${fn:escapeXml(log.agentName)}">
-                                    <i class="bi bi-trash"></i>
-                                </button>
+                                <c:choose>
+                                    <c:when test="${not empty sessionScope.user and (
+                                        sessionScope.user.userId == log.userId
+                                        or fn:toLowerCase(sessionScope.user.roleName) == 'manager'
+                                        or fn:toLowerCase(sessionScope.user.roleName) == 'administrator'
+                                        or fn:toLowerCase(sessionScope.user.roleName) == 'admin'
+                                    )}">
+                                        <button class="btn-action btn-edit btn-open-edit"
+                                                title="Chỉnh sửa"
+                                                data-log-id="${log.logId}"
+                                                data-time-spent="${log.timeSpent}"
+                                                data-description="${fn:escapeXml(log.description)}">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn-action btn-delete btn-open-delete ms-1"
+                                                title="Xóa"
+                                                data-log-id="${log.logId}"
+                                                data-ticket="${not empty log.ticketNumber ? log.ticketNumber : log.ticketId}"
+                                                data-agent="${fn:escapeXml(log.agentName)}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="text-muted">—</span>
+                                    </c:otherwise>
+                                </c:choose>
                             </td>
                         </tr>
                     </c:forEach>
@@ -449,7 +461,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Số giờ <span class="text-danger">*</span></label>
                         <input type="number" class="form-control" id="editTimeSpent" name="timeSpent"
-                               step="0.25" min="0.25" max="999.99" required>
+                               step="any" min="0.25" max="999.99" required>
                         <div class="form-text text-muted">Tối thiểu 0.25h, tối đa 999.99h</div>
                     </div>
                     <div class="mb-1">

@@ -792,7 +792,7 @@
                                 <div class="form-row">
                                     <div class="form-group fg-time">
                                         <label for="timeSpent">Hours spent</label>
-                                        <input type="number" id="timeSpent" name="timeSpent" step="0.25"
+                                        <input type="number" id="timeSpent" name="timeSpent" step="any"
                                                min="0.25" max="24" placeholder="1.5" required>
                                     </div>
                                     <div class="form-group fg-desc">

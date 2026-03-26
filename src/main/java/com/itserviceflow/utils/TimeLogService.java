@@ -22,6 +22,11 @@ import com.itserviceflow.models.Ticket;
 public class TimeLogService {
 
     private final TimeLogDAO timeLogDAO = new TimeLogDAO();
+    /**
+     * Global toggle to enable/disable automatic time logging.
+     * Set to false to temporarily disable all auto-log flows (autoLog/autoLogWithReason).
+     */
+    public static volatile boolean AUTO_LOG_ENABLED = false;
 
     // -----------------------------------------------------------------------
     // Public API
@@ -56,6 +61,10 @@ public class TimeLogService {
      * @return true if the log was saved successfully
      */
     public boolean autoLog(Ticket ticket, int agentUserId, String activityType) {
+        // Central switch: if auto-logging is disabled, do nothing
+        if (!AUTO_LOG_ENABLED) {
+            return false;
+        }
         double timeSpent = calculateTimeSpent(ticket, activityType);
         String description = buildDescription(ticket, activityType, timeSpent);
 
@@ -92,6 +101,10 @@ public class TimeLogService {
      * @return true if the log was saved successfully
      */
     public boolean autoLogWithReason(Ticket ticket, int agentUserId, String activityType, String reason) {
+        // Central switch: if auto-logging is disabled, do nothing
+        if (!AUTO_LOG_ENABLED) {
+            return false;
+        }
         double timeSpent = calculateTimeSpent(ticket, activityType);
         String description = buildDescriptionWithReason(ticket, activityType, timeSpent, reason);
 
