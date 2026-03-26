@@ -302,6 +302,15 @@
                     <i class="bi bi-x-lg"></i>
                 </a>
             </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold mb-1" style="font-size:.8rem;">Số hàng / trang</label>
+                <select class="form-select form-select-sm" name="pageSize" onchange="this.form.submit()">
+                    <option value="10" ${fPageSize == '10' ? 'selected' : ''}>10</option>
+                    <option value="15" ${fPageSize == '15' ? 'selected' : ''}>15</option>
+                    <option value="25" ${fPageSize == '25' ? 'selected' : ''}>25</option>
+                    <option value="50" ${fPageSize == '50' ? 'selected' : ''}>50</option>
+                </select>
+            </div>
         </div>
     </form>
 </div>
@@ -393,19 +402,19 @@
             <nav>
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
-                        <a class="page-link page-btn" data-page="${currentPage - 1}" href="javascript:void(0)">
+                        <a class="page-link" href="javascript:void(0)" onclick="handlePageChange('${currentPage - 1}')">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
                     <c:forEach begin="1" end="${totalPages}" var="p">
                         <c:if test="${p >= currentPage - 2 && p <= currentPage + 2}">
                             <li class="page-item ${p == currentPage ? 'active' : ''}">
-                                <a class="page-link page-btn" data-page="${p}" href="javascript:void(0)">${p}</a>
+                                <a class="page-link" href="javascript:void(0)" onclick="handlePageChange('${p}')">${p}</a>
                             </li>
                         </c:if>
                     </c:forEach>
                     <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
-                        <a class="page-link page-btn" data-page="${currentPage + 1}" href="javascript:void(0)">
+                        <a class="page-link" href="javascript:void(0)" onclick="handlePageChange('${currentPage + 1}')">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>
@@ -435,6 +444,7 @@
                 <input type="hidden" name="dateTo"       value="${fDateTo}">
                 <input type="hidden" name="activityType" value="${fActivity}">
                 <input type="hidden" name="page"         value="${currentPage}">
+                <input type="hidden" name="pageSize"     value="${pageSize}">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Số giờ <span class="text-danger">*</span></label>
@@ -485,6 +495,7 @@
                 <input type="hidden" name="dateTo"       value="${fDateTo}">
                 <input type="hidden" name="activityType" value="${fActivity}">
                 <input type="hidden" name="page"         value="${currentPage}">
+                <input type="hidden" name="pageSize"     value="${pageSize}">
                 <div class="modal-footer justify-content-center">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-4" data-bs-dismiss="modal">Hủy</button>
                     <button type="submit" class="btn btn-danger btn-sm px-4">
@@ -501,6 +512,20 @@
     function goPage(p) {
         document.getElementById('filterPageInp').value = p;
         document.getElementById('filterForm').submit();
+    }
+
+    // ── Page change handler (global) ───────────────────────────────────────
+    // Mirrors behaviour in admin/user-list.jsp: update query param while keeping other filters
+    function handlePageChange(page) {
+        try {
+            var urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('page', page);
+            window.location.search = urlParams.toString();
+        } catch (e) {
+            // fallback to form submit when URLSearchParams not available
+            document.getElementById('filterPageInp').value = page;
+            document.getElementById('filterForm').submit();
+        }
     }
 
     // ── Edit modal ────────────────────────────────────────────────────────────
@@ -542,13 +567,7 @@
             });
         });
 
-        // ── Pagination buttons ────────────────────────────────────────────────
-        document.querySelectorAll('.page-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const p = btn.dataset.page;
-                if (p) goPage(p);
-            });
-        });
+        
 
         // ── Auto-dismiss toast after 4s ───────────────────────────────────────
         const toast = document.getElementById('toastMsg');

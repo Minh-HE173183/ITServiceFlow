@@ -44,17 +44,20 @@ public class TimeTrackingController extends HttpServlet {
         String dateFrom = request.getParameter("dateFrom");
         String dateTo = request.getParameter("dateTo");
         String activityType = request.getParameter("activityType");
-        String pageStr = request.getParameter("page");
+    String pageStr = request.getParameter("page");
+    String pageSizeStr = request.getParameter("pageSize");
 
-        Integer ticketId = parseIntOrNull(ticketIdStr);
-        Integer userId = parseIntOrNull(userIdStr);
-        int page = (pageStr != null && !pageStr.isEmpty()) ? Math.max(1, Integer.parseInt(pageStr)) : 1;
-        int offset = (page - 1) * PAGE_SIZE;
+    Integer ticketId = parseIntOrNull(ticketIdStr);
+    Integer userId = parseIntOrNull(userIdStr);
+    int page = (pageStr != null && !pageStr.isEmpty()) ? Math.max(1, Integer.parseInt(pageStr)) : 1;
+    // allow client to request page size; fallback to default PAGE_SIZE
+    int pageSize = (pageSizeStr != null && !pageSizeStr.isEmpty()) ? Math.max(1, Integer.parseInt(pageSizeStr)) : PAGE_SIZE;
+    int offset = (page - 1) * pageSize;
 
         // --- Fetch data ---
-        List<TimeLog> logs = timeLogDAO.getAllLogs(ticketId, userId, dateFrom, dateTo, activityType, offset, PAGE_SIZE);
-        int totalCount = timeLogDAO.countAllLogs(ticketId, userId, dateFrom, dateTo, activityType);
-        int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
+    List<TimeLog> logs = timeLogDAO.getAllLogs(ticketId, userId, dateFrom, dateTo, activityType, offset, pageSize);
+    int totalCount = timeLogDAO.countAllLogs(ticketId, userId, dateFrom, dateTo, activityType);
+    int totalPages = (int) Math.ceil((double) totalCount / pageSize);
 
         // total hours for filtered result (sum from full result set without pagination)
         double filteredHours = 0;
@@ -68,20 +71,22 @@ public class TimeTrackingController extends HttpServlet {
         UserDAO userDAO = new UserDAO();
         List<User> users = userDAO.listUsers(null, null, null, "full_name", "ASC", 0, 200);
 
-        // --- Pass to JSP ---
+    // --- Pass to JSP ---
         request.setAttribute("logs", logs);
         request.setAttribute("totalCount", totalCount);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("currentPage", page);
+    request.setAttribute("pageSize", pageSize);
         request.setAttribute("filteredHours", filteredHours);
         request.setAttribute("users", users);
 
         // pass back filter params for sticky form
-        request.setAttribute("fTicketId", ticketIdStr != null ? ticketIdStr : "");
+    request.setAttribute("fTicketId", ticketIdStr != null ? ticketIdStr : "");
         request.setAttribute("fUserId", userIdStr != null ? userIdStr : "");
         request.setAttribute("fDateFrom", dateFrom != null ? dateFrom : "");
         request.setAttribute("fDateTo", dateTo != null ? dateTo : "");
         request.setAttribute("fActivity", activityType != null ? activityType : "");
+    request.setAttribute("fPageSize", pageSizeStr != null ? pageSizeStr : String.valueOf(pageSize));
 
         request.getRequestDispatcher("/time-tracking/time-tracking.jsp").forward(request, response);
     }
@@ -190,6 +195,7 @@ public class TimeTrackingController extends HttpServlet {
         appendIfPresent(sb, request, "dateTo");
         appendIfPresent(sb, request, "activityType");
         appendIfPresent(sb, request, "page");
+        appendIfPresent(sb, request, "pageSize");
         return sb.toString();
     }
 
