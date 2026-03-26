@@ -646,7 +646,12 @@
                 </div>
                 <div class="detail-item">
                     <label>Reported By</label>
-                    <span>User #${incident.reportedBy}</span>
+                    <span>
+                        <c:choose>
+                            <c:when test="${not empty incident.reportedByName}">${incident.reportedByName}</c:when>
+                            <c:otherwise>User #${incident.reportedBy}</c:otherwise>
+                        </c:choose>
+                    </span>
                 </div>
                 <div class="detail-item">
                     <label>Assigned To</label>
@@ -655,7 +660,12 @@
                             <span style="color:#a0aec0;">Unassigned</span>
                         </c:when>
                         <c:otherwise>
-                            <span>Agent #${incident.assignedTo}</span>
+                            <span>
+                                <c:choose>
+                                    <c:when test="${not empty incident.assignedToName}">${incident.assignedToName}</c:when>
+                                    <c:otherwise>Agent #${incident.assignedTo}</c:otherwise>
+                                </c:choose>
+                            </span>
                         </c:otherwise>
                     </c:choose>
                 </div>

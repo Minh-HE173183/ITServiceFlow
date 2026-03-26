@@ -333,7 +333,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-sm-6 col-lg-3">
+<!--                                    <div class="col-sm-6 col-lg-3">
                                         <div class="trigger-option" data-trigger="TICKET_UPDATED"
                                             onclick="selectTrigger(this)">
                                             <div class="trigger-icon"><i class="fa fa-pen-to-square"></i></div>
@@ -347,7 +347,7 @@
                                             <div class="trigger-icon"><i class="fa fa-clock"></i></div>
                                             <div class="fw-semibold text-dark" style="font-size:13px;">SLA Breach</div>
                                         </div>
-                                    </div>
+                                    </div>-->
                                 </div>
                             </div>
                         </div>
@@ -465,10 +465,10 @@ out.print(gson.toJson(_pr));
 
                             const ROLES = ['Manager', 'Finance', 'IT Support', 'HR', 'Director', 'Security Team', 'Legal'];
                             const ACTIONS = [
-                                { value: 'APPROVE_REJECT', label: 'Approve / Reject', badgeClass: 'badge-approve' },
+//                                { value: 'APPROVE_REJECT', label: 'Approve / Reject', badgeClass: 'badge-approve' },
                                 { value: 'REVIEW', label: 'Review Only', badgeClass: 'badge-review' },
                                 { value: 'EXECUTE', label: 'Execute Task', badgeClass: 'badge-execute' },
-                                { value: 'NOTIFY', label: 'Notify Only', badgeClass: 'badge-notify' },
+//                                { value: 'NOTIFY', label: 'Notify Only', badgeClass: 'badge-notify' },
                             ];
 
                             var _placeholder = document.getElementById('emptyStepsPlaceholder');
