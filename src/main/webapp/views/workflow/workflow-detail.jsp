@@ -812,11 +812,27 @@
                                 <div class="detail-label mb-2"><i class="bi bi-list-ol text-success me-1"></i> Các bước xử lý</div>
                                 <div>`;
                                                                 cfg.steps.forEach((s, idx) => {
+                                                                    let assignees = '';
+                                                                    if (s.users && s.users.length > 0) {
+                                                                        assignees = s.users.map(u => `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill px-2 py-1"><i class="bi bi-person-fill"></i> \${u.fullName}</span>`).join(' ');
+                                                                    } else if (s.legacyRole) {
+                                                                        assignees = `<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle rounded-pill px-2 py-1"><i class="bi bi-people-fill"></i> \${s.legacyRole}</span>`;
+                                                                    } else if (s.role) {
+                                                                        assignees = `<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle rounded-pill px-2 py-1"><i class="bi bi-people-fill"></i> \${s.role}</span>`;
+                                                                    } else {
+                                                                        assignees = `<span class="text-muted fst-italic">Chưa phân công</span>`;
+                                                                    }
+
                                                                     html += `<div class="step-item">
                                         <div class="step-num">\${idx + 1}</div>
                                         <div class="flex-grow-1">
                                             <div class="fw-semibold">\${s.name || 'Bước ' + (idx + 1)}</div>
-                                            <div class="small text-muted">Phụ trách: <span class="text-primary">\${s.role}</span> &bull; Hành động: <span class="text-primary">\${s.action}</span></div>
+                                            \${s.description ? '<div class="small text-muted mb-1">' + s.description + '</div>' : ''}
+                                            <div class="small text-muted mt-2 d-flex flex-wrap align-items-center gap-2">
+                                                <span>Phụ trách:</span> \${assignees}
+                                                <span class="text-muted mx-1">&bull;</span>
+                                                <span>Hành động: <span class="text-primary fw-semibold">\${s.action}</span></span>
+                                            </div>
                                         </div>
                                         <div class="text-end">
                                             <div class="small text-muted">SLA</div>

@@ -359,7 +359,7 @@
     <div class="d-flex align-items-center gap-4 flex-wrap">
         <div
             style="font-size:48px; font-weight:900; color: ${slaRate >= 80 ? '#27ae60' : slaRate >= 50 ? '#f39c12' : '#c0392b'};">
-            ${slaRate}%
+            <fmt:formatNumber value="${slaRate}" maxFractionDigits="2" minFractionDigits="2" />%
         </div>
         <div style="flex:1; min-width:200px;">
             <div

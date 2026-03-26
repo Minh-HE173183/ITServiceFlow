@@ -38,7 +38,7 @@
                             width: 2px;
                             background: #dee2e6;
                             min-height: 16px;
-                            margin-left: 27px;
+                             margin-left: 27px;
                         }
 
                         .trigger-option {
@@ -333,7 +333,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-sm-6 col-lg-3">
+<!--                                    <div class="col-sm-6 col-lg-3">
                                         <div class="trigger-option" data-trigger="TICKET_UPDATED"
                                             onclick="selectTrigger(this)">
                                             <div class="trigger-icon"><i class="fa fa-pen-to-square"></i></div>
@@ -347,7 +347,7 @@
                                             <div class="trigger-icon"><i class="fa fa-clock"></i></div>
                                             <div class="fw-semibold text-dark" style="font-size:13px;">SLA Breach</div>
                                         </div>
-                                    </div>
+                                    </div>-->
                                 </div>
                             </div>
                         </div>
@@ -465,10 +465,10 @@ out.print(gson.toJson(_pr));
 
                             const ROLES = ['Manager', 'Finance', 'IT Support', 'HR', 'Director', 'Security Team', 'Legal'];
                             const ACTIONS = [
-                                { value: 'APPROVE_REJECT', label: 'Approve / Reject', badgeClass: 'badge-approve' },
+//                                { value: 'APPROVE_REJECT', label: 'Approve / Reject', badgeClass: 'badge-approve' },
                                 { value: 'REVIEW', label: 'Review Only', badgeClass: 'badge-review' },
                                 { value: 'EXECUTE', label: 'Execute Task', badgeClass: 'badge-execute' },
-                                { value: 'NOTIFY', label: 'Notify Only', badgeClass: 'badge-notify' },
+//                                { value: 'NOTIFY', label: 'Notify Only', badgeClass: 'badge-notify' },
                             ];
 
                             var _placeholder = document.getElementById('emptyStepsPlaceholder');
@@ -495,7 +495,7 @@ out.print(gson.toJson(_pr));
                                                 const slaVal = (actionVal === 'NOTIFY') ? 0 : (s.sla_hours || 24);
                                                 // Prefer explicit users array in config; fall back to legacy role
                                                 const usersArr = Array.isArray(s.users) ? s.users.map(u => ({ userId: u.userId, fullName: u.fullName, role: u.roleName || u.role || '', departmentName: u.departmentName || u.department || '' })) : [];
-                                                steps.push({ id: ++stepIdCounter, name: s.name || '', users: usersArr, legacyRole: s.role || null, action: actionVal, sla_hours: slaVal });
+                                                steps.push({ id: ++stepIdCounter, name: s.name || '', description: s.description || '', users: usersArr, legacyRole: s.role || null, action: actionVal, sla_hours: slaVal });
                                             });
                                         }
                                     } catch (e) {
@@ -651,7 +651,7 @@ out.print(gson.toJson(_pr));
 
                             function addStep() {
                                 stepIdCounter++;
-                                steps.push({ id: stepIdCounter, name: '', users: [], legacyRole: null, action: 'APPROVE_REJECT', sla_hours: 24 });
+                                steps.push({ id: stepIdCounter, name: '', description: '', users: [], legacyRole: null, action: 'APPROVE_REJECT', sla_hours: 24 });
                                 renderSteps();
                                 updateJsonPreview();
                             }
@@ -699,7 +699,8 @@ out.print(gson.toJson(_pr));
                                         + '<div class="step-number">' + (i + 1) + '</div>'
                                         + upBtn + ' ' + downBtn
                                         + '</div>'
-                                        + '<div class="flex-grow-1 row g-3">'
+                                        + '<div class="flex-grow-1">'
+                                        + '<div class="row g-3 mb-2">'
                                         + '<div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Step Name" value="' + escHtml(s.name) + '" oninput="updateStepField(' + s.id + ', \'name\', this.value)" /></div>'
                                         + '<div class="col-md-3">'
                                         + '<div class="form-control form-control-sm btn-user-add d-flex flex-wrap align-items-center gap-1" style="min-height:31px; height:auto; cursor:text; padding:3px 6px;" onclick="openUserPicker(event, ' + s.id + ')">'
@@ -709,6 +710,10 @@ out.print(gson.toJson(_pr));
                                         + '</div>'
                                         + '<div class="col-md-3"><select class="form-select form-select-sm" onchange="updateStepField(' + s.id + ', \'action\', this.value)">' + actionOptions + '</select></div>'
                                         + slaHtml
+                                        + '</div>'
+                                        + '<div class="row g-3">'
+                                        + '<div class="col-12"><input type="text" class="form-control form-control-sm" placeholder="Step Description (Optional)" value="' + escHtml(s.description || '') + '" oninput="updateStepField(' + s.id + ', \'description\', this.value)" /></div>'
+                                        + '</div>'
                                         + '</div>'
                                         + '<button type="button" class="btn btn-sm text-danger" onclick="removeStep(' + s.id + ')"><i class="fa fa-trash"></i></button>'
                                         + '</div>';
@@ -934,7 +939,7 @@ out.print(gson.toJson(_pr));
                                 return {
                                     trigger: selectedTrigger,
                                     conditions: { type: 'group', logic: conditionLogic, criteria: conditions.map(c => ({ type: 'condition', field: c.field, operator: c.operator, value: c.value })) },
-                                    steps: steps.map(s => ({ name: s.name, users: s.users || [], legacyRole: s.legacyRole || null, action: s.action, sla_hours: s.sla_hours }))
+                                    steps: steps.map(s => ({ name: s.name, description: s.description, users: s.users || [], legacyRole: s.legacyRole || null, action: s.action, sla_hours: s.sla_hours }))
                                 };
                             }
                             function updateJsonPreview() {
