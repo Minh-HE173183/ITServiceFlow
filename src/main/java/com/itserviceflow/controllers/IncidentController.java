@@ -180,10 +180,10 @@ public class IncidentController extends HttpServlet {
         String priority = request.getParameter("priority");
         int categoryId = Integer.parseInt(request.getParameter("categoryId"));
 
-        // Get current logged-in user
-        HttpSession session = request.getSession();
-        User currentUser = (User) session.getAttribute("user");
-        int creatorId = (currentUser != null) ? currentUser.getUserId() : 1;
+    // Get current logged-in user
+    HttpSession session = request.getSession();
+    User currentUser = (User) session.getAttribute("user");
+    int creatorId = (currentUser != null) ? currentUser.getUserId() : 1;
 
         Ticket incident = new Ticket();
         incident.setTitle(title);
@@ -210,8 +210,6 @@ public class IncidentController extends HttpServlet {
             Ticket full = ticketDAO.getTicketWithDetails(incident.getTicketId());
             if (full != null) {
                 // Skip auto-log for actions performed by end-users
-                HttpSession session = request.getSession();
-                User currentUser = (User) session.getAttribute("user");
                 if (currentUser == null || currentUser.getRoleId() == null || currentUser.getRoleId() != AuthUtils.ROLE_END_USER) {
                     timeLogService.autoLog(full, creatorId, "INVESTIGATION");
                 }
