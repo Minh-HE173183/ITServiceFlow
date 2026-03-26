@@ -19,7 +19,7 @@ public class ServiceRequestDetailServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
-        // 1. Kiểm tra đăng nhập (Bỏ comment khi đã ráp luồng login)
+        
         
         HttpSession session = request.getSession();
         User currentUser = (User) session.getAttribute("user");
@@ -28,8 +28,7 @@ public class ServiceRequestDetailServlet extends HttpServlet {
             return;
         }
         
-        
-        // Giả lập User đang đăng nhập để test
+      
         
         int currentUserId = currentUser.getUserId();
         int currentUserRoleId = currentUser.getRoleId();
@@ -50,7 +49,7 @@ public class ServiceRequestDetailServlet extends HttpServlet {
             return;
         }
 
-        // 3. Phân quyền: Nếu là End-user thì chỉ được xem ticket của chính mình
+       
 //        if (currentUserRoleId == 1 && ticket.getReportedBy() != currentUserId) {
 //            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền xem Request này.");
 //            return;
@@ -61,7 +60,7 @@ public class ServiceRequestDetailServlet extends HttpServlet {
         // === UC63: LẤY DANH SÁCH COMMENT ===
         java.util.List<com.itserviceflow.models.Comment> commentList = ticketDAO.getCommentsByTicketId(ticketId);
         request.setAttribute("commentList", commentList);
-        // ====================================
+        
         System.out.println("========== DEBUG QUYỀN ==========");
         System.out.println("Role ID đang chạy là: " + currentUserRoleId);
 
@@ -70,8 +69,7 @@ public class ServiceRequestDetailServlet extends HttpServlet {
             request.getRequestDispatcher("/ticket/service-request-detail-user.jsp").forward(request, response);
         } else {
             System.out.println("=> ĐÃ VÀO NHÁNH 2: Mở trang MANAGER (Có form)");
-            // THÊM ĐOẠN CODE NÀY ĐỂ LẤY DANH SÁCH IT SUPPORT
-            // Chỉ cần lấy danh sách nếu Ticket là NEW (vì chỉ khi đó Manager mới cần Assign)
+            
                 com.itserviceflow.daos.UserDAO userDAO = new com.itserviceflow.daos.UserDAO();
                 java.util.List<com.itserviceflow.models.User> supportList = userDAO.getUsersByRoleId(2);
                 request.setAttribute("supportList", supportList);
