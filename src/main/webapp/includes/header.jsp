@@ -156,7 +156,7 @@
                             class="menu-item ${pageContext.request.requestURI.contains('/home/') ? 'active' : ''}">
                             <i class="bi bi-house-door-fill"></i> Trang chủ
                         </a>
-                        <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 10 && sess}">
+                        <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 10}">
                             <li class="menu-header">Hệ thống</li>
                             <a href="${pageContext.request.contextPath}/admin/users"
                                 class="menu-item ${pageContext.request.requestURI.endsWith('/admin/users.jsp') ? 'active' : ''}">
