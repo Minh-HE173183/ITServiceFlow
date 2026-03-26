@@ -6,23 +6,39 @@
             <h2 class="h4 text-primary m-0">Known Error Database (KEDB)</h2>
             <div class="d-flex gap-2">
                 <c:if test="${sessionScope.user.roleId == 10 || sessionScope.user.roleId == 3}">
-                    <button type="button" class="btn btn-warning" onclick="submitBulkAction('bulkReview', 'APPROVED')">
-                        <i class="bi bi-check-circle"></i> Bulk Approve
+                    <button type="button" class="btn btn-danger" onclick="submitBulkAction('bulkDelete')">
+                        <i class="bi bi-trash"></i> Bulk Delete
                     </button>
-                    <button type="button" class="btn btn-secondary"
-                        onclick="submitBulkAction('bulkToggleStatus', 'INACTIVE')">
+                    <button type="button" class="btn btn-primary" onclick="submitBulkAction('bulkReview', 'APPROVED')">
+                        <i class="bi bi-shield-check"></i> Bulk Approve
+                    </button>
+                    <button type="button" class="btn btn-warning text-dark" onclick="submitBulkAction('bulkToggleStatus', 'INACTIVE')">
                         <i class="bi bi-pause-circle"></i> Bulk Disable
                     </button>
-                    <button type="button" class="btn btn-success"
-                        onclick="submitBulkAction('bulkToggleStatus', 'APPROVED')">
+                    <button type="button" class="btn btn-success" onclick="submitBulkAction('bulkToggleStatus', 'APPROVED')">
                         <i class="bi bi-play-circle"></i> Bulk Enable
                     </button>
                 </c:if>
                 <a href="${pageContext.request.contextPath}/known-error?action=add" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Create Known Error
+                    <i class="bi bi-plus-circle"></i> Create New Article
                 </a>
             </div>
         </div>
+
+        <c:if test="${not empty sessionScope.message}">
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> ${sessionScope.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <c:remove var="message" scope="session"/>
+        </c:if>
+        <c:if test="${not empty sessionScope.errorMsg}">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> ${sessionScope.errorMsg}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <c:remove var="errorMsg" scope="session"/>
+        </c:if>
 
         <form action="${pageContext.request.contextPath}/known-error" method="get"
             class="row g-3 mb-4 bg-light p-3 rounded border mx-0">
@@ -48,12 +64,13 @@
             </div>
         </form>
 
-        <form id="bulkForm" action="${pageContext.request.contextPath}/known-error" method="post">
+        <form id="bulkForm" action="${pageContext.request.contextPath}/known-error" method="post" style="display:none;">
             <input type="hidden" name="action" id="bulkActionType" value="">
             <input type="hidden" name="status" id="bulkStatus" value="">
             <input type="hidden" name="toggleTo" id="bulkToggleTo" value="">
+        </form>
 
-            <div class="table-responsive">
+        <div class="table-responsive">
                 <table class="table table-hover table-bordered align-middle mt-3">
                     <thead class="table-light">
                         <tr>
@@ -99,7 +116,7 @@
                                     </a>
 
                                     <c:if test="${error.status eq 'PENDING' || error.status eq 'REJECTED'}">
-                                        <c:if test="${error.authorId == sessionScope.user.userId}">
+                                        <c:if test="${error.authorId == sessionScope.user.userId || sessionScope.user.roleId == 10 || sessionScope.user.roleId == 3}">
                                             <form action="${pageContext.request.contextPath}/known-error?action=delete"
                                                 method="post" class="m-0">
                                                 <input type="hidden" name="id" value="${error.articleId}">
@@ -160,8 +177,7 @@
                     </nav>
                 </c:if>
             </div>
-        </form>
-    </div>
+        </div>
 
     <script>
         function toggleAll(source) {
@@ -179,7 +195,22 @@
                 alert('Please select at least one item.');
                 return;
             }
-            if (confirm('Are you sure you want to perform this action on the selected items? \nWarning: Ensure the selected items are in the valid state for this action.')) {
+            let msg = 'Are you sure you want to perform this action?';
+            if (actionType === 'bulkDelete') msg = 'Are you sure you want to delete selected items?';
+            else if (actionType === 'bulkReview' && extraParam === 'APPROVED') msg = 'Are you sure you want to approve the selected items?';
+            else if (actionType === 'bulkToggleStatus') msg = 'Are you sure you want to change status to ' + extraParam + '?';
+
+            if (confirm(msg + '\nWarning: Ensure the selected items are in a valid state.')) {
+                const bulkForm = document.getElementById('bulkForm');
+                bulkForm.querySelectorAll('input[name="selectedIds"]').forEach(el => el.remove());
+                checkboxes.forEach(cb => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'selectedIds';
+                    input.value = cb.value;
+                    bulkForm.appendChild(input);
+                });
+                
                 document.getElementById('bulkActionType').value = actionType;
 
                 if (actionType === 'bulkReview') {
@@ -188,7 +219,7 @@
                     document.getElementById('bulkToggleTo').value = extraParam;
                 }
 
-                document.getElementById('bulkForm').submit();
+                bulkForm.submit();
             }
         }
     </script>

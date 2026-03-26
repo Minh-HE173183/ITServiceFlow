@@ -162,12 +162,22 @@
                            class="menu-item ${pageContext.request.requestURI.endsWith('/admin/users.jsp') ? 'active' : ''}">
                             <i class="bi bi-person-gear"></i> Quản lý người dùng
                         </a>
-                        <a href="${pageContext.request.contextPath}/admin/knowledge-base"
-                           class="menu-item ${pageContext.request.requestURI.endsWith('/admin/knowledge-base.jsp') ? 'active' : ''}">
-                            <i class="bi bi-journal-text"></i> Knowledge Base
-                        </a>
-                    </c:if>
-                    <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 2}">
+                        <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 10}">
+                            <li class="menu-header">Hệ thống</li>
+                            <a href="${pageContext.request.contextPath}/admin/users"
+                                class="menu-item ${pageContext.request.requestURI.endsWith('/admin/users.jsp') ? 'active' : ''}">
+                                <i class="bi bi-person-gear"></i> Quản lý người dùng
+                            </a>
+                            <a href="${pageContext.request.contextPath}/admin/knowledge-base"
+                                class="menu-item ${pageContext.request.requestURI.endsWith('/admin/knowledge-base.jsp') ? 'active' : ''}">
+                                <i class="bi bi-journal-text"></i> Knowledge Base
+                            </a>
+                            <a href="${pageContext.request.contextPath}/admin/knowledge-article"
+                                class="menu-item ${pageContext.request.requestURI.endsWith('/admin/knowledge-article.jsp') ? 'active' : ''}">
+                                <i class="bi bi-newspaper"></i> Knowledge Article
+                            </a>
+                        </c:if>
+
                         <li class="menu-header">Ticket Management</li>
                         <a href="${pageContext.request.contextPath}/incident?action=list"
                            class="menu-item ${pageContext.request.requestURI.contains('/incident/') ? 'active' : ''}">

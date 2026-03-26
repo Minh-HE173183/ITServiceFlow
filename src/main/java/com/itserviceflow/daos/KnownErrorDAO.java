@@ -245,7 +245,6 @@ public class KnownErrorDAO {
         try {
             a.setAuthorName(rs.getString("author_name"));
         } catch (SQLException e) {
-            // Column might not exist in some basic queries, ignore
         }
         return a;
     }

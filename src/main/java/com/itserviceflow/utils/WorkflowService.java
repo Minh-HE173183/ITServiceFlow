@@ -312,8 +312,8 @@ public class WorkflowService {
     }
 
     /**
-     * ASSIGN_AGENT: nếu ticket chưa được assign, chuyển trạng thái sang IN_PROGRESS.
-     * (Auto-assign theo role sẽ cần bảng user; hiện tại ghi log + đổi status)
+     * ASSIGN_AGENT / EXECUTE: nếu ticket chưa được assign, gán cho người dùng đầu tiên trong danh sách (nếu có)
+     * và chuyển trạng thái sang IN_PROGRESS.
      */
     private void executeAssignAgent(JsonObject step, Ticket ticket) {
         String targetUsers = extractTargetUsers(step);
@@ -321,11 +321,51 @@ public class WorkflowService {
                 "WorkflowService [ASSIGN/EXECUTE] ticket=%d, target users=%s",
                 ticket.getTicketId(), targetUsers));
 
-        // Nếu ticket chưa có người assign → cập nhật status sang IN_PROGRESS
+        // Nếu ticket chưa có người assign 
         if (ticket.getAssignedTo() == null || ticket.getAssignedTo() == 0) {
-            ticketDAO.updateTicketStatus(ticket.getTicketId(), "IN_PROGRESS");
-            ticket.setStatus("IN_PROGRESS");
-            LOGGER.info("WorkflowService [ASSIGN/EXECUTE] ticket " + ticket.getTicketId() + " → IN_PROGRESS");
+            Integer assigneeId = null;
+            
+            if (step.has("users") && step.get("users").isJsonArray()) {
+                JsonArray usersArr = step.getAsJsonArray("users");
+                if (usersArr.size() > 0 && usersArr.get(0).isJsonObject()) {
+                    JsonObject firstUser = usersArr.get(0).getAsJsonObject();
+                    if (firstUser.has("userId") && !firstUser.get("userId").isJsonNull()) {
+                        assigneeId = firstUser.get("userId").getAsInt();
+                    }
+                }
+            }
+
+            if (assigneeId != null && assigneeId > 0) {
+                // Gán người xử lý cụ thể
+                if ("INCIDENT".equalsIgnoreCase(ticket.getTicketType())) {
+                    ticketDAO.assignIncidentTicket(ticket.getTicketId(), assigneeId);
+                } else {
+                    ticketDAO.assignServiceRequest(ticket.getTicketId(), assigneeId);
+                }
+                ticket.setAssignedTo(assigneeId);
+                ticket.setStatus("IN_PROGRESS");
+                LOGGER.info("WorkflowService [ASSIGN/EXECUTE] ticket " + ticket.getTicketId() + " assigned to userId=" + assigneeId + " & status → IN_PROGRESS");
+                
+                // Gửi notification cho người được xử lý luôn
+                User user = userDAO.findById(assigneeId);
+                if (user != null && user.getEmail() != null && !user.getEmail().isBlank()) {
+                    String subject = "ITServiceFlow - Ticket Assigned to You: #" + ticket.getTicketId();
+                    String body = "Hello " + user.getFullName() + ",\n\n" +
+                                  "Ticket #" + ticket.getTicketId() + " (" + ticket.getTicketType() + ") has been auto-assigned to you by the system.\n" +
+                                  "Title: " + ticket.getTitle() + "\n" +
+                                  "Priority: " + ticket.getPriority() + "\n\n" +
+                                  "Please log in to the system to begin processing this ticket.\n\n" +
+                                  "Best regards,\nIT Service Flow Engine";
+                    try {
+                        emailService.sendEmail(user.getEmail(), subject, body);
+                        LOGGER.info("WorkflowService: Assignment email sent to " + user.getEmail());
+                    } catch (Exception e) {
+                        LOGGER.log(Level.WARNING, "WorkflowService: Failed to send assignment email to " + user.getEmail(), e);
+                    }
+                }
+            } else {
+                LOGGER.info("WorkflowService [ASSIGN/EXECUTE] ticket " + ticket.getTicketId() + " -> No specific user found, status remains unchanged.");
+            }
         }
     }
 

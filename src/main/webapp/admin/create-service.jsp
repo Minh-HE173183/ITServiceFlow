@@ -38,9 +38,9 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <c:if test="${not empty error}">
+                            <!--<c:if test="${not empty error}">
                                 <div class="alert alert-danger">${error}</div>
-                            </c:if>
+                            </c:if>-->
                             <form action="create-service" method="post">
 <!--                                <div class="row mb-3">
                                     <div class="col-md-8">
