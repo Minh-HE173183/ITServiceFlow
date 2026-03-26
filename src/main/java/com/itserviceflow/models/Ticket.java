@@ -29,10 +29,9 @@ public class Ticket {
     private Integer ciId;
     private Date createdAt;
     private Date updatedAt;
-
-    // Virtual fields for display
     private String reportedByName;
     private String assignedToName;
+    private String ciName;
     
     private String changeType;
     private String riskLevel;
@@ -217,6 +216,22 @@ public class Ticket {
         this.justification = justification;
     }
 
+
+    public Integer getCiId() {
+        return ciId;
+    }
+
+    public void setCiId(Integer ciId) {
+        this.ciId = ciId;
+    }
+
+    public String getCiName() {
+        return ciName;
+    }
+
+    public void setCiName(String ciName) {
+        this.ciName = ciName;
+    }
 
     public String getReportedByName() {
         return reportedByName;
