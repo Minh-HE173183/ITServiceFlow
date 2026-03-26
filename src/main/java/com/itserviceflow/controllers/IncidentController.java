@@ -2,8 +2,11 @@ package com.itserviceflow.controllers;
 
 import com.itserviceflow.daos.TicketDAO;
 import com.itserviceflow.daos.RoleDAO;
+import com.itserviceflow.daos.CmdbDAO;
+import com.itserviceflow.daos.FeedbackDAO;
 import com.itserviceflow.models.Ticket;
 import com.itserviceflow.models.User;
+import com.itserviceflow.models.ConfigurationItem;
 import com.itserviceflow.utils.TimeLogService;
 import com.itserviceflow.utils.AuthUtils;
 import com.itserviceflow.daos.UserDAO;
@@ -139,12 +142,20 @@ public class IncidentController extends HttpServlet {
             category = categoryDAO.findById(incident.getCategoryId());
         }
         
+        // Load feedback information for CSAT survey
+        FeedbackDAO feedbackDAO = new FeedbackDAO();
+        com.itserviceflow.models.Feedback feedback = feedbackDAO.getFeedbackByTicketId(id);
+        boolean hasFeedback = feedbackDAO.hasFeedback(id);
+        
         // Set attributes for JSP
         request.setAttribute("incident", incident);
         request.setAttribute("relatedIncidents", related);
         request.setAttribute("timeLogs", timeLogs);
         request.setAttribute("totalTimeSpent", totalTimeSpent);
         request.setAttribute("category", category);
+        request.setAttribute("feedback", feedback);
+        request.setAttribute("hasFeedback", hasFeedback);
+        request.setAttribute("feedbackDAO", feedbackDAO);
         
         request.getRequestDispatcher("/incidents/incident-detail.jsp").forward(request, response);
     }
@@ -155,6 +166,11 @@ public class IncidentController extends HttpServlet {
         com.itserviceflow.daos.TicketCategoryDAO categoryDAO = new com.itserviceflow.daos.TicketCategoryDAO();
         java.util.List<com.itserviceflow.models.TicketCategory> categories = categoryDAO.getActiveCategories();
         request.setAttribute("categories", categories);
+        
+        // Load active Configuration Items for dropdown
+        CmdbDAO cmdbDAO = new CmdbDAO();
+        List<ConfigurationItem> activeCis = cmdbDAO.searchConfigurationItems(null, "ACTIVE");
+        request.setAttribute("activeCis", activeCis);
         
         request.getRequestDispatcher("/incidents/incident-form.jsp").forward(request, response);
     }

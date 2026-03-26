@@ -422,6 +422,27 @@
                     </div>
                 </div>
 
+                <!-- Configuration Item Section -->
+                <div class="form-section">
+                    <div class="section-title">🖥️ Configuration Item (Optional)</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ciId">
+                                Select Configuration Item
+                            </label>
+                            <select id="ciId" name="ciId" class="form-control">
+                                <option value="">-- None --</option>
+                                <c:forEach var="ci" items="${activeCis}">
+                                    <option value="${ci.ciId}" ${incident.ciId == ci.ciId ? 'selected' : ''}>
+                                        ${ci.ciName} (${ci.ciCode})
+                                    </option>
+                                </c:forEach>
+                            </select>
+                            <div class="help-text">Select the affected Configuration Item if applicable</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Related Incidents Section -->
                 <c:if test="${empty incident}">
                     <div class="form-section">
