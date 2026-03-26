@@ -38,7 +38,7 @@
                             width: 2px;
                             background: #dee2e6;
                             min-height: 16px;
-                            margin-left: 27px;
+                             margin-left: 27px;
                         }
 
                         .trigger-option {
