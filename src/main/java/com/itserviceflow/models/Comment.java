@@ -18,7 +18,16 @@ public class Comment {
     private String commentText;
     private Date createdAt;
     private Date updatedAt;
+    private int userRoleId;
 
+    public int getUserRoleId() {
+        return userRoleId;
+    }
+
+    public void setUserRoleId(int userRoleId) {
+        this.userRoleId = userRoleId;
+    }
+    
     // Getters and Setters
     public int getCommentId() {
         return commentId;

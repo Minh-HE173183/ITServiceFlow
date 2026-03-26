@@ -49,11 +49,11 @@
                                       placeholder="Vui lòng cho biết lý do bạn cần yêu cầu dịch vụ này..." required></textarea>
                         </div>
 
-                                <div class="mb-3">
+<!--                                <div class="mb-3">
                                     <label class="form-label fw-bold">Justification (Lý do cần dịch vụ)</label>
                                     <textarea name="justification" class="form-control" rows="3"
                                               placeholder="Vui lòng cho biết lý do bạn cần yêu cầu dịch vụ này..." required></textarea>
-                                </div>
+                                </div>-->
 
                                 <div class="mb-4">
                                     <label class="form-label fw-bold">Additional Information / Requirements</label>
