@@ -35,7 +35,12 @@ public class AuthFilter implements Filter {
             res.sendRedirect(req.getContextPath() + "/auth?action=forbid");
             return;
         }
-
+        
+        if (path.startsWith("/support-agent/") && (user.getRoleId() == null
+                || (user.getRoleId() != 10 && user.getRoleId() != 2))) {
+            res.sendRedirect(req.getContextPath() + "/auth?action=forbid");
+            return;
+        }
         chain.doFilter(request, response);
     }
 
