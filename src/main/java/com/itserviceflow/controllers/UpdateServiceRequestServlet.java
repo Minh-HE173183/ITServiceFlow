@@ -18,41 +18,39 @@ public class UpdateServiceRequestServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
-        // 1. Kiểm tra session đăng nhập (Tạm giả lập để bạn test)
-        /*
+        //Kiểm tra session đăng nhập 
+        
         HttpSession session = request.getSession();
-        User currentUser = (User) session.getAttribute("loggedInUser");
-        if (currentUser == null || currentUser.getRoleId() == 3) { // Phân quyền: End-user không được phép update
+        User currentUser = (User) session.getAttribute("user");
+        if (currentUser == null || currentUser.getRoleId() == 1) { 
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền thực hiện thao tác này.");
             return;
         }
         int currentUserId = currentUser.getUserId();
-        */
-        int currentUserId = 2; // Giả lập ID = 2 (Nhân viên Support)
 
-        // 2. Lấy dữ liệu từ Form
+        //Lấy dữ liệu từ Form
         String ticketIdStr = request.getParameter("ticketId");
         String status = request.getParameter("status");
         String solution = request.getParameter("solution");
-        String action = request.getParameter("action"); // Nút bấm là gì?
+        String action = request.getParameter("action"); 
 
         try {
             int ticketId = Integer.parseInt(ticketIdStr);
             Integer assignedTo = null;
 
-            // Nếu Support bấm nút "Take Ticket" (Nhận việc), thì gán ID của họ vào
+            // Nếu Support bấm nút "Take Ticket" 
             if ("take".equals(action)) {
                 assignedTo = currentUserId;
                 status = "IN_PROGRESS"; // Tự động chuyển sang Đang xử lý
             } else {
-                // Nếu update bình thường, giữ nguyên assignedTo cũ (bạn có thể lấy từ DB hoặc đẩy hidden input từ form)
+                // Nếu update bình thường, giữ nguyên assignedTo cũ 
                 String assignedToStr = request.getParameter("assignedTo");
                 if (assignedToStr != null && !assignedToStr.isEmpty()) {
                     assignedTo = Integer.parseInt(assignedToStr);
                 }
             }
 
-            // 3. Thực thi update
+            //Thực thi update
             boolean isUpdated = ticketDAO.updateServiceRequestProgress(ticketId, status, solution, assignedTo);
 
             if (isUpdated) {
@@ -66,7 +64,7 @@ public class UpdateServiceRequestServlet extends HttpServlet {
             request.getSession().setAttribute("error", "Lỗi dữ liệu đầu vào.");
         }
 
-        // 4. Load lại trang Chi tiết Request để xem kết quả
+        //Load lại trang Chi tiết Request để xem kết quả
         response.sendRedirect(request.getContextPath() + "/request-detail?id=" + ticketIdStr);
     }
 }

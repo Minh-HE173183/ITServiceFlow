@@ -43,6 +43,8 @@
                 <option value="">All Statuses</option>
                 <option value="NEW" ${statusFilter == 'NEW' ? 'selected' : ''}>NEW</option>
                 <option value="IN_PROGRESS" ${statusFilter == 'IN_PROGRESS' ? 'selected' : ''}>IN PROGRESS</option>
+                <option value="APPROVED" ${statusFilter == 'IN_PROGRESS' ? 'selected' : ''}>APPROVED</option>
+                <option value="REJECTED" ${statusFilter == 'IN_PROGRESS' ? 'selected' : ''}>REJECTED</option>
                 <option value="RESOLVED" ${statusFilter == 'RESOLVED' ? 'selected' : ''}>RESOLVED</option>
                 <option value="CLOSED" ${statusFilter == 'CLOSED' ? 'selected' : ''}>CLOSED</option>
                 <option value="CANCELLED" ${ticket.status == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
@@ -56,24 +58,37 @@
         </div>
     </form>
 
-    <form action="${pageContext.request.contextPath}/ticket/delete-request" method="post" id="bulkDeleteForm">
-        <input type="hidden" name="action" value="bulk">
+   <%-- FORM DÙNG CHUNG CHO CÁC HÀNH ĐỘNG HÀNG LOẠT (BULK ACTIONS) --%>
+    <form id="bulkForm" method="post">
+        <input type="hidden" name="action" id="actionName" value="bulk">
+        <input type="hidden" name="actionType" id="actionType" value="bulk">
+        <input type="hidden" name="newStatus" id="newStatus" value="">
         
-        <%-- CHỈ HIỂN THỊ NÚT DELETE SELECTED CHO USER (ROLE 1) --%>
-        <c:if test="${userRole == 1}">
-            <div class="d-flex justify-content-end mb-2">
-                <button type="submit" class="btn btn-danger btn-sm shadow-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa các Request đã chọn không?');">
+        <div class="d-flex justify-content-end gap-2 mb-2">
+            <%-- Nút Delete: Chỉ User (Role 1) mới thấy --%>
+            <c:if test="${userRole == 1}">
+                <button type="button" class="btn btn-danger btn-sm shadow-sm" onclick="submitBulk('${pageContext.request.contextPath}/ticket/delete-request', 'bulk', '', 'Xác nhận XÓA các Request đã chọn?');">
                     <i class="bi bi-trash"></i> Delete Selected
                 </button>
-            </div>
-        </c:if>
+            </c:if>
+            
+            <%-- Nút Approve/Reject: Chỉ Manager (Role 3) mới thấy --%>
+            <c:if test="${userRole == 3}">
+                <button type="button" class="btn btn-success btn-sm shadow-sm" onclick="submitBulk('${pageContext.request.contextPath}/ticket/approve-reject', 'bulk', 'APPROVED', 'Xác nhận PHÊ DUYỆT các Request đã chọn?');">
+                    <i class="bi bi-check-all"></i> Approve Selected
+                </button>
+                <button type="button" class="btn btn-danger btn-sm shadow-sm" onclick="submitBulk('${pageContext.request.contextPath}/ticket/approve-reject', 'bulk', 'REJECTED', 'Xác nhận TỪ CHỐI các Request đã chọn?');">
+                    <i class="bi bi-x-square"></i> Reject Selected
+                </button>
+            </c:if>
+        </div>
 
         <div class="table-responsive">
             <table class="table table-hover table-bordered align-middle mt-2">
                 <thead class="table-light">
                     <tr>
-                        <%-- CHỈ HIỂN THỊ CỘT CHECKBOX CHO USER (ROLE 1) --%>
-                        <c:if test="${userRole == 1}">
+                        <%-- HIỂN THỊ CỘT CHECKBOX CHO CẢ USER (1) VÀ MANAGER (3) --%>
+                        <c:if test="${userRole == 1 or userRole == 3}">
                             <th class="text-center" style="width: 50px;">
                                 <input class="form-check-input" type="checkbox" id="selectAll">
                             </th>
@@ -89,11 +104,11 @@
                 <tbody>
                     <c:forEach var="req" items="${requestList}">
                         <tr>
-                            <%-- CHỈ HIỂN THỊ Ô CHECKBOX CHO USER (ROLE 1) --%>
-                            <c:if test="${userRole == 1}">
+                            <%-- Ô CHECKBOX TỪNG DÒNG --%>
+                            <c:if test="${userRole == 1 or userRole == 3}">
                                 <td class="text-center align-middle">
-                                    <%-- Dùng 'eq' (equals) thay cho '==' và 'or' thay cho '||' cho an toàn tuyệt đối --%>
-                                    <c:if test="${req.status eq 'NEW' or req.status eq 'New'}">
+                                    <%-- User chỉ tích được vé NEW. Manager tích được vé NEW hoặc IN_PROGRESS --%>
+                                    <c:if test="${(userRole == 1 and (req.status eq 'NEW' or req.status eq 'New')) or (userRole == 3 and (req.status eq 'NEW' or req.status eq 'New' or req.status eq 'IN_PROGRESS'))}">
                                         <input class="form-check-input ticket-checkbox" style="transform: scale(1.2);" type="checkbox" name="ticketIds" value="${req.ticketId}">
                                     </c:if>
                                 </td>
@@ -107,7 +122,7 @@
                                 </span>
                             </td>
                             <td>
-                                <span class="badge bg-secondary ${req.status == 'New' ? 'bg-primary' : (req.status == 'RESOLVED' ? 'bg-success' : 'bg-secondary')}">
+                                <span class="badge bg-secondary ${req.status eq 'NEW' or req.status eq 'New' ? 'bg-primary' : (req.status eq 'RESOLVED' ? 'bg-success' : 'bg-secondary')}">
                                     ${req.status}
                                 </span>
                             </td>
@@ -122,8 +137,7 @@
                     
                     <c:if test="${empty requestList}">
                         <tr>
-                            <%-- Gộp cột động: Nếu là User thì gộp 7 cột, Manager thì gộp 6 cột --%>
-                            <td colspan="${userRole == 1 ? 7 : 6}" class="text-center text-muted fst-italic py-4">
+                            <td colspan="${userRole == 1 or userRole == 3 ? 6 : 5}" class="text-center text-muted fst-italic py-4">
                                 <i class="bi bi-inbox fs-4 d-block mb-2"></i> No service requests found.
                             </td>
                         </tr>
@@ -147,6 +161,16 @@
             });
         }
     });
+
+    // Hàm đổi hướng form tùy vào nút bấm (Duyệt/Xóa)
+    function submitBulk(actionUrl, actionType, newStatus, confirmMsg) {
+        if (!confirm(confirmMsg)) return false;
+        const form = document.getElementById('bulkForm');
+        form.action = actionUrl;
+        document.getElementById('actionType').value = actionType;
+        document.getElementById('newStatus').value = newStatus;
+        form.submit();
+    }
 </script>
 
-<jsp:include page="/includes/footer.jsp" />
+<jsp:include page="/includes/footer.jsp" />>
