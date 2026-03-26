@@ -43,6 +43,15 @@ public class ChangeRequestDetailServlet extends HttpServlet {
         }
 
         request.setAttribute("ticket", ticket);
+        if (currentUser.getRoleId() == 3) {
+            java.util.List<User> engineerList = ticketDAO.getSystemEngineers();
+            request.setAttribute("engineerList", engineerList);
+        }
+        
+        // UC73: Load danh sách bình luận (Comments)
+        java.util.List<com.itserviceflow.models.Comment> comments = ticketDAO.getCommentsByTicketId(ticketId);
+        request.setAttribute("comments", comments);
+        
         request.getRequestDispatcher("/ticket/change-request-detail.jsp").forward(request, response);
     }
 }

@@ -1,6 +1,7 @@
 package com.itserviceflow.daos;
 
 import com.itserviceflow.models.Ticket;
+import com.itserviceflow.models.User;
 import static com.itserviceflow.utils.DBConnection.getConnection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -191,7 +192,7 @@ public class TicketDAO {
         return false;
     }
 
-    // 1. Xóa một Request (Dành cho màn hình Detail)
+    // Xóa một Request (Dành cho màn hình Detail)
     public boolean deleteNewServiceRequest(int ticketId, int currentUserId) {
         // Chỉ xóa nếu ticket là của user đó tạo, status='NEW' và chưa ai nhận việc
         String sql = "DELETE FROM ticket WHERE ticket_id = ? AND reported_by = ? AND status = 'NEW' AND assigned_to IS NULL";
@@ -394,10 +395,15 @@ public class TicketDAO {
                 t.setTestPlan(rs.getString("test_plan"));
                 t.setCabDecision(rs.getString("cab_decision"));
                 t.setCabComment(rs.getString("cab_comment"));
+                t.setCabRiskAssessment(rs.getString("cab_risk_assessment")); 
+                
+                t.setCabComment(rs.getString("cab_comment"));
+                t.setScheduledStart(rs.getTimestamp("scheduled_start"));
                 t.setScheduledStart(rs.getTimestamp("scheduled_start"));
                 t.setScheduledEnd(rs.getTimestamp("scheduled_end"));
                 t.setDowntimeRequired(rs.getBoolean("downtime_required"));
                 t.setEstimatedDowntimeHour(rs.getDouble("estimated_downtime_hour"));
+                
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -511,6 +517,157 @@ public class TicketDAO {
         }
         return false;
     }
+    
+    // Xóa 1 Change Request
+    public boolean deleteChangeRequest(int ticketId) {
+        String sql = "DELETE FROM ticket WHERE ticket_id = ? AND ticket_type = 'CHANGE' "
+                   + "AND status = 'NEW' AND (cab_risk_assessment IS NULL OR cab_risk_assessment = '')";
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, ticketId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Xóa hàng loạt Change Request (Bulk Delete)
+    public int bulkDeleteChangeRequests(String[] ticketIds) {
+        int count = 0;
+        String sql = "DELETE FROM ticket WHERE ticket_id = ? AND ticket_type = 'CHANGE' "
+                   + "AND status = 'NEW' AND (cab_risk_assessment IS NULL OR cab_risk_assessment = '')";
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (String idStr : ticketIds) {
+                ps.setInt(1, Integer.parseInt(idStr));
+                ps.addBatch();
+            }
+            int[] results = ps.executeBatch();
+            for (int res : results) {
+                if (res > 0) count++;
+            }
+        } catch (SQLException | NumberFormatException e) {
+            e.printStackTrace();
+        }
+        return count; // Trả về số lượng đã xóa thành công
+    }
+    
+    public boolean cancelChangeRequest(int ticketId) {
+        String sql = "UPDATE ticket SET status = 'CANCELLED', updated_at = CURRENT_TIMESTAMP "
+                   + "WHERE ticket_id = ? AND ticket_type = 'CHANGE'";
+        
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, ticketId);
+            return ps.executeUpdate() > 0;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Lấy danh sách System Engineer (Role ID = 6) để Manager phân công
+    public List<User> getSystemEngineers() {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT user_id, full_name FROM user WHERE role_id = 6 AND is_active = 1";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                User u = new User();
+                u.setUserId(rs.getInt("user_id"));
+                u.setFullName(rs.getString("full_name"));
+                list.add(u);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // UC70: Manager Assign Change Request cho System Engineer
+    public boolean assignChangeRequest(int ticketId, int assignedToUserId) {
+        String sql = "UPDATE ticket SET assigned_to = ?,status = 'IN_PROGRESS',updated_at = CURRENT_TIMESTAMP "
+                   + "WHERE ticket_id = ? AND ticket_type = 'CHANGE'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, assignedToUserId);
+            ps.setInt(2, ticketId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // UC71: CAB Member đánh giá rủi ro và khuyến nghị lịch trình
+    public boolean assessChangeRisk(int ticketId, int cabMemberId, String riskAssessment, String comment) {
+        String sql = "UPDATE ticket SET cab_risk_assessment = ?, cab_comment = ?, cab_member_id = ?, updated_at = CURRENT_TIMESTAMP "
+                   + "WHERE ticket_id = ? AND ticket_type = 'CHANGE'";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, riskAssessment);
+            ps.setString(2, comment);
+            ps.setInt(3, cabMemberId);
+            ps.setInt(4, ticketId);
+            
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // UC72: CAB Duyệt / Từ chối 1 Change Request
+    public boolean reviewChangeRequest(int ticketId, int cabMemberId, String decision) {
+        String status = "APPROVED".equals(decision) ? "APPROVED" : "REJECTED";
+        String sql = "UPDATE ticket SET cab_decision = ?, status = ?, cab_member_id = ?, cab_decided_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP "
+                   + "WHERE ticket_id = ? AND ticket_type = 'CHANGE'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, decision);
+            ps.setString(2, status);
+            ps.setInt(3, cabMemberId);
+            ps.setInt(4, ticketId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // UC72: CAB Duyệt / Từ chối Hàng loạt (Bulk)
+    public int bulkReviewChangeRequests(String[] ticketIds, int cabMemberId, String decision) {
+        int count = 0;
+        String status = "APPROVED".equals(decision) ? "APPROVED" : "REJECTED";
+        // Chỉ duyệt những vé đang ở trạng thái PENDING hoặc NEW/IN_PROGRESS (Chưa duyệt)
+        String sql = "UPDATE ticket SET cab_decision = ?, status = ?, cab_member_id = ?, cab_decided_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP "
+                   + "WHERE ticket_id = ? AND ticket_type = 'CHANGE' AND (cab_decision IS NULL OR cab_decision = 'PENDING')";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (String idStr : ticketIds) {
+                ps.setString(1, decision);
+                ps.setString(2, status);
+                ps.setInt(3, cabMemberId);
+                ps.setInt(4, Integer.parseInt(idStr));
+                ps.addBatch();
+            }
+            int[] results = ps.executeBatch();
+            for (int res : results) {
+                if (res > 0) count++;
+            }
+        } catch (SQLException | NumberFormatException e) {
+            e.printStackTrace();
+        }
+        return count;
+    }
+    
+    
     
     
     public Ticket getTicketById(int ticketId) {

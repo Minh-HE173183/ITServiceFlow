@@ -53,51 +53,80 @@
     <div class="tab-content" id="myTabContent">
         <%-- TAB 1: LIST VIEW --%>
         <div class="tab-pane fade show active" id="list-view" role="tabpanel">
-            <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Ticket ID</th>
-                            <th>Change Title</th>
-                            <th>Priority</th>
-                            <th>Status</th>
-                            <th>Scheduled Start</th>
-                            <th class="text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:forEach var="cr" items="${crList}">
-                            <tr>
-                                <td><strong>#CR-${cr.ticketId}</strong></td>
-                                <td class="text-primary fw-bold">${cr.title}</td>
-                                <td><span class="badge ${cr.priority == 'CRITICAL' ? 'bg-danger' : 'bg-warning text-dark'}">${cr.priority}</span></td>
-                                <td><span class="badge bg-secondary ${cr.status eq 'NEW' ? 'bg-primary' : (cr.status eq 'APPROVED' ? 'bg-success' : 'bg-secondary')}">${cr.status}</span></td>
-                                
-                                <%-- Hiển thị Scheduled Start thay vì Created Date --%>
-                                <td>
-                                    <span class="fw-bold text-dark">
-                                        <c:choose>
-                                            <c:when test="${not empty cr.scheduledStart}">
-                                                <fmt:formatDate value="${cr.scheduledStart}" pattern="dd/MM/yyyy HH:mm" />
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="text-muted fst-italic">TBD</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </span>
-                                </td>
+            
+            <%-- FORM DÙNG CHO BULK DELETE --%>
+            <form action="${pageContext.request.contextPath}/change-request/delete" method="post" id="bulkDeleteForm">
+                <input type="hidden" name="actionType" value="bulk">
+                
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="submit" class="btn btn-danger btn-sm shadow-sm" onclick="return confirm('Xóa vĩnh viễn các Change Request đã chọn?');">
+                        <i class="bi bi-trash"></i> Delete Selected
+                    </button>
+                </div>
+                <%-- Nút Approve/Reject: Dành cho CAB Member (Chuyển hướng form sang Review Servlet) --%>
+                    <c:if test="${sessionScope.user.roleId == 7}">
+                        <button type="submit" name="decision" value="APPROVED" class="btn btn-success btn-sm shadow-sm" 
+                                formaction="${pageContext.request.contextPath}/change-request/review" onclick="return confirm('Duyệt tất cả các phiếu đã chọn?');">
+                            <i class="bi bi-check-circle"></i> Approve Selected
+                        </button>
+                        <button type="submit" name="decision" value="REJECTED" class="btn btn-outline-danger btn-sm shadow-sm" 
+                                formaction="${pageContext.request.contextPath}/change-request/review" onclick="return confirm('Từ chối tất cả các phiếu đã chọn?');">
+                            <i class="bi bi-x-circle"></i> Reject Selected
+                        </button>
+                    </c:if>
 
-                                <td class="text-center">
-                                    <a href="${pageContext.request.contextPath}/change-request/detail?id=${cr.ticketId}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> View</a>
-                                </td>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 40px;">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                </th>
+                                <th>Ticket ID</th>
+                                <th>Change Title</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Scheduled Start</th>
+                                <th class="text-center">Action</th>
                             </tr>
-                        </c:forEach>
-                        <c:if test="${empty crList}">
-                            <tr><td colspan="6" class="text-center text-muted py-4">No change requests found.</td></tr>
-                        </c:if>
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="cr" items="${crList}">
+                                <tr>
+                                    <td class="text-center">
+                                        <c:if test="${((sessionScope.user.roleId == 6 or sessionScope.user.roleId == 3) and cr.status eq 'NEW' and empty cr.cabRiskAssessment) 
+                                                   or (sessionScope.user.roleId == 7 and cr.cabDecision ne 'APPROVED' and cr.cabDecision ne 'REJECTED')}">
+                                            <input class="form-check-input cr-checkbox" type="checkbox" name="ticketIds" value="${cr.ticketId}">
+                                        </c:if>
+                                    </td>
+                                    <td><strong>#CR-${cr.ticketId}</strong></td>
+                                    <td class="text-primary fw-bold">${cr.title}</td>
+                                    <td><span class="badge ${cr.priority == 'CRITICAL' ? 'bg-danger' : 'bg-warning text-dark'}">${cr.priority}</span></td>
+                                    <td><span class="badge bg-secondary ${cr.status eq 'NEW' ? 'bg-primary' : (cr.status eq 'APPROVED' ? 'bg-primary' : 'bg-secondary')}">${cr.status}</span></td>
+                                    <td>
+                                        <span class="fw-bold text-dark">
+                                            <c:choose>
+                                                <c:when test="${not empty cr.scheduledStart}">
+                                                    <fmt:formatDate value="${cr.scheduledStart}" pattern="dd/MM/yyyy HH:mm" />
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="text-muted fst-italic">TBD</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="${pageContext.request.contextPath}/change-request/detail?id=${cr.ticketId}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> View</a>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                            <c:if test="${empty crList}">
+                                <tr><td colspan="7" class="text-center text-muted py-4">No change requests found.</td></tr>
+                            </c:if>
+                        </tbody>
+                    </table>
+                </div>
+            </form>
         </div>
 
         <%-- TAB 2: CALENDAR VIEW --%>
@@ -155,5 +184,16 @@
         });
     });
 </script>
-
+<script>
+    // Xử lý Checkbox Select All cho Tab List
+    document.addEventListener("DOMContentLoaded", function() {
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.cr-checkbox');
+        if(selectAll) {
+            selectAll.addEventListener('change', function() {
+                checkboxes.forEach(cb => cb.checked = selectAll.checked);
+            });
+        }
+    });
+</script>
 <jsp:include page="/includes/footer.jsp" />

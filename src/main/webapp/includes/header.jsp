@@ -162,7 +162,7 @@
                            class="menu-item ${pageContext.request.requestURI.endsWith('/admin/users.jsp') ? 'active' : ''}">
                             <i class="bi bi-person-gear"></i> Quản lý người dùng
                         </a>
-                        <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 10 && sess}">
+                        <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 10}">
                             <li class="menu-header">Hệ thống</li>
                             <a href="${pageContext.request.contextPath}/admin/users"
                                 class="menu-item ${pageContext.request.requestURI.endsWith('/admin/users.jsp') ? 'active' : ''}">

@@ -36,7 +36,15 @@ public class AddCommentServlet extends HttpServlet {
                 // Gọi DAO để thêm bình luận
                 ticketDAO.addComment(ticketId, currentUser.getUserId(), commentText.trim());
                 
-                response.sendRedirect(request.getContextPath() + "/request-detail?id=" + ticketId);
+                // ĐÃ SỬA: Đọc biến ticketType gửi từ Form để rẽ nhánh Redirect
+                String ticketType = request.getParameter("ticketType");
+                String redirectUrl = "/request-detail?id=" + ticketId; // Mặc định
+                
+                if ("CHANGE".equals(ticketType)) {
+                    redirectUrl = "/change-request/detail?id=" + ticketId;
+                }
+                
+                response.sendRedirect(request.getContextPath() + redirectUrl);
                 return;
             } catch (NumberFormatException e) {
                 session.setAttribute("error", "Lỗi dữ liệu.");
