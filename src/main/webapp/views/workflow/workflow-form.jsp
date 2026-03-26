@@ -688,12 +688,8 @@ out.print(gson.toJson(_pr));
                                     var upBtn = i > 0 ? '<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Up" onclick="moveStep(' + s.id + ', -1)"><i class="fa fa-chevron-up"></i></button>' : '<span style="display:inline-block;width:22px;"></span>';
                                     var downBtn = i < steps.length - 1 ? '<button type="button" class="btn btn-sm p-0 text-secondary" title="Move Down" onclick="moveStep(' + s.id + ', 1)"><i class="fa fa-chevron-down"></i></button>' : '<span style="display:inline-block;width:22px;"></span>';
                                     // SLA input is not editable for NOTIFY-only steps; show disabled 0
+                                    // Per-step SLA input removed from UI (SLA still stored in model).
                                     var slaHtml = '';
-                                    if (String(s.action).toUpperCase() === 'NOTIFY') {
-                                        slaHtml = '<div class="col-md-2"><input type="number" class="form-control form-control-sm" value="0" disabled /></div>';
-                                    } else {
-                                        slaHtml = '<div class="col-md-2"><input type="number" class="form-control form-control-sm" value="' + s.sla_hours + '" oninput="updateStepField(' + s.id + ', \'sla_hours\', this.value)" /></div>';
-                                    }
                                     html += '<div class="step-card p-3 mb-2 d-flex align-items-start gap-3">'
                                         + '<div class="d-flex flex-column align-items-center gap-1">'
                                         + '<div class="step-number">' + (i + 1) + '</div>'
@@ -701,15 +697,15 @@ out.print(gson.toJson(_pr));
                                         + '</div>'
                                         + '<div class="flex-grow-1">'
                                         + '<div class="row g-3 mb-2">'
-                                        + '<div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Step Name" value="' + escHtml(s.name) + '" oninput="updateStepField(' + s.id + ', \'name\', this.value)" /></div>'
-                                        + '<div class="col-md-3">'
+                                        // Adjusted column widths: name (5), users (4), action (3). SLA removed from UI
+                                        + '<div class="col-md-5"><input type="text" class="form-control form-control-sm" placeholder="Step Name" value="' + escHtml(s.name) + '" oninput="updateStepField(' + s.id + ', \'name\', this.value)" /></div>'
+                                        + '<div class="col-md-4">'
                                         + '<div class="form-control form-control-sm btn-user-add d-flex flex-wrap align-items-center gap-1" style="min-height:31px; height:auto; cursor:text; padding:3px 6px;" onclick="openUserPicker(event, ' + s.id + ')">'
                                         + usersHtml
-                                        + '<input type="text" style="border:none; outline:none; box-shadow:none; flex-grow:1; min-width:60px; background:transparent; font-size:13px;" placeholder="' + (selectedUsers.length > 0 ? '' : 'Search users...') + '" readonly />'
+                                        + '<input type="text" onclick="openUserPicker(event, ' + s.id + ')" onfocus="openUserPicker(event, ' + s.id + ')" oninput="fetchUsersForPicker(this.value)" style="border:none; outline:none; box-shadow:none; flex-grow:1; min-width:60px; background:transparent; font-size:13px;" placeholder="' + (selectedUsers.length > 0 ? '' : 'Search users...') + '" />'
                                         + '</div>'
                                         + '</div>'
                                         + '<div class="col-md-3"><select class="form-select form-select-sm" onchange="updateStepField(' + s.id + ', \'action\', this.value)">' + actionOptions + '</select></div>'
-                                        + slaHtml
                                         + '</div>'
                                         + '<div class="row g-3">'
                                         + '<div class="col-12"><input type="text" class="form-control form-control-sm" placeholder="Step Description (Optional)" value="' + escHtml(s.description || '') + '" oninput="updateStepField(' + s.id + ', \'description\', this.value)" /></div>'
@@ -841,8 +837,46 @@ out.print(gson.toJson(_pr));
                                 // call our new JSON endpoint
                                 var url = ctx + '/admin/users?action=searchJson&q=' + encodeURIComponent(q);
                                 if (role) url += '&roleName=' + encodeURIComponent(role);
+                                console.debug('User picker search URL:', url);
+                                var out = document.getElementById('userPickerResults');
                                 fetch(url)
-                                    .then(res => res.ok ? res.json() : [])
+                                    .then(res => {
+                                        if (!res.ok) {
+                                            console.warn('User search responded with status', res.status, res.statusText);
+                                            if (out) {
+                                                if (res.status === 403) {
+                                                    out.innerHTML = '<div class="text-center text-muted py-3"><strong>Access denied</strong><div class="small">You do not have permission to search users.</div></div>';
+                                                } else {
+                                                    out.innerHTML = '<div class="text-center text-muted py-3">No users found</div>';
+                                                }
+                                            }
+                                            return [];
+                                        }
+                                        var ct = (res.headers.get('content-type') || '').toLowerCase();
+                                        if (ct.indexOf('application/json') !== -1) {
+                                            return res.json().catch(e => {
+                                                console.error('Failed to parse JSON from user search', e);
+                                                return [];
+                                            });
+                                        }
+                                        // non-json response (likely HTML login/redirect). read text for debug and return empty
+                                        return res.text().then(t => {
+                                            console.warn('User search returned non-JSON response (showing first 300 chars):', t && t.substring ? t.substring(0, 300) : t);
+                                            if (out) {
+                                                var tl = (t || '').toLowerCase();
+                                                if (tl.indexOf('access denied') !== -1 || tl.indexOf('accessdenied') !== -1) {
+                                                    out.innerHTML = '<div class="text-center text-muted py-3"><strong>Access denied</strong><div class="small">You do not have permission to search users.</div></div>';
+                                                } else {
+                                                    out.innerHTML = '<div class="text-center text-muted py-3">No users found</div>';
+                                                }
+                                            }
+                                            return [];
+                                        }).catch(e => {
+                                            console.error('Error reading non-JSON user search response', e);
+                                            if (out) out.innerHTML = '<div class="text-center text-muted py-3">No users found</div>';
+                                            return [];
+                                        });
+                                    })
                                     .then(data => {
                                         var out = document.getElementById('userPickerResults');
                                         if (!out) return;
