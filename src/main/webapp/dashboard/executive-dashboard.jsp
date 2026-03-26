@@ -295,10 +295,7 @@
             Các chỉ số KPI, tuân thủ SLA và tổng quan phân bổ khối lượng công việc.
         </small>
     </div>
-    <a href="${pageContext.request.contextPath}/time-tracking"
-       class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-clock-history me-1"></i>Time Tracking
-    </a>
+    <!-- Time Log link moved to layout navigation; visibility handled by role checks in admin-layout-top.jsp -->
 </div>
 
 <%-- ── Quick navigation ───────────────────────────────────────── --%>
@@ -311,8 +308,7 @@
         <i class="bi bi-bug-fill"></i>Known Errors</a>
     <a href="${pageContext.request.contextPath}/cmdb?action=list" class="qn-btn qn-green">
         <i class="bi bi-server"></i>CMDB</a>
-    <a href="${pageContext.request.contextPath}/time-tracking" class="qn-btn qn-purple">
-        <i class="bi bi-clock-fill"></i>Time Logs</a>
+    <!-- Time Log quick link removed in favour of centralized layout nav (role-based) -->
 </div>
 
 <%-- ── KPI Hero Cards ─────────────────────────────────────────── --%>
