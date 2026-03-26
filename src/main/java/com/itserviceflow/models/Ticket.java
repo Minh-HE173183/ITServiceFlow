@@ -24,7 +24,8 @@ public class Ticket {
     private Integer assignedTo;
     private Integer departmentId;
     private String cause;
-    private String solution;private String justification;
+    private String solution;
+    private String justification;
     private Integer serviceId;
     private Integer ciId;
     private Date createdAt;
