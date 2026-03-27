@@ -2,6 +2,9 @@ package com.itserviceflow.controllers;
 
 import com.itserviceflow.daos.TicketDAO;
 import com.itserviceflow.daos.RoleDAO;
+
+import com.itserviceflow.daos.ActivityLogDAO;
+
 import com.itserviceflow.daos.CmdbDAO;
 import com.itserviceflow.daos.FeedbackDAO;
 import com.itserviceflow.models.Ticket;
@@ -142,20 +145,23 @@ public class IncidentController extends HttpServlet {
             category = categoryDAO.findById(incident.getCategoryId());
         }
         
-        // Load feedback information for CSAT survey
-        FeedbackDAO feedbackDAO = new FeedbackDAO();
-        com.itserviceflow.models.Feedback feedback = feedbackDAO.getFeedbackByTicketId(id);
-        boolean hasFeedback = feedbackDAO.hasFeedback(id);
-        
+
+        // Load cancel reason from activity log
+        String cancelReason = null;
+        if ("CANCELLED".equals(incident.getStatus())) {
+            ActivityLogDAO activityLogDAO = new ActivityLogDAO();
+            cancelReason = activityLogDAO.getCancelReason(id);
+        }
+
         // Set attributes for JSP
         request.setAttribute("incident", incident);
         request.setAttribute("relatedIncidents", related);
         request.setAttribute("timeLogs", timeLogs);
         request.setAttribute("totalTimeSpent", totalTimeSpent);
         request.setAttribute("category", category);
-        request.setAttribute("feedback", feedback);
-        request.setAttribute("hasFeedback", hasFeedback);
-        request.setAttribute("feedbackDAO", feedbackDAO);
+
+        request.setAttribute("cancelReason", cancelReason);
+
         
         request.getRequestDispatcher("/incidents/incident-detail.jsp").forward(request, response);
     }
@@ -306,8 +312,12 @@ public class IncidentController extends HttpServlet {
         // Cancel the incident
         ticketDAO.cancelIncidentTicket(id);
         
-        // Log the cancellation with reason
+        // Log the cancellation with reason using ActivityLogDAO
         if (cancelReason != null && !cancelReason.trim().isEmpty()) {
+
+            ActivityLogDAO activityLogDAO = new ActivityLogDAO();
+            activityLogDAO.logActivity(id, userId, "CANCELLED", cancelReason);
+
             // Auto-log CANCELLED activity with reason, but skip if actor is end-user
             Ticket ticket = ticketDAO.getTicketWithDetails(id);
             if (ticket != null) {
@@ -317,6 +327,7 @@ public class IncidentController extends HttpServlet {
                     timeLogService.autoLogWithReason(ticket, userId, "CANCELLED", cancelReason);
                 }
             }
+
         }
         
         response.sendRedirect(request.getContextPath() + "/incident?action=detail&id=" + id);
@@ -399,5 +410,36 @@ public class IncidentController extends HttpServlet {
         boolean saved = timeLogService.manualLog(ticketId, agentId, timeSpent, description);
         String param = saved ? "&logSuccess=1" : "&logError=saveFailed";
         response.sendRedirect(request.getContextPath() + "/incident?action=detail&id=" + ticketId + param);
+    }
+    
+    /**
+     * Get feedback statistics for dashboard
+     */
+    private void getFeedbackStats(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        FeedbackDAO feedbackDAO = new FeedbackDAO();
+        
+        // Get total feedback count
+        int totalFeedback = feedbackDAO.getTotalFeedbackCount();
+        request.setAttribute("feedbackTotal", totalFeedback);
+        
+        // Get satisfied count (rating = 1)
+        int satisfiedCount = feedbackDAO.getSatisfiedFeedbackCount();
+        request.setAttribute("satisfiedCount", satisfiedCount);
+        
+        // Get CSAT score
+        double csatScore = 0.0;
+        if (totalFeedback > 0) {
+            csatScore = (satisfiedCount * 100.0) / totalFeedback;
+        }
+        request.setAttribute("csatScore", csatScore);
+        
+        // Get feedback by agent
+        java.util.Map<String, Integer> feedbackByAgent = feedbackDAO.getFeedbackCountByAgent();
+        request.setAttribute("feedbackByAgent", feedbackByAgent);
+        
+        // Get feedback by time (last 7 days)
+        java.util.Map<String, Integer> feedbackByTime = feedbackDAO.getFeedbackCountByTime();
+        request.setAttribute("feedbackByTime", feedbackByTime);
     }
 }

@@ -345,6 +345,18 @@
         <div class="hc-sub">Số bản ghi Log</div>
         <i class="bi bi-journal-check hc-icon"></i>
     </div>
+    <div class="hero-card hc-pink">
+        <div class="hc-label">Tổng Feedback</div>
+        <div class="hc-value">${feedbackTotal}</div>
+        <div class="hc-sub">Số lượng feedback</div>
+        <i class="bi bi-chat-dots hc-icon"></i>
+    </div>
+    <div class="hero-card hc-yellow">
+        <div class="hc-label">CSAT Score</div>
+        <div class="hc-value">${csatScore}%</div>
+        <div class="hc-sub">Tỷ lệ hài lòng</div>
+        <i class="bi bi-star-fill hc-icon"></i>
+    </div>
 </div>
 
 <%-- ── SLA Compliance indicator ───────────────────────────────── --%>
@@ -548,6 +560,67 @@
                 <p class="text-muted text-center py-3">Chưa có dữ liệu nhật ký thời gian.</p>
                 </c:otherwise>
             </c:choose>
+    </div>
+
+    <%-- Feedback Statistics --%>
+    <div class="chart-card">
+        <div class="chart-title"><i class="bi bi-chat-dots text-success"></i> Feedback & CSAT</div>
+        <div class="d-flex align-items-center gap-4 flex-wrap">
+            <div style="flex:1; min-width:200px;">
+                <div class="section-title">
+                    <i class="bi bi-bar-chart-fill"></i> Feedback theo Agent
+                </div>
+                <c:set var="maxFeedback" value="1" />
+                <c:forEach var="e" items="${feedbackByAgent}">
+                    <c:if test="${e.value > maxFeedback}">
+                        <c:set var="maxFeedback" value="${e.value}" />
+                    </c:if>
+                </c:forEach>
+                <div class="bar-chart">
+                    <c:forEach var="e" items="${feedbackByAgent}">
+                        <c:set var="pct"
+                               value="${maxFeedback > 0 ? (e.value * 100 / maxFeedback) : 0}" />
+                        <div class="bar-row">
+                            <div class="bar-label" title="${e.key}">${e.key}</div>
+                            <div class="bar-track">
+                                <div class="bar-fill" style="width:${pct}%; background:linear-gradient(90deg,#27ae60,#2ecc71);"></div>
+                            </div>
+                            <div class="bar-count">${e.value}</div>
+                        </div>
+                    </c:forEach>
+                    <c:if test="${empty feedbackByAgent}">
+                        <p class="text-muted text-center py-3">Chưa có dữ liệu feedback.</p>
+                    </c:if>
+                </div>
+            </div>
+            <div style="flex:1; min-width:200px;">
+                <div class="section-title">
+                    <i class="bi bi-calendar-fill"></i> Feedback theo thời gian (7 ngày)
+                </div>
+                <c:set var="maxTime" value="1" />
+                <c:forEach var="e" items="${feedbackByTime}">
+                    <c:if test="${e.value > maxTime}">
+                        <c:set var="maxTime" value="${e.value}" />
+                    </c:if>
+                </c:forEach>
+                <div class="bar-chart">
+                    <c:forEach var="e" items="${feedbackByTime}">
+                        <c:set var="pct"
+                               value="${maxTime > 0 ? (e.value * 100 / maxTime) : 0}" />
+                        <div class="bar-row">
+                            <div class="bar-label" title="${e.key}">${e.key}</div>
+                            <div class="bar-track">
+                                <div class="bar-fill" style="width:${pct}%; background:linear-gradient(90deg,#f39c12,#f1c40f);"></div>
+                            </div>
+                            <div class="bar-count">${e.value}</div>
+                        </div>
+                    </c:forEach>
+                    <c:if test="${empty feedbackByTime}">
+                        <p class="text-muted text-center py-3">Chưa có dữ liệu feedback.</p>
+                    </c:if>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div><%-- end chart-grid --%>

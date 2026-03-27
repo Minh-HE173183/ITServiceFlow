@@ -633,10 +633,18 @@
                     <label>Title</label>
                     <span>${incident.title}</span>
                 </div>
-                <div class="detail-item">
+            <div class="detail-item">
                     <label>Status</label>
                     <span class="badge badge-${fn:toLowerCase(incident.status)}">${incident.status}</span>
                 </div>
+                
+                <!-- Cancel Reason Display -->
+                <c:if test="${incident.status eq 'CANCELLED' and not empty cancelReason}">
+                    <div class="detail-item">
+                        <label>Cancel Reason</label>
+                        <span style="color: #c53030; font-weight: 500;">${cancelReason}</span>
+                    </div>
+                </c:if>
                 <div class="detail-item">
                     <label>Priority</label>
                     <span
@@ -684,17 +692,9 @@
                 <a href="${pageContext.request.contextPath}/incident?action=edit&id=${incident.ticketId}"
                    class="btn btn-warning">Edit</a>
                 
-                <!-- Cancel Button for User (Reported By) -->
+                <!-- Cancel Button for User (Reported By) and Admin -->
                 <c:if test="${incident.status ne 'CANCELLED' and incident.status ne 'CLOSED' 
-                              and sessionScope.user.userId == incident.reportedBy}">
-                    <button type="button" class="btn btn-danger" onclick="openCancelModal()">
-                        Cancel
-                    </button>
-                </c:if>
-                
-                <!-- Cancel Button for Admin (System Admin) -->
-                <c:if test="${incident.status ne 'CANCELLED' and incident.status ne 'CLOSED' 
-                              and sessionScope.user.roleId == 10}">
+                              and (sessionScope.user.userId == incident.reportedBy or sessionScope.user.roleId == 10)}">
                     <button type="button" class="btn btn-danger" onclick="openCancelModal()">
                         Cancel
                     </button>
@@ -719,7 +719,7 @@
             <c:set var="hasFeedback" value="${feedbackDAO.hasFeedback(incident.ticketId)}" />
             <c:if test="${not hasFeedback}">
                 <div id="surveySection">
-                    <jsp:include page="feedback-form.jsp" />
+                    <jsp:include page="simple-feedback.jsp" />
                 </div>
             </c:if>
         </c:if>
@@ -937,7 +937,7 @@
                             </div>
                             <div class="reason-option" onclick="selectReason('Vấn đề đã được giải quyết qua kênh khác')">
                                 <input type="radio" name="cancelReason" value="Vấn đề đã được giải quyết qua kênh khác">
-                                <span>Vấn đề đã được giải quyết qua kênh khác</span>
+                                <span>Vấn đề đã được giải quyết</span>
                             </div>
                             <div class="reason-option" onclick="selectReason('Lý do khác')">
                                 <input type="radio" name="cancelReason" value="Lý do khác">

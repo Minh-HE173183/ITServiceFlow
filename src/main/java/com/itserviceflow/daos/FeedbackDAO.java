@@ -21,7 +21,19 @@ public class FeedbackDAO {
             ps.setInt(2, feedback.getUserId());
             ps.setInt(3, feedback.getAgentId());
             ps.setInt(4, feedback.getRating());
-            ps.setString(5, feedback.getFeedbackText());
+            
+            // Xử lý feedback_text an toàn
+            String feedbackText = feedback.getFeedbackText();
+            if (feedbackText == null) {
+                feedbackText = "";
+            }
+            // Cắt ngắn nếu quá dài (giới hạn 250 ký tự để an toàn)
+            if (feedbackText.length() > 250) {
+                feedbackText = feedbackText.substring(0, 250);
+            }
+            // Encode lại để tránh lỗi charset
+            feedbackText = feedbackText.replace("\n", " ").replace("\r", " ").trim();
+            ps.setString(5, feedbackText);
             
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -71,5 +83,77 @@ public class FeedbackDAO {
             e.printStackTrace();
         }
         return false;
+    }
+    
+    public int getTotalFeedbackCount() {
+        String sql = "SELECT COUNT(*) FROM feedback";
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+    public int getSatisfiedFeedbackCount() {
+        String sql = "SELECT COUNT(*) FROM feedback WHERE rating = 1";
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+    public java.util.Map<String, Integer> getFeedbackCountByAgent() {
+        java.util.Map<String, Integer> result = new java.util.HashMap<>();
+        String sql = "SELECT u.username, COUNT(*) as count FROM feedback f " +
+                    "JOIN users u ON f.agent_id = u.user_id " +
+                    "GROUP BY f.agent_id, u.username " +
+                    "ORDER BY count DESC";
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.put(rs.getString("username"), rs.getInt("count"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+    
+    public java.util.Map<String, Integer> getFeedbackCountByTime() {
+        java.util.Map<String, Integer> result = new java.util.HashMap<>();
+        String sql = "SELECT DATE(submitted_at) as date, COUNT(*) as count FROM feedback " +
+                    "WHERE submitted_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) " +
+                    "GROUP BY DATE(submitted_at) " +
+                    "ORDER BY date DESC";
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.put(rs.getString("date"), rs.getInt("count"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 }

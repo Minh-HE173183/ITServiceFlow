@@ -410,12 +410,15 @@
                                 <label for="status">
                                     Status
                                 </label>
-                                <select id="status" name="status" class="form-control">
-                                    <option value="NEW" ${incident.status=='NEW' ? 'selected' : ''}>🆕 New</option>
-                                    <option value="IN_PROGRESS" ${incident.status=='IN_PROGRESS' ? 'selected' : ''}>🔄 In Progress</option>
-                                    <option value="RESOLVED" ${incident.status=='RESOLVED' ? 'selected' : ''}>✅ Resolved</option>
-                                    <option value="CANCELLED" ${incident.status=='CANCELLED' ? 'selected' : ''}>❌ Cancelled</option>
-                                </select>
+                            <select id="status" name="status" class="form-control">
+                                <option value="NEW" ${incident.status=='NEW' ? 'selected' : ''}>🆕 New</option>
+                                <option value="IN_PROGRESS" ${incident.status=='IN_PROGRESS' ? 'selected' : ''}>🔄 In Progress</option>
+                                <option value="RESOLVED" ${incident.status=='RESOLVED' ? 'selected' : ''}>✅ Resolved</option>
+                                <c:if test="${sessionScope.user.roleId != 1}">
+                                    <option value="CLOSED" ${incident.status=='CLOSED' ? 'selected' : ''}>🔒 Closed</option>
+                                </c:if>
+                                <option value="CANCELLED" ${incident.status=='CANCELLED' ? 'selected' : ''}>❌ Cancelled</option>
+                            </select>
                                 <div class="help-text">Update status as you work on the incident</div>
                             </div>
                         </c:if>
