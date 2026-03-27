@@ -834,10 +834,6 @@
                                                 <span>Hành động: <span class="text-primary fw-semibold">\${s.action}</span></span>
                                             </div>
                                         </div>
-                                        <div class="text-end">
-                                            <div class="small text-muted">SLA</div>
-                                            <div class="fw-bold text-warning">\${s.sla_hours}h</div>
-                                        </div>
                                     </div>`;
                                                                 });
                                                                 html += `</div></div>`;

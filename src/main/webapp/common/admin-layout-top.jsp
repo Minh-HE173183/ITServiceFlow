@@ -131,10 +131,15 @@
         </div>
         <ul class="sidebar-menu">
             <!-- Dashboard placed at top for quick access -->
-            <a href="${pageContext.request.contextPath}/dashboard"
-               class="menu-item ${pageContext.request.requestURI.contains('/dashboard') ? 'active' : ''}">
-                <i class="bi bi-speedometer2"></i> Bảng điều khiển
-            </a>
+                <a href="${pageContext.request.contextPath}/dashboard"
+                   class="menu-item ${pageContext.request.requestURI.contains('/dashboard') ? 'active' : ''}">
+                    <i class="bi bi-speedometer2"></i> Bảng điều khiển
+                </a>
+                <a href="${pageContext.request.contextPath}/home"
+                   class="menu-item ${pageContext.request.requestURI.contains('/home/') ? 'active' : ''}">
+                    <i class="bi bi-house-door-fill"></i> Trang chủ
+                </a>
+            <c:if test="${not empty sessionScope.user and sessionScope.user.roleId == 10}">
             <li class="menu-header">Hệ thống</li>
             <a href="${pageContext.request.contextPath}/admin/users"
                class="menu-item ${pageContext.request.requestURI.endsWith('/admin/users.jsp') ? 'active' : ''}">
@@ -150,7 +155,9 @@
             </a>
             <a href="#" class="menu-item"><i class="bi bi-shield-lock"></i> Danh sách Quyền</a>
             <a href="#" class="menu-item"><i class="bi bi-gear"></i> Cấu hình hệ thống</a>
+            </c:if>
 
+            <c:if test="${not empty sessionScope.user and sessionScope.user.roleName ne 'End-user'}">
             <li class="menu-header">Ticket Management</li>
             <a href="${pageContext.request.contextPath}/incident?action=list"
                class="menu-item ${pageContext.request.requestURI.contains('/incident/') ? 'active' : ''}">
@@ -185,12 +192,16 @@
                class="menu-item ${pageContext.request.requestURI.contains('/ticket-category') ? 'active' : ''}">
                 <i class="bi bi-tags"></i> Ticket Categories
             </a>
+            </c:if>
 
             <li class="menu-header">Reports &amp; Analytics</li>
+            <c:if test="${not empty sessionScope.user and sessionScope.user.roleName ne 'End-user'}">
             <a href="${pageContext.request.contextPath}/time-tracking"
                class="menu-item ${pageContext.request.requestURI.contains('/time-tracking') ? 'active' : ''}">
                 <i class="bi bi-clock-history"></i> Quản lý Time Log
-            </a>        </ul>
+            </a>
+            </c:if>
+        </ul>
     </div>
 
     <div class="admin-main">
@@ -201,6 +212,7 @@
                 <span class="fw-bold">
                     <c:choose>
                         <c:when test="${pageContext.request.requestURI.contains('/dashboard')}">Bảng điều khiển</c:when>
+                        <c:when test="${pageContext.request.requestURI.contains('/home/')}">Trang chủ</c:when>
                         <c:when test="${pageContext.request.requestURI.contains('/admin/users')}">Quản lý người dùng</c:when>
                         <c:when test="${pageContext.request.requestURI.contains('/workflows')}">Quản lý Workflow</c:when>
                         <c:when test="${pageContext.request.requestURI.contains('/ticket-category')}">Ticket Categories</c:when>
