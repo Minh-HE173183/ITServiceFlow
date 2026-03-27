@@ -80,11 +80,27 @@ public class FeedbackServlet extends HttpServlet {
         Feedback feedback = new Feedback();
         feedback.setTicketId(ticketId);
         feedback.setUserId(currentUser.getUserId());
-        feedback.setAgentId(ticket.getAssignedTo()); // Agent xử lý ticket
+        // Fix null pointer: chuyển Integer null sang int 0
+        Integer assignedTo = ticket.getAssignedTo();
+        int agentId = (assignedTo != null) ? assignedTo : 0;
+        feedback.setAgentId(agentId);
         feedback.setRating(rating);
         feedback.setFeedbackText(feedbackText);
         
+        // Debug thông tin feedback
+        System.out.println("=== DEBUG FEEDBACK ===");
+        System.out.println("Ticket ID: " + ticketId);
+        System.out.println("User ID: " + currentUser.getUserId());
+        System.out.println("Agent ID: " + agentId);
+        System.out.println("Rating: " + rating);
+        System.out.println("Feedback Text: " + feedbackText);
+        System.out.println("Ticket Status: " + ticket.getStatus());
+        System.out.println("Ticket AssignedTo: " + ticket.getAssignedTo());
+        System.out.println("=====================");
+        
         boolean saved = feedbackDAO.saveFeedback(feedback);
+        System.out.println("Save result: " + saved);
+        
         String param = saved ? "&feedbackSuccess=1" : "&feedbackError=saveFailed";
         response.sendRedirect(request.getContextPath() + "/incident?action=detail&id=" + ticketId + param);
     }

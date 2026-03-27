@@ -719,7 +719,7 @@
             <c:set var="hasFeedback" value="${feedbackDAO.hasFeedback(incident.ticketId)}" />
             <c:if test="${not hasFeedback}">
                 <div id="surveySection">
-                    <jsp:include page="feedback-form.jsp" />
+                    <jsp:include page="simple-feedback.jsp" />
                 </div>
             </c:if>
         </c:if>
@@ -937,7 +937,7 @@
                             </div>
                             <div class="reason-option" onclick="selectReason('Vấn đề đã được giải quyết qua kênh khác')">
                                 <input type="radio" name="cancelReason" value="Vấn đề đã được giải quyết qua kênh khác">
-                                <span>Vấn đề đã được giải quyết qua kênh khác</span>
+                                <span>Vấn đề đã được giải quyết</span>
                             </div>
                             <div class="reason-option" onclick="selectReason('Lý do khác')">
                                 <input type="radio" name="cancelReason" value="Lý do khác">
